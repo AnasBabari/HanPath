@@ -29,8 +29,10 @@ export interface Exercise {
   type: ExerciseType;
   prompt: string;
   promptAudio?: string;
+  promptPinyin?: string;
   hint?: string;
   options: string[];
+  optionsPinyin?: string[];
   answer: string;
   bank?: string[];
 }
@@ -56,7 +58,7 @@ export interface Unit {
 
 /* ---- Config ---- */
 
-const WORDS_PER_LESSON = 6;
+const WORDS_PER_LESSON = 4;
 const LESSONS_PER_UNIT = 5;
 
 const UNIT_NAMES = [
@@ -82,12 +84,39 @@ function pick<T>(arr: T[], n: number, exclude?: T): T[] {
   return shuffle(pool).slice(0, n);
 }
 
+/**
+ * Cleans a raw meaning into a short, practical, easy-to-remember definition.
+ * "to love; to be fond of; to like" → "to love"
+ * "(coll.) father; dad" → "father"
+ * "bar (loanword) (serving drinks...)" → "bar"
+ */
+function cleanMeaning(raw: string[]): string {
+  // Pick the shortest, most practical meaning
+  const candidates = raw
+    .flatMap(m => m.split(';'))
+    .map(m => m.trim())
+    .filter(m => m.length > 0)
+    // Remove parenthetical-only entries like "(sth)"
+    .filter(m => !/^\(.*\)$/.test(m))
+    // Strip leading parentheticals: "(coll.) father" → "father"
+    .map(m => m.replace(/^\([^)]*\)\s*/g, '').trim())
+    // Strip trailing parentheticals: "bar (loanword)" → "bar"
+    .map(m => m.replace(/\s*\([^)]*\)\s*$/g, '').trim())
+    .filter(m => m.length > 0);
+
+  if (!candidates.length) return raw[0] || '';
+
+  // Prefer short entries (< 20 chars), otherwise take first
+  const short = candidates.filter(c => c.length <= 20);
+  return (short.length ? short[0] : candidates[0]);
+}
+
 function toCard(w: HSKWord): VocabCard {
   return {
     id: w.id,
     hanzi: w.hanzi,
     pinyin: w.pinyin,
-    meaning: w.meanings.slice(0, 2).join('; '),
+    meaning: cleanMeaning(w.meanings),
     hskLevel: w.hskLevel,
   };
 }
@@ -100,61 +129,66 @@ function genExercises(words: VocabCard[], allCards: VocabCard[], lessonId: strin
   const ex: Exercise[] = [];
   let n = 0;
 
+  // Build a pinyin lookup for hanzi options
+  const pinyinMap = new Map(allCards.map(c => [c.hanzi, c.pinyin]));
+
   for (const w of words) {
-    // Reading: hanzi → meaning  (most important for reading)
+    // 1. Reading: hanzi → meaning (core reading skill)
     ex.push({
       id: `${lessonId}-e${n++}`, type: 'reading-meaning',
-      prompt: w.hanzi, hint: 'What does this mean?',
+      prompt: w.hanzi, promptPinyin: w.pinyin,
+      hint: 'What does this mean?',
       options: shuffle([w.meaning, ...pick(allM, 3, w.meaning)]),
       answer: w.meaning,
     });
 
-    // Reading: meaning → hanzi
+    // 2. Listening: hear → pick hanzi (core listening skill)
+    const listenHanziOpts = shuffle([w.hanzi, ...pick(allH, 3, w.hanzi)]);
+    ex.push({
+      id: `${lessonId}-e${n++}`, type: 'listening-select',
+      prompt: 'Listen and select',
+      promptAudio: w.hanzi,
+      options: listenHanziOpts,
+      optionsPinyin: listenHanziOpts.map(h => pinyinMap.get(h) || ''),
+      answer: w.hanzi,
+    });
+  }
+
+  // 3. One reading-hanzi (meaning → hanzi) for half the words
+  for (const w of shuffle(words).slice(0, Math.ceil(words.length / 2))) {
+    const opts = shuffle([w.hanzi, ...pick(allH, 3, w.hanzi)]);
     ex.push({
       id: `${lessonId}-e${n++}`, type: 'reading-hanzi',
       prompt: w.meaning, hint: 'Choose the correct characters',
-      options: shuffle([w.hanzi, ...pick(allH, 3, w.hanzi)]),
+      options: opts,
+      optionsPinyin: opts.map(h => pinyinMap.get(h) || ''),
       answer: w.hanzi,
-    });
-
-    // Listening: hear → pick hanzi
-    ex.push({
-      id: `${lessonId}-e${n++}`, type: 'listening-select',
-      prompt: 'Listen and select the correct characters',
-      promptAudio: w.hanzi,
-      options: shuffle([w.hanzi, ...pick(allH, 3, w.hanzi)]),
-      answer: w.hanzi,
-    });
-
-    // Listening: hear → pick meaning
-    ex.push({
-      id: `${lessonId}-e${n++}`, type: 'listening-meaning',
-      prompt: 'What does this word mean?',
-      promptAudio: w.hanzi,
-      options: shuffle([w.meaning, ...pick(allM, 3, w.meaning)]),
-      answer: w.meaning,
     });
   }
 
-  // Pinyin typing for half the words
-  for (const w of shuffle(words).slice(0, Math.ceil(words.length / 2))) {
+  // 4. One pinyin typing exercise
+  const pWord = shuffle(words)[0];
+  if (pWord) {
     ex.push({
       id: `${lessonId}-e${n++}`, type: 'pinyin-type',
-      prompt: w.hanzi, hint: 'Type the pinyin',
-      options: [], answer: w.pinyin,
+      prompt: pWord.hanzi, hint: 'Type the pinyin',
+      options: [], answer: pWord.pinyin,
     });
   }
 
-  // Compose for multi-char words
-  for (const w of words.filter(w => w.hanzi.length >= 2).slice(0, 2)) {
-    const chars = w.hanzi.split('');
+  // 5. One compose for a multi-char word (if any)
+  const composeWord = words.find(w => w.hanzi.length >= 2);
+  if (composeWord) {
+    const chars = composeWord.hanzi.split('');
     const extras = shuffle(
-      allCards.filter(c => c.hanzi !== w.hanzi).flatMap(c => c.hanzi.split('')).filter(c => !chars.includes(c))
+      allCards.filter(c => c.hanzi !== composeWord.hanzi)
+        .flatMap(c => c.hanzi.split(''))
+        .filter(c => !chars.includes(c))
     ).slice(0, 2);
     ex.push({
       id: `${lessonId}-e${n++}`, type: 'compose',
-      prompt: w.meaning, hint: w.pinyin,
-      options: [], answer: w.hanzi, bank: shuffle([...chars, ...extras]),
+      prompt: composeWord.meaning, hint: composeWord.pinyin,
+      options: [], answer: composeWord.hanzi, bank: shuffle([...chars, ...extras]),
     });
   }
 

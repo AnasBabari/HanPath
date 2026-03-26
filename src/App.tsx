@@ -536,6 +536,7 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
         ) : (
           <>
             <p className="prompt-main">{ex.prompt}</p>
+            {ex.promptPinyin && <p className="prompt-pinyin">{ex.promptPinyin}</p>}
             {ex.hint && <p className="prompt-hint">{ex.hint}</p>}
           </>
         )}
@@ -551,7 +552,12 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
               disabled={locked}
               onClick={() => setChoice(i)}
             >
-              {isHanziOptions ? <span className="hanzi-option">{opt}</span> : opt}
+              {isHanziOptions ? (
+                <div className="hanzi-option-wrap">
+                  <span className="hanzi-option">{opt}</span>
+                  {ex.optionsPinyin?.[i] && <span className="option-pinyin">{ex.optionsPinyin[i]}</span>}
+                </div>
+              ) : opt}
             </button>
           ))}
         </div>
