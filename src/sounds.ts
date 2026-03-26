@@ -11,7 +11,7 @@ function ac(): AudioContext {
     }
     ctx = new AudioContextClass();
   }
-  return ctx;
+  return ctx as AudioContext;
 }
 
 export function playCorrect() {
