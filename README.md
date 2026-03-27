@@ -4,8 +4,8 @@ A personal-use, Duolingo-style Chinese learning app built to focus on real readi
 
 ## What it includes
 
-- **Real HSK Vocabulary**: Fetches ~500+ HSK Level 1 words from an open-source dataset.
-- **Linear Progression**: A structured path where lessons unlock sequentially.
+- **AI Chat Buddy**: Practice conversing with an AI that dynamically checks your grammar using your own Gemini SDK Key.
+- **Graded Stories**: Read original HSK 1/HSK 2 graded passages with an interactive click-to-translate dictionary.
 - **Micro-Learning Format**: Short, fast-paced lessons (exactly 4 words per lesson).
 - **Mixed Exercise Types** (focusing on reading & listening):
   - Meaning select (character → English)
@@ -14,15 +14,17 @@ A personal-use, Duolingo-style Chinese learning app built to focus on real readi
   - Listening meaning (audio → English)
   - Pinyin typing
   - Character composition
-- **Bilingual Prompts**: Pinyin displays seamlessly under characters to reinforce pronunciation context.
+- **Spaced Repetition System (SRS)**: The practice tab prioritizes vocabulary reviews using a modified SM-2 algorithm. 
+- **Daily Quests**: Unique deterministic challenges each day to earn bonus XP.
+- **Real HSK Vocabulary**: Fetches ~500+ HSK Level 1 words from an open-source dataset.
 - **Gamification Mechanics**: XP rewards, level-ups, unlocking achievements, and a daily streak tracker.
-- **No Hearts System**: Practice as much as you want with unlimited attempts.
 - **Local Persistence**: Saves all your streak data, unlocked achievements, and lesson progress directly to your local browser storage.
 
 ## Tech stack
 
 - React + TypeScript
 - Vite
+- Google Generative AI SDK (Gemini)
 - Web Speech API (for Text-To-Speech)
 - Web Audio API (for seamless SFX without external media files)
 
@@ -44,7 +46,8 @@ npm run preview
 
 ## Personal data storage
 
-Progress and cached vocabulary are stored safely within your browser under local storage keys.
+Progress and cached vocabulary are stored safely within your browser under local storage keys. The AI feature requests your Gemini API key strictly from the Profile page and never calls external servers other than Google officially.
+
 The primary progress key is:
 
 - `hanpath-progress-v2`

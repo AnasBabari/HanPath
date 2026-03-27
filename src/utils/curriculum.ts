@@ -4,57 +4,7 @@
  * Heavy emphasis on reading and listening exercises for beginners.
  */
 
-import type { HSKWord } from './api';
-
-/* ---- Types ---- */
-
-export type ExerciseType =
-  | 'reading-meaning'   // See hanzi → pick English meaning
-  | 'reading-hanzi'     // See English → pick correct hanzi
-  | 'listening-select'  // Hear word → pick correct hanzi
-  | 'listening-meaning' // Hear word → pick English meaning
-  | 'pinyin-type'       // See hanzi → type pinyin
-  | 'compose';          // Build word from character tiles
-
-export interface VocabCard {
-  id: string;
-  hanzi: string;
-  pinyin: string;
-  meaning: string;
-  hskLevel: number;
-}
-
-export interface Exercise {
-  id: string;
-  type: ExerciseType;
-  prompt: string;
-  promptAudio?: string;
-  promptPinyin?: string;
-  hint?: string;
-  options: string[];
-  optionsPinyin?: string[];
-  answer: string;
-  bank?: string[];
-}
-
-export interface Lesson {
-  id: string;
-  unitId: string;
-  index: number;
-  title: string;
-  summary: string;
-  vocab: VocabCard[];
-  exercises: Exercise[];
-}
-
-export interface Unit {
-  id: string;
-  hskLevel: number;
-  index: number;
-  title: string;
-  description: string;
-  lessons: Lesson[];
-}
+import type { HSKWord, VocabCard, Exercise, Lesson, Unit } from '../types';
 
 /* ---- Config ---- */
 
