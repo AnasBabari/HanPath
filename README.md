@@ -1,52 +1,79 @@
 # HànPath (汉路)
 
-A personal-use, Duolingo-style Chinese learning app built to focus on real reading and listening progression without the friction of a heart system.
+A personal-use, Duolingo-style Chinese learning app focused on practical reading, listening, and speaking momentum.
 
-## What it includes
+## Highlights
 
-- **AI-Powered Learning (OpenRouter)**:
-  - **Chat Buddy**: Practice conversing with an AI that dynamically checks your grammar. (Strictly Hanzi/English only).
-  - **Visual Mnemonics**: Generate creative memory tips for any HSK word in the Review tab.
-  - **"Explain Why"**: Get instant, encouraging AI feedback when you get an exercise wrong.
-- **Graded Stories**: Interactive click-to-translate stories tailored for HSK 1/2, including practical everyday scenarios like ordering food or taxi rides.
-- **Practical-First Curriculum**: HSK 1 vocabulary is reordered to prioritize high-frequency, everyday words (greetings, eating, drinking) over strict academic order.
-- **Premium Discovery UI**: A beautiful dark gradient interface where upcoming lesson vocabulary is hidden until reached, creating a "surprise" discovery flow.
-- **Flashcard Review & SRS**: Specialized drills like "Trouble Words" and SM-2 based spaced repetition.
-- **AI Usage Controls**: Built-in tracking of daily AI calls. No app-side daily limit; strictly uses your own OpenRouter quota.
-- **Mixed Exercise Types**: 7+ specialized drills across reading, listening, writing, and character composition.
-- **Gamification Mechanics**: XP rewards, level-ups, unlocking achievements, and a daily streak tracker.
-- **Privacy & Local Persistence**: All progress, streaks, and API keys are stored locally in your browser. No external servers other than official Google APIs.
+- AI-powered chat and feedback via OpenRouter
+- Auto-router that cycles through free models until one responds
+- Interactive HSK stories with click-to-translate flow
+- Practical-first HSK curriculum ordering
+- Flashcard review with spaced repetition support
+- XP, levels, streaks, and achievements
+- Local-first persistence for progress and settings
 
-## Tech stack
+## Tech Stack
 
 - React + TypeScript
 - Vite
-- OpenRouter API (using Qwen free models)
-- Web Speech API (for Text-To-Speech)
-- Web Audio API (for seamless SFX without external media files)
+- OpenRouter Chat Completions API
+- Web Speech API (TTS)
+- Web Audio API (SFX)
 
-## Run locally
+## Environment Setup
+
+1. Copy .env.example to .env.
+2. Add your OpenRouter API key.
+3. Optionally define your own prioritized free model list.
+
+Required variable:
+
+- VITE_OPENROUTER_API_KEY
+
+Optional variable:
+
+- VITE_OPENROUTER_FREE_MODELS
+
+Example:
+
+```env
+VITE_OPENROUTER_API_KEY=sk-or-v1-your-key
+VITE_OPENROUTER_FREE_MODELS=arcee-ai/trinity-large-preview:free,qwen/qwen3-4b:free,qwen/qwen3-coder:free
+```
+
+## OpenRouter Auto-Routing Behavior
+
+When chat runs in auto/free mode, the app:
+
+1. Reads your optional VITE_OPENROUTER_FREE_MODELS list.
+2. Merges it with built-in fallback free models.
+3. Pulls the latest free model catalog from OpenRouter.
+4. Tries models one by one until one succeeds.
+5. Stores the last working free model in local storage and prioritizes it next time.
+
+## Local Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open the local URL shown in your terminal (typically `http://localhost:5173`).
+Open the local URL shown in the terminal (typically http://localhost:5173).
 
-## Build for production
+## Production Build
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Personal data storage
+## Data Storage
 
-Progress and cached vocabulary are stored safely within your browser under local storage keys. The AI feature requests your OpenRouter API key strictly from the Profile page and never calls external servers other than OpenRouter officially.
+No backend database is used. Progress and app state are stored in browser local storage.
 
-The primary progress key is:
+Relevant keys include:
 
-- `hanpath-progress-v2`
+- hanpath-progress-v2
+- hanpath-last-working-free-model
 
-To reset all learning progress completely, go to the **Profile** tab inside the app and click the "Reset Everything" button, or manually clear your browser's Local Storage via DevTools.
+To reset learning data, open Profile and use Reset Everything, or clear local storage manually in DevTools.
