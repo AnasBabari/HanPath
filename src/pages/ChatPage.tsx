@@ -6,12 +6,25 @@ export default function ChatPage({ onBack, onApiUse }: {
   onBack: () => void, 
   onApiUse?: () => void
 }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', content: "你好！I'm your AI Language Buddy. What would you like to practice today?" }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem('hanpath_chat_history');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return [
+      { role: 'model', content: "你好！I'm your AI Language Buddy. What would you like to practice today?" }
+    ];
+  });
+
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem('hanpath_chat_history', JSON.stringify(messages));
+  }, [messages]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -52,7 +65,6 @@ export default function ChatPage({ onBack, onApiUse }: {
   return (
     <div className="shell" style={{ display: 'flex', flexDirection: 'column', height: '100dvh', paddingBottom: 0 }}>
       <div className="sub-header" style={{ flexShrink: 0 }}>
-        <button className="back-btn" onClick={onBack}>← Back</button>
         <h2>AI Learning Buddy</h2>
       </div>
       
