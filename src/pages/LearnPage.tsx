@@ -93,10 +93,11 @@ function LessonComplete({ lesson, onNext, onHome }: {
 
 /* ---- Main Path Screen ---- */
 export default function LearnPage({ 
-  units, stats, setStats, onNav 
+  units, stats, setStats, onNav, onWordResult
 }: { 
   units: Unit[]; stats: UserStats; setStats: React.Dispatch<React.SetStateAction<UserStats>>;
   onNav: (tab: string) => void;
+  onWordResult?: (wordId: string, correct: boolean) => void;
 }) {
   const [screen, setScreen] = useState<'home' | 'intro' | 'practice' | 'complete'>('home');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
@@ -142,6 +143,8 @@ export default function LearnPage({
     return (
       <ExerciseRunner
         lesson={found.lesson}
+        geminiApiKey={stats.geminiApiKey}
+        onWordResult={onWordResult}
         onExit={() => setScreen('home')}
         onComplete={(correct, total) => {
           setStats(s => {

@@ -42,7 +42,14 @@ export default function ChatPage({ onBack, apiKey }: { onBack: () => void, apiKe
       
       setMessages(prev => [...prev, { role: 'model', content: response.text() }]);
     } catch (err: unknown) {
-      setMessages(prev => [...prev, { role: 'model', content: `Oops, something went wrong: ${(err as Error).message}` }]);
+      const msg = (err as Error).message || 'Unknown error';
+      let cleanMsg = "Oops, something went wrong connecting to the AI. Please try again later.";
+      if (msg.includes('API key not valid') || msg.includes('API key')) {
+        cleanMsg = "Oops, your Gemini API key appears to be invalid or missing. Please double-check it in the Profile tab.";
+      } else if (msg.includes('fetch') || msg.includes('network')) {
+        cleanMsg = "Oops, I couldn't connect to the server. Please check your internet connection and make sure your API key is correct.";
+      }
+      setMessages(prev => [...prev, { role: 'model', content: cleanMsg }]);
     } finally {
       setLoading(false);
     }

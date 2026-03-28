@@ -85,7 +85,7 @@ function genExercises(words: VocabCard[], allCards: VocabCard[], lessonId: strin
   for (const w of words) {
     // 1. Reading: hanzi → meaning (core reading skill)
     ex.push({
-      id: `${lessonId}-e${n++}`, type: 'reading-meaning',
+      id: `${lessonId}-e${n++}`, wordId: w.id, type: 'reading-meaning',
       prompt: w.hanzi, promptPinyin: w.pinyin,
       hint: 'What does this mean?',
       options: shuffle([w.meaning, ...pick(allM, 3, w.meaning)]),
@@ -95,7 +95,7 @@ function genExercises(words: VocabCard[], allCards: VocabCard[], lessonId: strin
     // 2. Listening: hear → pick hanzi (core listening skill)
     const listenHanziOpts = shuffle([w.hanzi, ...pick(allH, 3, w.hanzi)]);
     ex.push({
-      id: `${lessonId}-e${n++}`, type: 'listening-select',
+      id: `${lessonId}-e${n++}`, wordId: w.id, type: 'listening-select',
       prompt: 'Listen and select',
       promptAudio: w.hanzi,
       options: listenHanziOpts,
@@ -108,7 +108,7 @@ function genExercises(words: VocabCard[], allCards: VocabCard[], lessonId: strin
   for (const w of shuffle(words).slice(0, Math.ceil(words.length / 2))) {
     const opts = shuffle([w.hanzi, ...pick(allH, 3, w.hanzi)]);
     ex.push({
-      id: `${lessonId}-e${n++}`, type: 'reading-hanzi',
+      id: `${lessonId}-e${n++}`, wordId: w.id, type: 'reading-hanzi',
       prompt: w.meaning, hint: 'Choose the correct characters',
       options: opts,
       optionsPinyin: opts.map(h => pinyinMap.get(h) || ''),
@@ -120,7 +120,7 @@ function genExercises(words: VocabCard[], allCards: VocabCard[], lessonId: strin
   const pWord = shuffle(words)[0];
   if (pWord) {
     ex.push({
-      id: `${lessonId}-e${n++}`, type: 'pinyin-type',
+      id: `${lessonId}-e${n++}`, wordId: pWord.id, type: 'pinyin-type',
       prompt: pWord.hanzi, hint: 'Type the pinyin',
       options: [], answer: pWord.pinyin,
     });
@@ -136,7 +136,7 @@ function genExercises(words: VocabCard[], allCards: VocabCard[], lessonId: strin
         .filter(c => !chars.includes(c))
     ).slice(0, 2);
     ex.push({
-      id: `${lessonId}-e${n++}`, type: 'compose',
+      id: `${lessonId}-e${n++}`, wordId: composeWord.id, type: 'compose',
       prompt: composeWord.meaning, hint: composeWord.pinyin,
       options: [], answer: composeWord.hanzi, bank: shuffle([...chars, ...extras]),
     });
@@ -215,4 +215,94 @@ export function isLessonUnlocked(id: string, units: Unit[], done: string[]): boo
   const i = flat.findIndex(l => l.id === id);
   if (i <= 0) return true; // first lesson always unlocked
   return done.includes(flat[i - 1].id);
+}
+
+export function genExercisesForVocab(words: VocabCard[], allCards: VocabCard[]): Exercise[] {
+  const padded = allCards.length < 4 ? [...allCards, ...words, ...words] : allCards;
+  return genExercises(words, padded, 'drill-session');
+}
+
+const SENTENCE_DRILLS = [
+  { answer: '我是学生', meaning: 'I am a student', py: 'wǒ shì xuéshēng', tiles: ['我', '是', '学生'] },
+  { answer: '她喝水', meaning: 'She drinks water', py: 'tā hē shuǐ', tiles: ['她', '喝', '水'] },
+  { answer: '我有书', meaning: 'I have a book', py: 'wǒ yǒu shū', tiles: ['我', '有', '书'] },
+  { answer: '他是老师', meaning: 'He is a teacher', py: 'tā shì lǎoshī', tiles: ['他', '是', '老师'] },
+  { answer: '我在家', meaning: 'I am at home', py: 'wǒ zài jiā', tiles: ['我', '在', '家'] },
+  { answer: '我不喝茶', meaning: "I don't drink tea", py: 'wǒ bù hē chá', tiles: ['我', '不', '喝', '茶'] },
+  { answer: '那是什么', meaning: 'What is that?', py: 'nà shì shénme', tiles: ['那', '是', '什么'] },
+  { answer: '我去学校', meaning: 'I go to school', py: 'wǒ qù xuéxiào', tiles: ['我', '去', '学校'] },
+  { answer: '你好吗', meaning: 'How are you?', py: 'nǐ hǎo ma', tiles: ['你', '好', '吗'] },
+  { answer: '我喝咖啡', meaning: 'I drink coffee', py: 'wǒ hē kāfēi', tiles: ['我', '喝', '咖啡'] },
+  { answer: '他们是朋友', meaning: 'They are friends', py: 'tāmen shì péngyǒu', tiles: ['他们', '是', '朋友'] },
+  { answer: '我不是老师', meaning: 'I am not a teacher', py: 'wǒ bùshì lǎoshī', tiles: ['我', '不是', '老师'] }
+];
+
+export function genSentenceBuildExercises(): Exercise[] {
+  const pool = shuffle([...SENTENCE_DRILLS]);
+  const allTiles = Array.from(new Set(pool.flatMap(s => s.tiles)));
+
+  return pool.map((s, i) => {
+    const others = shuffle(allTiles.filter(t => !s.tiles.includes(t))).slice(0, 3);
+    return {
+      id: `sent-${i}`,
+      type: 'sentence-build',
+      prompt: s.meaning,
+      hint: s.py,
+      answer: s.answer,
+      options: [],
+      bank: shuffle([...s.tiles, ...others]),
+    };
+  });
+}
+
+const TONES = [
+  ['ā','á','ǎ','à','a'],
+  ['ē','é','ě','è','e'],
+  ['ī','í','ǐ','ì','i'],
+  ['ō','ó','ǒ','ò','o'],
+  ['ū','ú','ǔ','ù','u'],
+  ['ǖ','ǘ','ǚ','ǜ','ü']
+];
+
+function generateToneDistractors(correctPinyin: string): string[] {
+  const distractors = new Set<string>();
+  distractors.add(correctPinyin);
+
+  let attempts = 0;
+  while (distractors.size < 4 && attempts < 100) {
+    attempts++;
+    let fakePinyin = correctPinyin;
+    for (const group of TONES) {
+      for (const char of group) {
+        if (fakePinyin.includes(char)) {
+          const fakeChar = group[Math.floor(Math.random() * group.length)];
+          fakePinyin = fakePinyin.replace(char, fakeChar);
+        }
+      }
+    }
+    distractors.add(fakePinyin);
+  }
+
+  const fallback = ['mā ma', 'bà ba', 'hěn hǎo', 'bù shì'];
+  while(distractors.size < 4) {
+    distractors.add(fallback[Math.floor(Math.random() * fallback.length)]);
+  }
+
+  return shuffle(Array.from(distractors)).slice(0, 4);
+}
+
+export function genToneDrillExercises(vocab: VocabCard[]): Exercise[] {
+  if (vocab.length === 0) return [];
+  const pool = pick(vocab, 15); 
+  return pool.map((w, i) => {
+    return {
+      id: `tone-${i}`,
+      wordId: w.id,
+      type: 'listening-select',
+      prompt: 'Listen and pick the correct tones',
+      promptAudio: w.hanzi,
+      answer: w.pinyin,
+      options: generateToneDistractors(w.pinyin),
+    };
+  });
 }

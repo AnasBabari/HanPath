@@ -57,6 +57,23 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stats.completedLessons.length, stats.totalXP, stats.streak, stats.wordsLearned, stats.level]);
 
+  const handleWordResult = useCallback((wordId: string, correct: boolean) => {
+    setStats(s => {
+      const prev = s.wordAccuracy[wordId] ?? { correct: 0, total: 0, lastSeen: 0 };
+      return {
+        ...s,
+        wordAccuracy: {
+          ...s.wordAccuracy,
+          [wordId]: {
+            correct: prev.correct + (correct ? 1 : 0),
+            total: prev.total + 1,
+            lastSeen: Date.now(),
+          },
+        },
+      };
+    });
+  }, []);
+
   /* Loading State */
   if (loading) {
     return (
@@ -86,11 +103,11 @@ export default function App() {
     <div className="app-root">
       {toast && <AchievementToast id={toast} onDone={() => setToast(null)} />}
 
-      {tab === 'home' && <LearnPage units={units} stats={stats} setStats={setStats} onNav={(t) => setTab(t as Tab)} />}
-      {tab === 'practice' && <PracticePage units={units} completedLessons={stats.completedLessons} onBack={() => setTab('home')} onXP={(amt) => setStats(s => ({ ...s, totalXP: s.totalXP + amt }))} />}
+      {tab === 'home' && <LearnPage units={units} stats={stats} setStats={setStats} onNav={(t) => setTab(t as Tab)} onWordResult={handleWordResult} />}
+      {tab === 'practice' && <PracticePage units={units} stats={stats} onBack={() => setTab('home')} onXP={(amt) => setStats(s => ({ ...s, totalXP: s.totalXP + amt }))} onWordResult={handleWordResult} onLaunchReview={() => setTab('review')} />}
       {tab === 'stories' && <StoriesPage onBack={() => setTab('home')} />}
       {tab === 'chat' && <ChatPage onBack={() => setTab('home')} apiKey={stats.geminiApiKey} />}
-      {tab === 'review' && <ReviewPage units={units} completedLessons={stats.completedLessons} revealPinyin={stats.revealPinyin} onBack={() => setTab('home')} />}
+      {tab === 'review' && <ReviewPage units={units} completedLessons={stats.completedLessons} revealPinyin={stats.revealPinyin} apiKey={stats.geminiApiKey} onBack={() => setTab('home')} />}
       {tab === 'profile' && 
         <ProfilePage 
           stats={stats} 

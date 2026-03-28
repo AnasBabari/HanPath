@@ -12,7 +12,8 @@ export type ExerciseType =
   | 'listening-select'
   | 'listening-meaning'
   | 'pinyin-type'
-  | 'compose';
+  | 'compose'
+  | 'sentence-build';
 
 export interface VocabCard {
   id: string;
@@ -24,6 +25,7 @@ export interface VocabCard {
 
 export interface Exercise {
   id: string;
+  wordId?: string; // Links back to the VocabCard
   type: ExerciseType;
   prompt: string;
   promptAudio?: string;
