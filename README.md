@@ -4,21 +4,18 @@ A personal-use, Duolingo-style Chinese learning app built to focus on real readi
 
 ## What it includes
 
-- **AI Chat Buddy**: Practice conversing with an AI that dynamically checks your grammar using your own Gemini SDK Key.
-- **Graded Stories**: Read original HSK 1/HSK 2 graded passages with an interactive click-to-translate dictionary.
-- **Micro-Learning Format**: Short, fast-paced lessons (exactly 4 words per lesson).
-- **Mixed Exercise Types** (focusing on reading & listening):
-  - Meaning select (character → English)
-  - Character select (English → character)
-  - Listening select (audio → character)
-  - Listening meaning (audio → English)
-  - Pinyin typing
-  - Character composition
-- **Spaced Repetition System (SRS)**: The practice tab prioritizes vocabulary reviews using a modified SM-2 algorithm. 
-- **Daily Quests**: Unique deterministic challenges each day to earn bonus XP.
-- **Real HSK Vocabulary**: Fetches ~500+ HSK Level 1 words from an open-source dataset.
+- **AI-Powered Learning (Gemini SDK)**:
+  - **Chat Buddy**: Practice conversing with an AI that dynamically checks your grammar. (Strictly Hanzi/English only).
+  - **Visual Mnemonics**: Generate creative memory tips for any HSK word in the Review tab.
+  - **"Explain Why"**: Get instant, encouraging AI feedback when you get an exercise wrong.
+- **Graded Stories**: Interactive click-to-translate stories tailored for HSK 1/2, including practical everyday scenarios like ordering food or taxi rides.
+- **Practical-First Curriculum**: HSK 1 vocabulary is reordered to prioritize high-frequency, everyday words (greetings, eating, drinking) over strict academic order.
+- **Premium Discovery UI**: A beautiful dark gradient interface where upcoming lesson vocabulary is hidden until reached, creating a "surprise" discovery flow.
+- **Flashcard Review & SRS**: Specialized drills like "Trouble Words" and SM-2 based spaced repetition.
+- **AI Usage Controls**: Built-in 50-call daily limit for AI features to manage your Gemini API quota.
+- **Mixed Exercise Types**: 7+ specialized drills across reading, listening, writing, and character composition.
 - **Gamification Mechanics**: XP rewards, level-ups, unlocking achievements, and a daily streak tracker.
-- **Local Persistence**: Saves all your streak data, unlocked achievements, and lesson progress directly to your local browser storage.
+- **Privacy & Local Persistence**: All progress, streaks, and API keys are stored locally in your browser. No external servers other than official Google APIs.
 
 ## Tech stack
 
