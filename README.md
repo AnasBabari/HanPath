@@ -75,19 +75,19 @@ HànPath is engineered as a robust, client-heavy React application focusing on n
 Follow these steps to run HànPath locally:
 
 ### 1. Install & Run
-\\\ash
+```bash
 # Install dependencies
 npm install
 
 # Start the Vite development server
 npm run dev
-\\\
+```
 
 ### 2. Build for Production
-\\\ash
+```bash
 npm run build
 npm run preview
-\\\
+```
 
 > **Note:** Environment credentials for Supabase and the AI pipeline are directly injected at our deployment platform level (Vercel). You **do not** need local .env keys to run the base UI locally, though cloud sync and AI chats will fallback to mocked or local functionality unless connected.
 
