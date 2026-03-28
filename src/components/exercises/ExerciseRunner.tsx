@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { callOpenRouter } from '../../utils/ai';
 import type { Lesson, Exercise } from '../../types';
 import { playCorrect, playWrong } from '../../utils/sounds';
 import { speak, normPinyin } from '../../utils/tts';
 
-export default function ExerciseRunner({ lesson, geminiApiKey, geminiCallsToday = 0, onApiUse, onWordResult, onExit, onComplete }: {
+export default function ExerciseRunner({ lesson, onApiUse, onWordResult, onExit, onComplete }: {
   lesson: Lesson;
-  geminiApiKey?: string | null;
-  geminiCallsToday?: number;
   onApiUse?: () => void;
   onWordResult?: (wordId: string, correct: boolean) => void;
   onExit: () => void;
@@ -40,16 +38,8 @@ export default function ExerciseRunner({ lesson, geminiApiKey, geminiCallsToday 
   const progress = ((idx + (feedback === 'ok' ? 1 : 0)) / total) * 100;
 
   const handleExplain = async () => {
-    if (!geminiApiKey || geminiApiKey.trim().length === 0) return;
-    if (geminiCallsToday >= 50) {
-      setExplanationText("Daily AI limit reached (50/50). Come back tomorrow for more explanations!");
-      return;
-    }
     setExplanationLoading(true);
     try {
-      const genAI = new GoogleGenerativeAI(geminiApiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-      
       let prompt = '';
       if (lastWrongAnswer) {
         prompt = `A beginner Chinese learner saw "${ex.prompt}" and answered "${lastWrongAnswer}" but the correct answer is "${ex.answer}". In 1-2 encouraging sentences, explain why "${ex.answer}" is correct and briefly clarify what "${lastWrongAnswer}" means if it is a real Chinese word. Keep it simple and beginner-friendly.`;
@@ -57,8 +47,8 @@ export default function ExerciseRunner({ lesson, geminiApiKey, geminiCallsToday 
         prompt = `A beginner Chinese learner got this wrong. The question was "${ex.prompt}" and the correct answer is "${ex.answer}". In 1-2 encouraging sentences, explain what this means and give a quick memory tip. Keep it beginner-friendly.`;
       }
       
-      const result = await model.generateContent(prompt);
-      setExplanationText(result.response.text());
+      const response = await callOpenRouter([{ role: 'user', content: prompt }]);
+      setExplanationText(response);
       onApiUse?.();
     } catch (err: unknown) {
       setExplanationText("Could not load explanation — check your API key in Profile.");
@@ -120,15 +110,13 @@ export default function ExerciseRunner({ lesson, geminiApiKey, geminiCallsToday 
             <button className="btn-primary" style={{ width: 'auto', padding: '10px 20px', margin: 0 }} onClick={advance}>Continue</button>
           </div>
           
-          {geminiApiKey && geminiApiKey.trim().length > 10 && (
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-              {!explanationText && !explanationLoading && (
-                <button className="btn-explain" onClick={handleExplain}>💡 Explain Why</button>
-              )}
-              {explanationLoading && <div className="explanation-text" style={{ color: 'rgba(255,255,255,0.7)' }}>Thinking...</div>}
-              {explanationText && <div className="explanation-text" style={{ color: 'rgba(255,255,255,0.9)' }}>{explanationText}</div>}
-            </div>
-          )}
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+            {!explanationText && !explanationLoading && (
+              <button className="btn-explain" onClick={handleExplain}>💡 Explain Why</button>
+            )}
+            {explanationLoading && <div className="explanation-text" style={{ color: 'rgba(255,255,255,0.7)' }}>Thinking...</div>}
+            {explanationText && <div className="explanation-text" style={{ color: 'rgba(255,255,255,0.9)' }}>{explanationText}</div>}
+          </div>
         </div>
       )}
     </div>

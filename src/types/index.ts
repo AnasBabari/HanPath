@@ -95,12 +95,10 @@ export interface UserStats {
   revealPinyin: 'always' | 'peek';
   wordAccuracy: Record<string, WordAccuracy>;
   wordSRS: Record<string, WordSRSData>;
-  geminiApiKey: string | null;
   // Intentionally preserving for quests logic later
   xpToday: number;
   perfectLessonsToday: number;
   streakExtendedToday: boolean;
-  geminiCallsToday: number;
 }
 
 export interface Achievement {

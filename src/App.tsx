@@ -16,6 +16,8 @@ import ProfilePage from './pages/ProfilePage';
 import StoriesPage from './pages/StoriesPage';
 import ChatPage from './pages/ChatPage';
 
+import logo from './assets/logo.png';
+
 /* ---- App Router ---- */
 
 type Tab = 'home' | 'practice' | 'stories' | 'chat' | 'review' | 'profile';
@@ -75,14 +77,14 @@ export default function App() {
   }, []);
 
   const handleApiUse = useCallback(() => {
-    setStats(s => ({ ...s, geminiCallsToday: s.geminiCallsToday + 1 }));
+    // Stat tracking removed
   }, []);
 
   /* Loading State */
   if (loading) {
     return (
       <div className="loading-screen">
-        <div className="brand">汉</div>
+        <img src={logo} alt="HànPath" className="loading-logo" />
         <h1>HànPath</h1>
         <div className="loading-spinner" />
         <p style={{ color: 'var(--text-dim)', fontWeight: 700, fontSize: 13 }}>Loading...</p>
@@ -93,7 +95,7 @@ export default function App() {
   if (error || !units) {
     return (
       <div className="loading-screen">
-        <div className="brand">汉</div>
+        <img src={logo} alt="HànPath" className="loading-logo error" />
         <h1>HànPath</h1>
         <div className="loading-error">
           <p>{error || 'Could not load data'}</p>
@@ -108,16 +110,15 @@ export default function App() {
       {toast && <AchievementToast id={toast} onDone={() => setToast(null)} />}
 
       {tab === 'home' && <LearnPage units={units} stats={stats} setStats={setStats} onWordResult={handleWordResult} onApiUse={handleApiUse} />}
-      {tab === 'practice' && <PracticePage units={units} stats={stats} onBack={() => setTab('home')} onXP={(amt) => setStats(s => ({ ...s, totalXP: s.totalXP + amt }))} onWordResult={handleWordResult} onLaunchReview={() => setTab('review')} />}
+      {tab === 'practice' && <PracticePage units={units} stats={stats} onBack={() => setTab('home')} onXP={(amt) => setStats(s => ({ ...s, totalXP: s.totalXP + amt }))} onWordResult={handleWordResult} onApiUse={handleApiUse} onLaunchReview={() => setTab('review')} />}
       {tab === 'stories' && <StoriesPage onBack={() => setTab('home')} />}
-      {tab === 'chat' && <ChatPage onBack={() => setTab('home')} apiKey={stats.geminiApiKey} geminiCallsToday={stats.geminiCallsToday} onApiUse={handleApiUse} />}
-      {tab === 'review' && <ReviewPage units={units} completedLessons={stats.completedLessons} revealPinyin={stats.revealPinyin} apiKey={stats.geminiApiKey} geminiCallsToday={stats.geminiCallsToday} onApiUse={handleApiUse} onBack={() => setTab('home')} />}
+      {tab === 'chat' && <ChatPage onBack={() => setTab('home')} onApiUse={handleApiUse} />}
+      {tab === 'review' && <ReviewPage units={units} completedLessons={stats.completedLessons} revealPinyin={stats.revealPinyin} onApiUse={handleApiUse} onBack={() => setTab('home')} />}
       {tab === 'profile' && 
         <ProfilePage 
           stats={stats} 
           onBack={() => setTab('home')} 
           onChangeReveal={(m) => setStats(s => ({ ...s, revealPinyin: m }))} 
-          onChangeApiKey={(key) => setStats(s => ({ ...s, geminiApiKey: key }))}
           onReset={() => { resetAll(); setStats(loadStats()); setTab('home'); }} 
         />
       }

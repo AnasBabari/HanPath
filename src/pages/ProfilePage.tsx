@@ -1,12 +1,11 @@
 import type { UserStats } from '../types';
 import { ACHIEVEMENTS } from '../data/achievements';
 
-export default function ProfilePage({ stats, onBack, onChangeReveal, onReset, onChangeApiKey }: {
+export default function ProfilePage({ stats, onBack, onChangeReveal, onReset }: {
   stats: UserStats;
   onBack: () => void;
   onChangeReveal: (m: 'always' | 'peek') => void;
   onReset: () => void;
-  onChangeApiKey: (key: string) => void;
 }) {
   const acc = stats.totalAttempted > 0 ? Math.round((stats.totalCorrect / stats.totalAttempted) * 100) : 0;
 
@@ -52,16 +51,6 @@ export default function ProfilePage({ stats, onBack, onChangeReveal, onReset, on
             <button className={stats.revealPinyin === 'always' ? 'active' : ''} onClick={() => onChangeReveal('always')}>Always</button>
             <button className={stats.revealPinyin === 'peek' ? 'active' : ''} onClick={() => onChangeReveal('peek')}>Tap</button>
           </div>
-        </div>
-        <div className="setting-row" style={{ display: 'block', marginTop: 24 }}>
-          <div className="setting-label">Gemini API Key<span>Required for AI Chat feature locally</span></div>
-          <input 
-            type="password" 
-            placeholder="AIzaSy..." 
-            value={stats.geminiApiKey || ''}
-            onChange={(e) => onChangeApiKey(e.target.value)}
-            style={{ width: '100%', marginTop: 8, padding: '12px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px', color: 'var(--text-main)', fontSize: 16 }}
-          />
         </div>
       </div>
 

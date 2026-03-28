@@ -3,10 +3,11 @@ import type { Unit, UserStats, Exercise, VocabCard } from '../types';
 import { allLessonsFlat, genExercisesForVocab, genSentenceBuildExercises, genToneDrillExercises } from '../utils/curriculum';
 import ExerciseRunner from '../components/exercises/ExerciseRunner';
 
-export default function PracticePage({ units, stats, onBack, onXP, onWordResult, onLaunchReview }: {
+export default function PracticePage({ units, stats, onBack, onXP, onWordResult, onApiUse, onLaunchReview }: {
   units: Unit[]; stats: UserStats;
   onBack: () => void; onXP: (amt: number) => void;
   onWordResult?: (wordId: string, correct: boolean) => void;
+  onApiUse?: () => void;
   onLaunchReview?: () => void;
 }) {
   const [drillMode, setDrillMode] = useState<'menu' | 'weak' | 'random' | 'sentence' | 'tone'>('menu');
@@ -73,10 +74,10 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
           id: 'drill', unitId: 'none', index: 0, title: 'Practice Drill',
           summary: '', vocab: [], exercises: drillExercises
         }}
-        geminiApiKey={stats.geminiApiKey}
         onWordResult={onWordResult}
+        onApiUse={onApiUse}
         onExit={() => setDrillMode('menu')}
-        onComplete={(correct) => {
+        onComplete={(correct, _total) => {
           onXP(correct * 5); // 5 XP per correct in drill
           setDrillExercises([]);
         }}

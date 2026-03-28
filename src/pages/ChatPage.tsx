@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { callOpenRouter } from '../utils/ai';
 import type { ChatMessage } from '../types';
 
-export default function ChatPage({ onBack, apiKey, geminiCallsToday = 0, onApiUse }: { 
+export default function ChatPage({ onBack, onApiUse }: { 
   onBack: () => void, 
-  apiKey: string | null,
-  geminiCallsToday?: number,
   onApiUse?: () => void
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -19,49 +17,33 @@ export default function ChatPage({ onBack, apiKey, geminiCallsToday = 0, onApiUs
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, loading]);
 
-  const hasKey = !!apiKey && apiKey.trim().length > 10;
-
   const handleSend = async () => {
-    if (!input.trim() || !hasKey || loading) return;
+    if (!input.trim() || loading) return;
     
-    if (geminiCallsToday >= 50) {
-      setMessages(prev => [...prev, { role: 'model', content: "Daily AI limit reached (50/50). Let's chat more tomorrow!" }]);
-      setInput('');
-      return;
-    }
-
     const userMsg = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setLoading(true);
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey!);
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        systemInstruction: "You are a friendly, encouraging Chinese learning AI buddy for a beginner student. You MUST converse primarily in simple Chinese characters (Hanzi) and English only. NEVER use Pinyin in your responses. If the user makes a mistake in grammar or word choice, gently point it out in English. Keep your responses short."
-      });
+      const systemPrompt = "You are a friendly, encouraging Chinese learning AI buddy for a beginner student. You MUST converse primarily in simple Chinese characters (Hanzi) and English only. NEVER use Pinyin in your responses. If the user makes a mistake in grammar or word choice, gently point it out in English. Keep your responses short.";
       
-      const history = messages.slice(1).map(m => ({
-        role: m.role,
-        parts: [{ text: m.content }]
+      const history = messages.map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content
       }));
 
-      const chat = model.startChat({ history });
-      const result = await chat.sendMessage(userMsg);
-      const response = await result.response;
+      // Add the current message to history for the call
+      history.push({ role: 'user', content: userMsg });
+
+      const response = await callOpenRouter(history, systemPrompt);
       
-      setMessages(prev => [...prev, { role: 'model', content: response.text() }]);
+      setMessages(prev => [...prev, { role: 'model', content: response }]);
       onApiUse?.();
     } catch (err: unknown) {
       const msg = (err as Error).message || 'Unknown error';
-      let cleanMsg = "Oops, something went wrong connecting to the AI. Please try again later.";
-      if (msg.includes('API key not valid') || msg.includes('API key')) {
-        cleanMsg = "Oops, your Gemini API key appears to be invalid or missing. Please double-check it in the Profile tab.";
-      } else if (msg.includes('fetch') || msg.includes('network')) {
-        cleanMsg = "Oops, I couldn't connect to the server. Please check your internet connection and make sure your API key is correct.";
-      }
-      setMessages(prev => [...prev, { role: 'model', content: cleanMsg }]);
+      console.error("AI Error:", msg);
+      setMessages(prev => [...prev, { role: 'model', content: `Sorry, I hit an error: ${msg}. Please check your connection or .env file.` }]);
     } finally {
       setLoading(false);
     }
@@ -74,37 +56,28 @@ export default function ChatPage({ onBack, apiKey, geminiCallsToday = 0, onApiUs
         <h2>AI Learning Buddy</h2>
       </div>
       
-      {!hasKey ? (
-        <div className="practice-empty">
-          <div className="empty-icon">🤖</div>
-          <p>Please enter your Gemini API Key in the Profile tab to use the AI Chatbot!</p>
-        </div>
-      ) : (
-        <>
-          <div className="chat-container" ref={scrollRef}>
-            {messages.map((m, i) => (
-              <div key={i} className={`chat-message ${m.role === 'user' ? 'user' : 'bot'}`}>
-                {m.content}
-              </div>
-            ))}
-            {loading && <div className="chat-typing">Typing...</div>}
+      <div className="chat-container" ref={scrollRef}>
+        {messages.map((m, i) => (
+          <div key={i} className={`chat-message ${m.role === 'user' ? 'user' : 'bot'}`}>
+            {m.content}
           </div>
-          
-          <div className="chat-input-area" style={{ paddingBottom: 80 }}>
-            <input 
-              className="chat-input"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSend()}
-              placeholder="Type your message..."
-              disabled={loading}
-            />
-            <button className="chat-send-btn" onClick={handleSend} disabled={loading || !input.trim()}>
-              ↑
-            </button>
-          </div>
-        </>
-      )}
+        ))}
+        {loading && <div className="chat-typing">Typing...</div>}
+      </div>
+      
+      <div className="chat-input-area" style={{ paddingBottom: 80 }}>
+        <input 
+          className="chat-input"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSend()}
+          placeholder="Type your message..."
+          disabled={loading}
+        />
+        <button className="chat-send-btn" onClick={handleSend} disabled={loading || !input.trim()}>
+          ↑
+        </button>
+      </div>
     </div>
   );
 }

@@ -143,8 +143,6 @@ export default function LearnPage({
     return (
       <ExerciseRunner
         lesson={found.lesson}
-        geminiApiKey={stats.geminiApiKey}
-        geminiCallsToday={stats.geminiCallsToday}
         onApiUse={onApiUse}
         onWordResult={onWordResult}
         onExit={() => setScreen('home')}

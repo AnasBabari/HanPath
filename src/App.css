@@ -37,10 +37,17 @@
   padding: 32px;
 }
 
-.loading-screen .brand {
-  font-size: 3rem;
-  margin-bottom: 8px;
-  animation: pulse 1.5s ease infinite;
+.loading-screen .loading-logo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 16px;
+  animation: pulse 2s ease infinite;
+  filter: drop-shadow(0 0 20px var(--accent-glow));
+}
+
+.loading-screen .loading-logo.error {
+  filter: grayscale(1) opacity(0.5);
+  animation: none;
 }
 
 .loading-screen h1 {
@@ -97,6 +104,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-container .logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: contain;
 }
 
 .topbar-brand {
@@ -325,12 +345,81 @@
   max-width: 520px;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  background: var(--bg-surface);
+  background: rgba(18, 22, 33, 0.85); /* Semi-transparent for blur */
   border-top: 1px solid var(--border);
   padding: 8px 0 max(8px, env(safe-area-inset-bottom));
   z-index: 100;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
+
+.nav-btn .nav-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  opacity: 0.6;
+  transition: all 0.2s;
+  /* Subtle blur/glow as requested */
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.1));
+}
+
+.nav-btn.active .nav-icon-img {
+  opacity: 1;
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 12px var(--accent-glow));
+}
+
+/* Specific colors and gradients for icons */
+.nav-btn:nth-child(1).active .nav-icon-img { 
+  filter: drop-shadow(0 0 12px rgba(78, 205, 196, 0.8)) drop-shadow(0 0 20px rgba(78, 205, 196, 0.4));
+  color: #4ECDC4;
+} /* Learn - Teal */
+.nav-btn:nth-child(2).active .nav-icon-img { 
+  filter: drop-shadow(0 0 12px rgba(255, 107, 107, 0.8)) drop-shadow(0 0 20px rgba(255, 107, 107, 0.4));
+  color: #FF6B6B;
+} /* Review - Red/Pink */
+.nav-btn:nth-child(3).active .nav-icon-img { 
+  filter: drop-shadow(0 0 12px rgba(255, 230, 109, 0.8)) drop-shadow(0 0 20px rgba(255, 230, 109, 0.4));
+  color: #FFE66D;
+} /* Stories - Yellow */
+.nav-btn:nth-child(4).active .nav-icon-img { 
+  filter: drop-shadow(0 0 12px rgba(255, 159, 67, 0.8)) drop-shadow(0 0 20px rgba(255, 159, 67, 0.4));
+  color: #FF9F43;
+} /* Bot - Orange */
+.nav-btn:nth-child(5).active .nav-icon-img { 
+  filter: drop-shadow(0 0 12px rgba(162, 155, 254, 0.8)) drop-shadow(0 0 20px rgba(162, 155, 254, 0.4));
+  color: #A29BFE;
+} /* Profile - Purple */
+
+/* Apply subtle color tints to inactive icons */
+.nav-btn:nth-child(1) .nav-icon-img {
+  filter: drop-shadow(0 0 2px rgba(78, 205, 196, 0.2));
+}
+.nav-btn:nth-child(2) .nav-icon-img {
+  filter: drop-shadow(0 0 2px rgba(255, 107, 107, 0.2));
+}
+.nav-btn:nth-child(3) .nav-icon-img {
+  filter: drop-shadow(0 0 2px rgba(255, 230, 109, 0.2));
+}
+.nav-btn:nth-child(4) .nav-icon-img {
+  filter: drop-shadow(0 0 2px rgba(255, 159, 67, 0.2));
+}
+.nav-btn:nth-child(5) .nav-icon-img {
+  filter: drop-shadow(0 0 2px rgba(162, 155, 254, 0.2));
+}
+
+.nav-btn .nav-label {
+  font-size: 10px;
+  font-weight: 800;
+  margin-top: 4px;
+  transition: all 0.2s;
+}
+
+.nav-btn:nth-child(1).active .nav-label { color: #4ECDC4; }
+.nav-btn:nth-child(2).active .nav-label { color: #FF6B6B; }
+.nav-btn:nth-child(3).active .nav-label { color: #FFE66D; }
+.nav-btn:nth-child(4).active .nav-label { color: #FF9F43; }
+.nav-btn:nth-child(5).active .nav-label { color: #A29BFE; }
 
 .nav-btn {
   display: flex;
@@ -345,16 +434,34 @@
   transition: color 0.15s;
 }
 
-.nav-btn .nav-icon { font-size: 20px; }
+.nav-btn .nav-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  opacity: 0.6;
+  transition: opacity 0.2s, transform 0.2s, filter 0.2s;
+}
+
+.nav-btn.active .nav-icon-img {
+  opacity: 1;
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 12px var(--accent-glow));
+}
+
 .nav-btn.active { color: var(--accent); }
 
 /* ---- Sub-page header ---- */
 
 .sub-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0 16px;
+  padding: 8px 16px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(18, 22, 33, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  margin: -16px -16px 16px -16px;
 }
 
 .back-btn {
@@ -1154,11 +1261,13 @@
 
 .chat-input-area {
   padding: 16px;
-  background: var(--bg-card);
+  background: rgba(18, 22, 33, 0.8);
   border-top: 1px solid var(--border);
   display: flex;
   gap: 8px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .chat-input {
