@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { callOpenRouter } from '../utils/ai';
 import type { ChatMessage } from '../types';
 
-export default function ChatPage({ onBack, onApiUse }: { 
-  onBack: () => void, 
+export default function ChatPage({ onApiUse }: {
   onApiUse?: () => void
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {

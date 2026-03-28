@@ -175,7 +175,7 @@ export default function App() {
       {tab === 'home' && <LearnPage units={units} stats={stats} setStats={setStats} onWordResult={handleWordResult} onApiUse={handleApiUse} />}
       {tab === 'practice' && <PracticePage units={units} stats={stats} onBack={() => setTab('home')} onXP={(amt) => setStats(s => ({ ...s, totalXP: s.totalXP + amt }))} onWordResult={handleWordResult} onApiUse={handleApiUse} onLaunchReview={() => setTab('review')} />}
       {tab === 'stories' && <StoriesPage onBack={() => setTab('home')} />}
-      {tab === 'chat' && <ChatPage onBack={() => setTab('home')} onApiUse={handleApiUse} />}
+      {tab === 'chat' && <ChatPage onApiUse={handleApiUse} />}
       {tab === 'review' && <ReviewPage units={units} completedLessons={stats.completedLessons} revealPinyin={stats.revealPinyin} onApiUse={handleApiUse} onBack={() => setTab('home')} />}
       {tab === 'profile' && 
         <ProfilePage 
