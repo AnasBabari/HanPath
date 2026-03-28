@@ -53,6 +53,49 @@ const STORIES: HardcodedStory[] = [
       { zh: '吃', py: 'chī', en: 'eat (tasty)' },
       { zh: '。', py: '.', en: '.' }
     ]
+  },
+  {
+    id: 's3', title: '我的早晨 (My Morning)', hskLevel: 1,
+    segments: [
+      { zh: '早上', py: 'zǎo shang', en: 'morning' },
+      { zh: '我', py: 'wǒ', en: 'I' },
+      { zh: '七点', py: 'qī diǎn', en: '7 o\'clock' },
+      { zh: '起床', py: 'qǐ chuáng', en: 'get up' },
+      { zh: '。', py: '.', en: '.' },
+      { zh: '我', py: 'wǒ', en: 'I' },
+      { zh: '喝', py: 'hē', en: 'drink' },
+      { zh: '咖啡', py: 'kā fēi', en: 'coffee' },
+      { zh: '。', py: '.', en: '.' },
+      { zh: '然后', py: 'rán hòu', en: 'then' },
+      { zh: '我', py: 'wǒ', en: 'I' },
+      { zh: '去', py: 'qù', en: 'go to' },
+      { zh: '学校', py: 'xué xiào', en: 'school' },
+      { zh: '。', py: '.', en: '.' }
+    ]
+  },
+  {
+    id: 's4', title: '打车 (Taking a Taxi)', hskLevel: 2,
+    segments: [
+      { zh: '师', py: 'shī', en: 'master' },
+      { zh: '傅', py: 'fu', en: 'shifu / driver' },
+      { zh: '，', py: ',', en: ',' },
+      { zh: '你', py: 'nǐ', en: 'you' },
+      { zh: '好', py: 'hǎo', en: 'good / hello' },
+      { zh: '！', py: '!', en: '!' },
+      { zh: '我', py: 'wǒ', en: 'I' },
+      { zh: '想', py: 'xiǎng', en: 'want to' },
+      { zh: '去', py: 'qù', en: 'go to' },
+      { zh: '机', py: 'jī', en: 'machine' },
+      { zh: '场', py: 'chǎng', en: 'field / airport' },
+      { zh: '。', py: '.', en: '.' },
+      { zh: '没', py: 'méi', en: 'not' },
+      { zh: '问', py: 'wèn', en: 'ask' },
+      { zh: '题', py: 'tí', en: 'problem / okay' },
+      { zh: '。', py: '.', en: '.' },
+      { zh: '请', py: 'qǐng', en: 'please' },
+      { zh: '坐', py: 'zuò', en: 'sit' },
+      { zh: '。', py: '.', en: '.' }
+    ]
   }
 ];
 

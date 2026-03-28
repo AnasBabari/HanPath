@@ -2,9 +2,14 @@ import { useState, useRef, useEffect } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ChatMessage } from '../types';
 
-export default function ChatPage({ onBack, apiKey }: { onBack: () => void, apiKey: string | null }) {
+export default function ChatPage({ onBack, apiKey, geminiCallsToday = 0, onApiUse }: { 
+  onBack: () => void, 
+  apiKey: string | null,
+  geminiCallsToday?: number,
+  onApiUse?: () => void
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', content: "你好！(nǐ hǎo) I'm your AI Language Buddy. What would you like to practice today?" }
+    { role: 'model', content: "你好！I'm your AI Language Buddy. What would you like to practice today?" }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,16 +24,22 @@ export default function ChatPage({ onBack, apiKey }: { onBack: () => void, apiKe
   const handleSend = async () => {
     if (!input.trim() || !hasKey || loading) return;
     
+    if (geminiCallsToday >= 50) {
+      setMessages(prev => [...prev, { role: 'model', content: "Daily AI limit reached (50/50). Let's chat more tomorrow!" }]);
+      setInput('');
+      return;
+    }
+
     const userMsg = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setLoading(true);
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
+      const genAI = new GoogleGenerativeAI(apiKey!);
       const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
-        systemInstruction: "You are a friendly, encouraging Chinese learning AI buddy for a beginner student. You must converse primarily in very simple HSK 1 and HSK 2 level Chinese, ALWAYS accompanied by pinyin in brackets (e.g. 汉语(hàn yǔ)). If the user makes a mistake in grammar or word choice, gently point it out. You can use English to explain concepts, but try to keep the interactive conversation in Chinese as much as possible. Keep your responses short."
+        systemInstruction: "You are a friendly, encouraging Chinese learning AI buddy for a beginner student. You MUST converse primarily in simple Chinese characters (Hanzi) and English only. NEVER use Pinyin in your responses. If the user makes a mistake in grammar or word choice, gently point it out in English. Keep your responses short."
       });
       
       const history = messages.slice(1).map(m => ({
@@ -41,6 +52,7 @@ export default function ChatPage({ onBack, apiKey }: { onBack: () => void, apiKe
       const response = await result.response;
       
       setMessages(prev => [...prev, { role: 'model', content: response.text() }]);
+      onApiUse?.();
     } catch (err: unknown) {
       const msg = (err as Error).message || 'Unknown error';
       let cleanMsg = "Oops, something went wrong connecting to the AI. Please try again later.";

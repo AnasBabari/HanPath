@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { Unit, Lesson, UserStats, Quest } from '../types';
+import type { Unit, Lesson, UserStats } from '../types';
 import { isLessonUnlocked, findLesson, nextLessonId, allLessonsFlat } from '../utils/curriculum';
 import { addXP, bumpStreak, xpProgress } from '../utils/gamification';
 import { getDailyQuests } from '../utils/quests';
@@ -93,11 +93,11 @@ function LessonComplete({ lesson, onNext, onHome }: {
 
 /* ---- Main Path Screen ---- */
 export default function LearnPage({ 
-  units, stats, setStats, onNav, onWordResult
+  units, stats, setStats, onWordResult, onApiUse
 }: { 
   units: Unit[]; stats: UserStats; setStats: React.Dispatch<React.SetStateAction<UserStats>>;
-  onNav: (tab: string) => void;
   onWordResult?: (wordId: string, correct: boolean) => void;
+  onApiUse?: () => void;
 }) {
   const [screen, setScreen] = useState<'home' | 'intro' | 'practice' | 'complete'>('home');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
@@ -109,7 +109,7 @@ export default function LearnPage({
 
   const openLesson = (id: string) => {
     setActiveLessonId(id);
-    setScreen('intro');
+    setScreen('practice'); // Directly to practice
     setStats(s => bumpStreak(s));
   };
 
@@ -144,6 +144,8 @@ export default function LearnPage({
       <ExerciseRunner
         lesson={found.lesson}
         geminiApiKey={stats.geminiApiKey}
+        geminiCallsToday={stats.geminiCallsToday}
+        onApiUse={onApiUse}
         onWordResult={onWordResult}
         onExit={() => setScreen('home')}
         onComplete={(correct, total) => {
@@ -264,7 +266,6 @@ export default function LearnPage({
                     className={`lesson-node ${done ? 'done' : isCurrent ? 'current' : 'locked'}`}
                     onClick={() => unlocked ? openLesson(lesson.id) : undefined}
                     disabled={!unlocked}
-                    title={lesson.summary}
                   >
                     {done ? '✓' : li + 1}
                   </button>

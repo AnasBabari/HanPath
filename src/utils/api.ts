@@ -62,7 +62,12 @@ function parse(raw: Raw, level: number, i: number): HSKWord | null {
   }
 
   if (!pinyin || !m.length) return null;
-  return { id: `hsk${level}-${i}`, hanzi, pinyin, meanings: m, hskLevel: level };
+  
+  // Custom Override for practical/better meanings
+  let finalMeanings = m;
+  if (hanzi === '包子') finalMeanings = ['a bun with filling'];
+
+  return { id: `hsk${level}-${i}`, hanzi, pinyin, meanings: finalMeanings, hskLevel: level };
 }
 
 /* ---------- cache ---------- */

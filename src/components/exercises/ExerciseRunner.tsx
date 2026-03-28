@@ -4,9 +4,11 @@ import type { Lesson, Exercise } from '../../types';
 import { playCorrect, playWrong } from '../../utils/sounds';
 import { speak, normPinyin } from '../../utils/tts';
 
-export default function ExerciseRunner({ lesson, geminiApiKey, onWordResult, onExit, onComplete }: {
+export default function ExerciseRunner({ lesson, geminiApiKey, geminiCallsToday = 0, onApiUse, onWordResult, onExit, onComplete }: {
   lesson: Lesson;
   geminiApiKey?: string | null;
+  geminiCallsToday?: number;
+  onApiUse?: () => void;
   onWordResult?: (wordId: string, correct: boolean) => void;
   onExit: () => void;
   onComplete: (correct: number, total: number) => void;
@@ -39,10 +41,14 @@ export default function ExerciseRunner({ lesson, geminiApiKey, onWordResult, onE
 
   const handleExplain = async () => {
     if (!geminiApiKey || geminiApiKey.trim().length === 0) return;
+    if (geminiCallsToday >= 50) {
+      setExplanationText("Daily AI limit reached (50/50). Come back tomorrow for more explanations!");
+      return;
+    }
     setExplanationLoading(true);
     try {
       const genAI = new GoogleGenerativeAI(geminiApiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       
       let prompt = '';
       if (lastWrongAnswer) {
@@ -53,6 +59,7 @@ export default function ExerciseRunner({ lesson, geminiApiKey, onWordResult, onE
       
       const result = await model.generateContent(prompt);
       setExplanationText(result.response.text());
+      onApiUse?.();
     } catch (err: unknown) {
       setExplanationText("Could not load explanation — check your API key in Profile.");
     } finally {

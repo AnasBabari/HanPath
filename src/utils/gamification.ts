@@ -16,7 +16,8 @@ const DEFAULTS: UserStats = {
   lastStudyDate: null, lastSessionStart: null,
   unlockedAchievements: [], revealPinyin: 'always', wordAccuracy: {},
   wordSRS: {}, geminiApiKey: null,
-  xpToday: 0, perfectLessonsToday: 0, streakExtendedToday: false
+  xpToday: 0, perfectLessonsToday: 0, streakExtendedToday: false,
+  geminiCallsToday: 0
 };
 
 /* ---- XP / Level math ---- */
@@ -74,7 +75,7 @@ export function loadStats(): UserStats {
     if (!raw) return { ...DEFAULTS };
     const p = JSON.parse(raw);
     const s: UserStats = { ...DEFAULTS, ...p };
-    if (s.lastStudyDate !== dateStr()) { s.lessonsCompletedToday = 0; s.minutesStudiedToday = 0; }
+    if (s.lastStudyDate !== dateStr()) { s.lessonsCompletedToday = 0; s.minutesStudiedToday = 0; s.geminiCallsToday = 0; }
     return s;
   } catch { return { ...DEFAULTS }; }
 }

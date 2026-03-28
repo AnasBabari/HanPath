@@ -74,6 +74,10 @@ export default function App() {
     });
   }, []);
 
+  const handleApiUse = useCallback(() => {
+    setStats(s => ({ ...s, geminiCallsToday: s.geminiCallsToday + 1 }));
+  }, []);
+
   /* Loading State */
   if (loading) {
     return (
@@ -103,11 +107,11 @@ export default function App() {
     <div className="app-root">
       {toast && <AchievementToast id={toast} onDone={() => setToast(null)} />}
 
-      {tab === 'home' && <LearnPage units={units} stats={stats} setStats={setStats} onNav={(t) => setTab(t as Tab)} onWordResult={handleWordResult} />}
+      {tab === 'home' && <LearnPage units={units} stats={stats} setStats={setStats} onWordResult={handleWordResult} onApiUse={handleApiUse} />}
       {tab === 'practice' && <PracticePage units={units} stats={stats} onBack={() => setTab('home')} onXP={(amt) => setStats(s => ({ ...s, totalXP: s.totalXP + amt }))} onWordResult={handleWordResult} onLaunchReview={() => setTab('review')} />}
       {tab === 'stories' && <StoriesPage onBack={() => setTab('home')} />}
-      {tab === 'chat' && <ChatPage onBack={() => setTab('home')} apiKey={stats.geminiApiKey} />}
-      {tab === 'review' && <ReviewPage units={units} completedLessons={stats.completedLessons} revealPinyin={stats.revealPinyin} apiKey={stats.geminiApiKey} onBack={() => setTab('home')} />}
+      {tab === 'chat' && <ChatPage onBack={() => setTab('home')} apiKey={stats.geminiApiKey} geminiCallsToday={stats.geminiCallsToday} onApiUse={handleApiUse} />}
+      {tab === 'review' && <ReviewPage units={units} completedLessons={stats.completedLessons} revealPinyin={stats.revealPinyin} apiKey={stats.geminiApiKey} geminiCallsToday={stats.geminiCallsToday} onApiUse={handleApiUse} onBack={() => setTab('home')} />}
       {tab === 'profile' && 
         <ProfilePage 
           stats={stats} 

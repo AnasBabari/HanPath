@@ -76,7 +76,7 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
         geminiApiKey={stats.geminiApiKey}
         onWordResult={onWordResult}
         onExit={() => setDrillMode('menu')}
-        onComplete={(correct, total) => {
+        onComplete={(correct) => {
           onXP(correct * 5); // 5 XP per correct in drill
           setDrillExercises([]);
         }}

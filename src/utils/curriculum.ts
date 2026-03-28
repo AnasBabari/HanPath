@@ -154,10 +154,18 @@ export function buildCurriculum(words: HSKWord[]): Unit[] {
   const cards = words.map(toCard);
   const units: Unit[] = [];
 
+  // Prioritize practical/everyday words
+  const PRACTICAL = ['你好', '再见', '谢谢', '不客气', '对不起', '没关系', '是', '不', '我', '你', '他', '她', '们', '喝', '吃', '水', '饭', '茶', '咖啡', '学生', '老师', '家', '学校', '去', '在', '什么', '哪', '谁', '多', '少'];
+  
+  const prioritizedCards = [
+    ...cards.filter(c => PRACTICAL.includes(c.hanzi)),
+    ...cards.filter(c => !PRACTICAL.includes(c.hanzi))
+  ];
+
   // Split into lessons
   const lessonGroups: VocabCard[][] = [];
-  for (let i = 0; i < cards.length; i += WORDS_PER_LESSON) {
-    lessonGroups.push(cards.slice(i, i + WORDS_PER_LESSON));
+  for (let i = 0; i < prioritizedCards.length; i += WORDS_PER_LESSON) {
+    lessonGroups.push(prioritizedCards.slice(i, i + WORDS_PER_LESSON));
   }
 
   // Group lessons into units
@@ -172,9 +180,9 @@ export function buildCurriculum(words: HSKWord[]): Unit[] {
       return {
         id: lid, unitId: uid, index: li,
         title: `Lesson ${i + li + 1}`,
-        summary: lw.map(w => w.hanzi).join(' · '),
+        summary: '???', // Surprise!
         vocab: lw,
-        exercises: genExercises(lw, cards, lid),
+        exercises: genExercises(lw, prioritizedCards, lid),
       };
     });
 
