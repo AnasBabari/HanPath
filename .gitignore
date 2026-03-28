@@ -28,4 +28,11 @@ dist-ssr
 .env.*
 .envrc
 !.env.example
+
+# Secret material
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
 list_models.js
