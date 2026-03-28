@@ -71,7 +71,7 @@ export default function ExerciseRunner({ lesson, onApiUse, onWordResult, onExit,
       </div>
 
       <ExerciseCard
-        key={`${ex.id}-${feedback}`}
+        key={`${lesson.id}-${idx}`}
         exercise={ex}
         locked={feedback !== 'idle'}
         shake={shake}
@@ -82,7 +82,11 @@ export default function ExerciseRunner({ lesson, onApiUse, onWordResult, onExit,
           playCorrect();
           setShowXP(true);
           setTimeout(() => setShowXP(false), 1000);
-          if (ex.promptAudio || /[\u4e00-\u9fff]/.test(ex.answer)) speak(ex.promptAudio || ex.answer);
+          const shouldSpeakAnswer =
+            ex.type !== 'listening-select' &&
+            ex.type !== 'listening-meaning' &&
+            /[\u4e00-\u9fff]/.test(ex.answer);
+          if (shouldSpeakAnswer) speak(ex.answer);
         }}
         onWrong={(wrongAns) => {
           setFeedback('no');
@@ -130,14 +134,30 @@ export function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }
   const [choice, setChoice] = useState<number | null>(null);
   const [typed, setTyped] = useState('');
   const [bankPick, setBankPick] = useState<number[]>([]);
-  const played = useRef(false);
+  const submitted = useRef(false);
+  const autoPlayTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!played.current && (ex.type === 'listening-select' || ex.type === 'listening-meaning') && ex.promptAudio) {
-      played.current = true;
-      setTimeout(() => speak(ex.promptAudio!), 300);
+    submitted.current = false;
+
+    if (autoPlayTimer.current !== null) {
+      window.clearTimeout(autoPlayTimer.current);
+      autoPlayTimer.current = null;
     }
-  }, [ex]);
+
+    if ((ex.type === 'listening-select' || ex.type === 'listening-meaning') && ex.promptAudio) {
+      autoPlayTimer.current = window.setTimeout(() => {
+        speak(ex.promptAudio!);
+      }, 300);
+    }
+
+    return () => {
+      if (autoPlayTimer.current !== null) {
+        window.clearTimeout(autoPlayTimer.current);
+        autoPlayTimer.current = null;
+      }
+    };
+  }, [ex.id, ex.type, ex.promptAudio]);
 
   const isListening = ex.type === 'listening-select' || ex.type === 'listening-meaning';
   const isMCQ = ex.type === 'reading-meaning' || ex.type === 'reading-hanzi' || ex.type === 'listening-select' || ex.type === 'listening-meaning';
@@ -155,13 +175,18 @@ export function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }
   }[ex.type];
 
   const check = () => {
+    if (locked || submitted.current) return;
+
     if (isMCQ && choice !== null) {
       const selected = ex.options[choice];
+      submitted.current = true;
       selected === ex.answer ? onCorrect() : onWrong(selected);
     } else if (ex.type === 'pinyin-type') {
+      submitted.current = true;
       normPinyin(typed) === normPinyin(ex.answer) ? onCorrect() : onWrong(typed);
     } else if (isTileBuilder) {
       const built = bankPick.map(i => ex.bank![i]).join('');
+      submitted.current = true;
       built === ex.answer ? onCorrect() : onWrong(built);
     }
   };

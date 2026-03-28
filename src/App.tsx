@@ -4,6 +4,7 @@ import { fetchHSKLevel } from './utils/api';
 import { buildCurriculum } from './utils/curriculum';
 import { loadStats, saveStats, checkNewAchievements, resetAll } from './utils/gamification';
 import { playLevelUp } from './utils/sounds';
+import { clearCloudProgress, initCloudProgress, loadCloudProgress, saveCloudProgress } from './utils/cloudProgress';
 import type { Unit, UserStats } from './types';
 
 // Components
@@ -24,6 +25,7 @@ type Tab = 'home' | 'practice' | 'stories' | 'chat' | 'review' | 'profile';
 
 export default function App() {
   const [stats, setStats] = useState<UserStats>(() => loadStats());
+  const [cloudUserId, setCloudUserId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('home');
   const [units, setUnits] = useState<Unit[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,6 +34,51 @@ export default function App() {
 
   /* Persist stats */
   useEffect(() => { saveStats(stats); }, [stats]);
+
+  /* Hydrate cloud profile and migrate local stats on first run */
+  useEffect(() => {
+    let active = true;
+
+    const bootstrapCloud = async () => {
+      try {
+        const userId = await initCloudProgress();
+        if (!active || !userId) return;
+
+        setCloudUserId(userId);
+
+        const cloudStats = await loadCloudProgress(userId);
+        if (!active) return;
+
+        if (cloudStats) {
+          setStats(cloudStats);
+          saveStats(cloudStats);
+          return;
+        }
+
+        await saveCloudProgress(userId, loadStats());
+      } catch (e) {
+        console.error('Cloud sync init failed:', e);
+      }
+    };
+
+    void bootstrapCloud();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  /* Debounced cloud save */
+  useEffect(() => {
+    if (!cloudUserId) return;
+
+    const timer = window.setTimeout(() => {
+      void saveCloudProgress(cloudUserId, stats).catch((e) => {
+        console.error('Cloud save failed:', e);
+      });
+    }, 800);
+
+    return () => window.clearTimeout(timer);
+  }, [cloudUserId, stats]);
 
   /* Fetch HSK vocab on mount */
   const doFetch = useCallback(async () => {
@@ -80,6 +127,22 @@ export default function App() {
     // Stat tracking removed
   }, []);
 
+  const handleReset = useCallback(() => {
+    void (async () => {
+      try {
+        if (cloudUserId) {
+          await clearCloudProgress(cloudUserId);
+        }
+      } catch (e) {
+        console.error('Cloud reset failed:', e);
+      }
+
+      resetAll();
+      setStats(loadStats());
+      setTab('home');
+    })();
+  }, [cloudUserId]);
+
   /* Loading State */
   if (loading) {
     return (
@@ -119,7 +182,7 @@ export default function App() {
           stats={stats} 
           onBack={() => setTab('home')} 
           onChangeReveal={(m) => setStats(s => ({ ...s, revealPinyin: m }))} 
-          onReset={() => { resetAll(); setStats(loadStats()); setTab('home'); }} 
+          onReset={handleReset}
         />
       }
 

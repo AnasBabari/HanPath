@@ -1,5 +1,5 @@
 import homeIcon from '../../assets/tab_home.png';
-import practiceIcon from '../../assets/tab_practice.png';
+import reviewIcon from '../../assets/tab_review.svg';
 import storiesIcon from '../../assets/tab_stories.png';
 import chatIcon from '../../assets/tab_chat.png';
 import profileIcon from '../../assets/tab_profile.png';
@@ -7,7 +7,7 @@ import profileIcon from '../../assets/tab_profile.png';
 export default function BottomNav({ active, onNav }: { active: string; onNav: (name: string) => void }) {
   const items = [
     { name: 'home', icon: homeIcon, label: 'Learn' },
-    { name: 'practice', icon: practiceIcon, label: 'Review' },
+    { name: 'practice', icon: reviewIcon, label: 'Review' },
     { name: 'stories', icon: storiesIcon, label: 'Stories' },
     { name: 'chat', icon: chatIcon, label: 'Bot' },
     { name: 'profile', icon: profileIcon, label: 'Profile' },
