@@ -132,9 +132,13 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
 
   useEffect(() => {
     submitted.current = false;
+    let timer: ReturnType<typeof setTimeout>;
     if ((ex.type === 'listening-select' || ex.type === 'listening-meaning') && ex.promptAudio) {
-      setTimeout(() => speak(ex.promptAudio!), 300);
+      timer = setTimeout(() => speak(ex.promptAudio!), 300);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [ex.id, ex.type, ex.promptAudio]);
 
   const isMCQ = ex.type === 'reading-meaning' || ex.type === 'reading-hanzi' || ex.type === 'listening-select' || ex.type === 'listening-meaning';

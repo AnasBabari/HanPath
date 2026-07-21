@@ -46,12 +46,14 @@ export async function saveCloudProgress(userId: string, stats: UserStats): Promi
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
+  const payload: any = {
+    stats,
+    updated_at: new Date().toISOString(),
+  };
+  payload['user_id'] = userId;
+
   const { error } = await supabase.from(TABLE).upsert(
-    {
-      user_id: userId,
-      stats,
-      updated_at: new Date().toISOString(),
-    },
+    payload,
     { onConflict: 'user_id' }
   );
 
