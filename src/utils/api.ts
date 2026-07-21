@@ -66,9 +66,35 @@ function parse(raw: Raw, level: number, i: number): HSKWord | null {
   // Custom Override for practical/better meanings
   let finalMeanings = m;
   if (hanzi === '包子') finalMeanings = ['a bun with filling'];
+  if (hanzi === '家') finalMeanings = ['home', 'family'];
 
   return { id: `hsk${level}-${i}`, hanzi, pinyin, meanings: finalMeanings, hskLevel: level };
 }
+
+/* ---------- fallbacks ---------- */
+
+const FALLBACK_HSK1: HSKWord[] = [
+  { id: 'hsk1-f1', hanzi: '你好', pinyin: 'nǐ hǎo', meanings: ['hello', 'hi'], hskLevel: 1 },
+  { id: 'hsk1-f2', hanzi: '谢谢', pinyin: 'xiè xie', meanings: ['thanks', 'thank you'], hskLevel: 1 },
+  { id: 'hsk1-f3', hanzi: '不客气', pinyin: 'bù kè qi', meanings: ["you're welcome", "don't be polite"], hskLevel: 1 },
+  { id: 'hsk1-f4', hanzi: '再见', pinyin: 'zài jiàn', meanings: ['goodbye', 'see you again'], hskLevel: 1 },
+  { id: 'hsk1-f5', hanzi: '对不起', pinyin: 'duì bu qǐ', meanings: ['sorry', 'excuse me'], hskLevel: 1 },
+  { id: 'hsk1-f6', hanzi: '没关系', pinyin: 'méi guān xi', meanings: ["it's okay", "it doesn't matter"], hskLevel: 1 },
+  { id: 'hsk1-f7', hanzi: '我', pinyin: 'wǒ', meanings: ['I', 'me'], hskLevel: 1 },
+  { id: 'hsk1-f8', hanzi: '你', pinyin: 'nǐ', meanings: ['you'], hskLevel: 1 },
+  { id: 'hsk1-f9', hanzi: '他', pinyin: 'tā', meanings: ['he', 'him'], hskLevel: 1 },
+  { id: 'hsk1-f10', hanzi: '她', pinyin: 'tā', meanings: ['she', 'her'], hskLevel: 1 },
+  { id: 'hsk1-f11', hanzi: '们', pinyin: 'men', meanings: ['(plural marker for people)'], hskLevel: 1 },
+  { id: 'hsk1-f12', hanzi: '是', pinyin: 'shì', meanings: ['is', 'are', 'am', 'yes'], hskLevel: 1 },
+  { id: 'hsk1-f13', hanzi: '不', pinyin: 'bù', meanings: ['no', 'not'], hskLevel: 1 },
+  { id: 'hsk1-f14', hanzi: '喝', pinyin: 'hē', meanings: ['to drink'], hskLevel: 1 },
+  { id: 'hsk1-f15', hanzi: '吃', pinyin: 'chī', meanings: ['to eat'], hskLevel: 1 },
+  { id: 'hsk1-f16', hanzi: '水', pinyin: 'shuǐ', meanings: ['water'], hskLevel: 1 },
+  { id: 'hsk1-f17', hanzi: '饭', pinyin: 'fàn', meanings: ['meal', 'cooked rice'], hskLevel: 1 },
+  { id: 'hsk1-f18', hanzi: '茶', pinyin: 'chá', meanings: ['tea'], hskLevel: 1 },
+  { id: 'hsk1-f19', hanzi: '咖啡', pinyin: 'kā fēi', meanings: ['coffee'], hskLevel: 1 },
+  { id: 'hsk1-f20', hanzi: '什么', pinyin: 'shén me', meanings: ['what'], hskLevel: 1 },
+];
 
 /* ---------- cache ---------- */
 
@@ -86,15 +112,26 @@ export async function fetchHSKLevel(level: number): Promise<HSKWord[]> {
     }
   } catch { /* ignore */ }
 
-  const r = await fetch(`${HSK_BASE}/${level}.min.json`);
-  if (!r.ok) throw new Error(`HSK ${level} fetch failed (${r.status})`);
+  try {
+    const r = await fetch(`${HSK_BASE}/${level}.min.json`);
+    if (!r.ok) {
+      if (r.status === 429 && level === 1) return FALLBACK_HSK1;
+      throw new Error(`HSK ${level} fetch failed (${r.status})`);
+    }
 
-  const data: Raw[] = await r.json();
-  const words = data.map((d, i) => parse(d, level, i)).filter(Boolean) as HSKWord[];
+    const data: Raw[] = await r.json();
+    const words = data.map((d, i) => parse(d, level, i)).filter(Boolean) as HSKWord[];
 
-  mem.set(level, words);
-  try { localStorage.setItem(key, JSON.stringify(words)); } catch { /* full */ }
-  return words;
+    mem.set(level, words);
+    try { localStorage.setItem(key, JSON.stringify(words)); } catch { /* full */ }
+    return words;
+  } catch (e) {
+    if (level === 1) {
+      console.warn('Using local HSK 1 fallback data');
+      return FALLBACK_HSK1;
+    }
+    throw e;
+  }
 }
 
 export function clearVocabCache() {

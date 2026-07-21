@@ -1,25 +1,25 @@
-import homeIcon from '../../assets/tab_home.png';
-import reviewIcon from '../../assets/tab_review.svg';
-import storiesIcon from '../../assets/tab_stories.png';
-import chatIcon from '../../assets/tab_chat.png';
-import profileIcon from '../../assets/tab_profile.png';
+import { NavLink } from 'react-router-dom';
 
-export default function BottomNav({ active, onNav }: { active: string; onNav: (name: string) => void }) {
-  const items = [
-    { name: 'home', icon: homeIcon, label: 'Learn' },
-    { name: 'practice', icon: reviewIcon, label: 'Review' },
-    { name: 'stories', icon: storiesIcon, label: 'Stories' },
-    { name: 'chat', icon: chatIcon, label: 'Bot' },
-    { name: 'profile', icon: profileIcon, label: 'Profile' },
-  ];
-  
+const NAV_ITEMS = [
+  { path: '/', label: 'Learn', icon: 'home' },
+  { path: '/practice', label: 'Practice', icon: 'fitness_center' },
+  { path: '/stories', label: 'Stories', icon: 'auto_stories' },
+  { path: '/chat', label: 'Chat', icon: 'smart_toy' },
+  { path: '/profile', label: 'Profile', icon: 'person' },
+];
+
+export default function BottomNav() {
   return (
     <nav className="bottom-nav">
-      {items.map(i => (
-        <button key={i.name} className={`nav-btn ${active === i.name ? 'active' : ''}`} onClick={() => onNav(i.name)}>
-          <img src={i.icon} alt={i.label} className="nav-icon-img" />
-          <span className="nav-label">{i.label}</span>
-        </button>
+      {NAV_ITEMS.map((item) => (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}
+        >
+          <span className="material-symbols-outlined">{item.icon}</span>
+          <span className="label">{item.label}</span>
+        </NavLink>
       ))}
     </nav>
   );

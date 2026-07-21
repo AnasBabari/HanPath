@@ -6,6 +6,8 @@ export const QUEST_POOL: Quest[] = [
   { id: 'streak_extend', label: 'Extend your streak', check: (s) => s.streakExtendedToday, reward: 20 },
   { id: 'xp_100', label: 'Earn 100 XP today', check: (s) => s.xpToday >= 100, reward: 50 },
   { id: 'lesson_3', label: 'Complete 3 lessons', check: (s) => s.lessonsCompletedToday >= 3, reward: 40 }, 
+  { id: 'review_20', label: 'Review 20 words', check: (s) => Object.values(s.wordAccuracy).filter(w => w.lastSeen >= new Date().setHours(0,0,0,0)).length >= 20, reward: 30 },
+  { id: 'master_10', label: 'Master 10 words (SRS level 5)', check: (s) => Object.values(s.wordSRS).filter(w => w.easeFactor >= 2.6).length >= 10, reward: 100 },
 ];
 
 // Returns 3 deterministic quests per day so all users get the same ones

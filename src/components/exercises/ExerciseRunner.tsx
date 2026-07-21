@@ -4,9 +4,8 @@ import type { Lesson, Exercise } from '../../types';
 import { playCorrect, playWrong } from '../../utils/sounds';
 import { speak, normPinyin } from '../../utils/tts';
 
-export default function ExerciseRunner({ lesson, onApiUse, onWordResult, onExit, onComplete }: {
+export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplete }: {
   lesson: Lesson;
-  onApiUse?: () => void;
   onWordResult?: (wordId: string, correct: boolean) => void;
   onExit: () => void;
   onComplete: (correct: number, total: number) => void;
@@ -49,7 +48,6 @@ export default function ExerciseRunner({ lesson, onApiUse, onWordResult, onExit,
       
       const response = await callOpenRouter([{ role: 'user', content: prompt }]);
       setExplanationText(response);
-      onApiUse?.();
     } catch (err: unknown) {
       setExplanationText("Could not load explanation — check your API key in Profile.");
     } finally {
@@ -58,16 +56,15 @@ export default function ExerciseRunner({ lesson, onApiUse, onWordResult, onExit,
   };
 
   return (
-    <div className="shell exercise-shell">
+    <div className="shell" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'var(--bg-elevated)', overflowY: 'auto' }}>
       {showXP && <div className="xp-float">+10 XP</div>}
 
       <div className="exercise-topbar">
-        <button className="exit-btn" onClick={onExit}>✕ Exit</button>
-        <span className="step-count">{idx + 1} / {total}</span>
-      </div>
-
-      <div className="progress-track">
-        <div className="progress-fill" style={{ width: `${progress}%` }} />
+        <button className="exit-btn" onClick={onExit} style={{ background: 'transparent', color: 'var(--text-muted)', fontSize: '28px', border: 'none', cursor: 'pointer', padding: '0 12px 0 0' }}>×</button>
+        <div className="progress-track" style={{ flex: 1, height: '16px', background: 'var(--surface-border)', borderRadius: '99px', overflow: 'hidden' }}>
+          <div className="progress-fill" style={{ width: `${progress}%`, height: '100%', background: 'var(--primary)', borderRadius: '99px', transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+        </div>
+        <span className="step-count" style={{ marginLeft: '16px', fontWeight: 800, color: 'var(--text-muted)' }}>{idx + 1}/{total}</span>
       </div>
 
       <ExerciseCard
@@ -99,35 +96,32 @@ export default function ExerciseRunner({ lesson, onApiUse, onWordResult, onExit,
       />
 
       {feedback === 'ok' && (
-        <div className="feedback-strip ok">
-          <p>✅ Correct!</p>
-          <button className="btn-primary" onClick={advance}>Continue</button>
+        <div className="feedback-strip ok" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px 24px 40px', background: '#D7FFB8', borderTop: '2px solid rgba(0,0,0,0.05)', color: '#58CC02', zIndex: 1100, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#58CC02' }}>Excellent!</p>
+          <button className="btn-primary" style={{ width: '100%' }} onClick={advance}>CONTINUE</button>
         </div>
       )}
       {feedback === 'no' && (
-        <div className="feedback-strip no" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="feedback-strip no" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px 24px 40px', background: '#FFDFE0', borderTop: '2px solid rgba(0,0,0,0.05)', color: '#FF4B4B', zIndex: 1100, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <p style={{ margin: 0, fontSize: '1.1rem' }}>❌ Not quite</p>
-              <div className="answer-reveal" style={{ margin: '4px 0 0 0' }}>Answer: <strong>{ex.answer}</strong></div>
+              <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#FF4B4B' }}>Correct Solution:</p>
+              <div style={{ fontSize: '1.125rem', fontWeight: 800, color: '#FF4B4B', marginTop: '4px' }}>{ex.answer}</div>
             </div>
-            <button className="btn-primary" style={{ width: 'auto', padding: '10px 20px', margin: 0 }} onClick={advance}>Continue</button>
+            <button className="btn-primary" style={{ width: 'auto', background: '#ff4b4b', borderBottomColor: '#ea2b2b' }} onClick={advance}>Continue</button>
           </div>
-          
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
-            {!explanationText && !explanationLoading && (
-              <button className="btn-explain" onClick={handleExplain}>💡 Explain Why</button>
-            )}
-            {explanationLoading && <div className="explanation-text" style={{ color: 'rgba(255,255,255,0.7)' }}>Thinking...</div>}
-            {explanationText && <div className="explanation-text" style={{ color: 'rgba(255,255,255,0.9)' }}>{explanationText}</div>}
-          </div>
+          {!explanationText && !explanationLoading && (
+            <button onClick={handleExplain} style={{ background: 'none', color: '#ff4b4b', fontWeight: 800, fontSize: '14px', textDecoration: 'underline' }}>Wait, why?</button>
+          )}
+          {explanationLoading && <p style={{ fontSize: '14px' }}>Thinking...</p>}
+          {explanationText && <p style={{ fontSize: '14px', lineHeight: 1.4 }}>{explanationText}</p>}
         </div>
       )}
     </div>
   );
 }
 
-export function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
+function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
   exercise: Exercise; locked: boolean; shake: boolean;
   onCorrect: () => void; onWrong: (guessed?: string) => void;
 }) {
@@ -135,48 +129,19 @@ export function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }
   const [typed, setTyped] = useState('');
   const [bankPick, setBankPick] = useState<number[]>([]);
   const submitted = useRef(false);
-  const autoPlayTimer = useRef<number | null>(null);
 
   useEffect(() => {
     submitted.current = false;
-
-    if (autoPlayTimer.current !== null) {
-      window.clearTimeout(autoPlayTimer.current);
-      autoPlayTimer.current = null;
-    }
-
     if ((ex.type === 'listening-select' || ex.type === 'listening-meaning') && ex.promptAudio) {
-      autoPlayTimer.current = window.setTimeout(() => {
-        speak(ex.promptAudio!);
-      }, 300);
+      setTimeout(() => speak(ex.promptAudio!), 300);
     }
-
-    return () => {
-      if (autoPlayTimer.current !== null) {
-        window.clearTimeout(autoPlayTimer.current);
-        autoPlayTimer.current = null;
-      }
-    };
   }, [ex.id, ex.type, ex.promptAudio]);
 
-  const isListening = ex.type === 'listening-select' || ex.type === 'listening-meaning';
   const isMCQ = ex.type === 'reading-meaning' || ex.type === 'reading-hanzi' || ex.type === 'listening-select' || ex.type === 'listening-meaning';
-  const isHanziOptions = ex.type === 'reading-hanzi' || ex.type === 'listening-select';
   const isTileBuilder = ex.type === 'compose' || ex.type === 'sentence-build';
-
-  const typeLabel = {
-    'reading-meaning': '👁️ Reading',
-    'reading-hanzi': '👁️ Reading',
-    'listening-select': '👂 Listening',
-    'listening-meaning': '👂 Listening',
-    'pinyin-type': '✍️ Writing',
-    'compose': '🧩 Build',
-    'sentence-build': '🧩 Grammar',
-  }[ex.type];
 
   const check = () => {
     if (locked || submitted.current) return;
-
     if (isMCQ && choice !== null) {
       const selected = ex.options[choice];
       submitted.current = true;
@@ -197,52 +162,28 @@ export function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }
     : false;
 
   return (
-    <div className={`exercise-card ${shake ? 'shake' : ''}`}>
-      <div className="exercise-type-label">
-        <span className="type-icon">{typeLabel?.split(' ')[0]}</span>
-        {typeLabel?.split(' ').slice(1).join(' ')}
-      </div>
-
-      <div className="exercise-prompt">
-        {isListening ? (
-          <>
-            <button className="listen-play-btn" onClick={() => ex.promptAudio && speak(ex.promptAudio)}>🔊</button>
-            <p className="prompt-hint" style={{ textAlign: 'center' }}>{ex.prompt}</p>
-          </>
-        ) : ex.type === 'reading-hanzi' || ex.type === 'compose' ? (
-          <>
-            <p className="prompt-english">{ex.prompt}</p>
-            {ex.hint && <p className="prompt-hint">{ex.hint}</p>}
-          </>
-        ) : ex.type === 'sentence-build' ? (
-          <>
-            <p className="prompt-english">{ex.prompt}</p>
-            {ex.hint && <p className="prompt-hint">{ex.hint}</p>}
-          </>
-        ) : (
-          <>
-            <p className="prompt-main">{ex.prompt}</p>
-            {ex.promptPinyin && <p className="prompt-pinyin">{ex.promptPinyin}</p>}
-            {ex.hint && <p className="prompt-hint">{ex.hint}</p>}
-          </>
-        )}
-      </div>
+    <div className={`exercise-card ${shake ? 'shake' : ''}`} style={{ marginTop: '20px', paddingBottom: '160px' }}>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '24px', textAlign: 'center' }}>
+        {ex.type === 'listening-select' ? 'What did you hear?' : ex.prompt}
+      </h2>
 
       {isMCQ && (
-        <div className="option-grid">
+        <div style={{ display: 'grid', gap: '12px' }}>
           {ex.options.map((opt, i) => (
             <button
               key={opt}
-              className={`option-btn ${choice === i ? 'selected' : ''} ${locked && opt === ex.answer ? 'correct' : ''} ${locked && choice === i && opt !== ex.answer ? 'wrong' : ''}`}
+              className={`option-btn ${choice === i ? 'selected' : ''}`}
+              style={{
+                padding: '16px', borderRadius: '16px', border: '2px solid var(--surface-border)', borderBottom: '4px solid var(--surface-border)',
+                background: choice === i ? 'var(--blue-bg)' : 'var(--bg-card)', borderColor: choice === i ? 'var(--blue-shadow)' : 'var(--surface-border)', color: choice === i ? 'var(--blue)' : 'var(--text-main)',
+                fontSize: '1.125rem', fontWeight: 800, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '16px', transition: 'all 0.2s',
+                transform: choice === i ? 'translateY(2px)' : 'none', borderBottomWidth: choice === i ? '2px' : '4px'
+              }}
               disabled={locked}
               onClick={() => setChoice(i)}
             >
-              {isHanziOptions ? (
-                <div className="hanzi-option-wrap">
-                  <span className="hanzi-option">{opt}</span>
-                  {ex.optionsPinyin?.[i] && <span className="option-pinyin">{ex.optionsPinyin[i]}</span>}
-                </div>
-              ) : opt}
+              <span style={{ width: '32px', height: '32px', borderRadius: '8px', border: `2px solid ${choice === i ? 'var(--blue)' : 'var(--surface-border)'}`, display: 'grid', placeItems: 'center', fontSize: '14px', color: choice === i ? 'var(--blue)' : 'var(--text-muted)' }}>{i + 1}</span>
+              {opt}
             </button>
           ))}
         </div>
@@ -250,31 +191,31 @@ export function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }
 
       {ex.type === 'pinyin-type' && (
         <input
-          className="pinyin-input"
+          style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid var(--surface-border)', fontSize: '1.25rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-main)', fontWeight: 800 }}
           value={typed}
           disabled={locked}
-          placeholder="Type pinyin here…"
+          placeholder="Type Pinyin..."
           onChange={e => setTyped(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && canCheck && !locked && check()}
-          autoComplete="off"
+          autoFocus
         />
       )}
 
       {isTileBuilder && ex.bank && (
-        <div className="compose-area">
-          <div className="compose-slot">
+        <div>
+          <div style={{ minHeight: '64px', padding: '12px', borderBottom: '2px solid var(--surface-border)', marginBottom: '32px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
             {bankPick.map((ti, order) => (
-              <button key={`${ti}-${order}`} className={`char-tile placed ${ex.type === 'sentence-build' ? 'word-tile' : ''}`} disabled={locked}
+              <button key={`${ti}-${order}`} style={{ padding: '12px 16px', borderRadius: '16px', border: '2px solid var(--surface-border)', borderBottom: '4px solid var(--surface-border)', background: 'var(--bg-card)', fontWeight: 800, color: 'var(--text-main)', fontSize: '1.125rem' }}
                 onClick={() => setBankPick(p => p.filter((_, j) => j !== order))}>
                 {ex.bank![ti]}
               </button>
             ))}
           </div>
-          <div className="compose-bank">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
             {ex.bank.map((ch, i) => {
               const used = bankPick.includes(i);
               return (
-                <button key={`${ch}-${i}`} className={`char-tile ${ex.type === 'sentence-build' ? 'word-tile' : ''} ${used ? 'used' : ''}`}
+                <button key={`${ch}-${i}`} style={{ padding: '12px 20px', borderRadius: '16px', border: '2px solid var(--surface-border)', borderBottom: '4px solid var(--surface-border)', background: used ? 'var(--surface-border)' : 'var(--bg-card)', color: used ? 'transparent' : 'var(--text-main)', fontWeight: 800, fontSize: '1.125rem' }}
                   disabled={used || locked} onClick={() => setBankPick(p => [...p, i])}>
                   {ch}
                 </button>
@@ -284,9 +225,11 @@ export function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }
         </div>
       )}
 
-      <div className="exercise-actions">
-        <button className="btn-primary" disabled={locked || !canCheck} onClick={check}>Check</button>
-      </div>
+      {!locked && (
+        <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px', background: 'var(--bg-elevated)', borderTop: '2px solid var(--surface-border)' }}>
+          <button className="btn-primary" style={{ width: '100%', background: canCheck ? 'var(--primary)' : 'var(--surface-border)', borderBottomColor: canCheck ? 'var(--primary-shadow)' : 'rgba(0,0,0,0.1)', color: canCheck ? 'white' : 'var(--text-muted)' }} disabled={!canCheck} onClick={check}>CHECK</button>
+        </div>
+      )}
     </div>
   );
 }

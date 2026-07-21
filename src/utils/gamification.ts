@@ -7,6 +7,7 @@ import type { UserStats } from '../types';
 import { ACHIEVEMENTS } from '../data/achievements';
 
 const STORAGE_KEY = 'hanpath-progress-v2';
+const V3_STORAGE_KEY = 'hanpath-progress-v3';
 
 const DEFAULTS: UserStats = {
   totalXP: 0, level: 1, streak: 0, longestStreak: 0,
@@ -83,5 +84,6 @@ export function saveStats(s: UserStats) { localStorage.setItem(STORAGE_KEY, JSON
 
 export function resetAll() {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(V3_STORAGE_KEY);
   for (let i = 1; i <= 7; i++) try { localStorage.removeItem(`hanpath-hsk-v2-${i}`); } catch { /* ok */ }
 }

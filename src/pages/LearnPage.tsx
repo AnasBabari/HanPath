@@ -1,11 +1,13 @@
-import { useState, useMemo } from 'react';
-import type { Unit, Lesson, UserStats } from '../types';
+import { useState } from 'react';
+import type { Unit, Lesson } from '../types';
 import { isLessonUnlocked, findLesson, nextLessonId, allLessonsFlat } from '../utils/curriculum';
-import { addXP, bumpStreak, xpProgress } from '../utils/gamification';
-import { getDailyQuests } from '../utils/quests';
+import { bumpStreak } from '../utils/gamification';
 import ExerciseRunner from '../components/exercises/ExerciseRunner';
 import { speak } from '../utils/tts';
 import Confetti from '../components/ui/Confetti';
+import { useStore } from '../store/useStore';
+
+import { saveCloudProgress } from '../utils/cloudProgress';
 
 /* ---- Intro Screen ---- */
 function LessonIntro({ unit, lesson, revealPinyin, onStart, onExit }: {
@@ -15,9 +17,9 @@ function LessonIntro({ unit, lesson, revealPinyin, onStart, onExit }: {
   const [peeks, setPeeks] = useState<Set<string>>(new Set());
   return (
     <div className="shell lesson-intro">
-      <div className="sub-header">
+      <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
         <button className="back-btn" onClick={onExit}>✕</button>
-        <h2>{unit.title}</h2>
+        <h2 style={{ margin: 0, marginLeft: 12 }}>{unit.title}</h2>
       </div>
 
       <div className="lesson-intro-header">
@@ -48,7 +50,7 @@ function LessonIntro({ unit, lesson, revealPinyin, onStart, onExit }: {
         ))}
       </div>
 
-      <button className="btn-primary" onClick={onStart}>Start Practice →</button>
+      <button className="btn-primary" style={{ width: '100%' }} onClick={onStart}>Start Practice</button>
     </div>
   );
 }
@@ -83,7 +85,7 @@ function LessonComplete({ lesson, onNext, onHome }: {
           </div>
         </div>
         <div className="complete-actions">
-          <button className="btn-primary" onClick={onNext}>Next Lesson →</button>
+          <button className="btn-primary" onClick={onNext}>Next Lesson</button>
           <button className="btn-ghost" onClick={onHome}>Back to Home</button>
         </div>
       </div>
@@ -92,25 +94,29 @@ function LessonComplete({ lesson, onNext, onHome }: {
 }
 
 /* ---- Main Path Screen ---- */
-export default function LearnPage({ 
-  units, stats, setStats, onWordResult, onApiUse
-}: { 
-  units: Unit[]; stats: UserStats; setStats: React.Dispatch<React.SetStateAction<UserStats>>;
-  onWordResult?: (wordId: string, correct: boolean) => void;
-  onApiUse?: () => void;
-}) {
+export default function LearnPage() {
+  const { stats, setStats, units, updateWordResult, completeLesson, setFullScreen } = useStore();
+  
   const [screen, setScreen] = useState<'home' | 'intro' | 'practice' | 'complete'>('home');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
 
-  const flat = useMemo(() => allLessonsFlat(units), [units]);
+  if (!units) return null;
+
+  const flat = allLessonsFlat(units);
   
   // Active flow helpers
   const found = activeLessonId ? findLesson(units, activeLessonId) : null;
 
   const openLesson = (id: string) => {
     setActiveLessonId(id);
-    setScreen('practice'); // Directly to practice
+    setScreen('practice');
     setStats(s => bumpStreak(s));
+    setFullScreen(true);
+  };
+
+  const handleHome = () => {
+    setScreen('home');
+    setFullScreen(false);
   };
 
   // Views inside LearnPage:
@@ -120,7 +126,7 @@ export default function LearnPage({
         unit={found.unit} lesson={found.lesson}
         revealPinyin={stats.revealPinyin}
         onStart={() => setScreen('practice')}
-        onExit={() => setScreen('home')}
+        onExit={handleHome}
       />
     );
   }
@@ -132,9 +138,9 @@ export default function LearnPage({
         onNext={() => {
           const nxt = nextLessonId(units, found.lesson.id);
           if (nxt) openLesson(nxt);
-          else setScreen('home');
+          else handleHome();
         }}
-        onHome={() => setScreen('home')}
+        onHome={handleHome}
       />
     );
   }
@@ -143,32 +149,26 @@ export default function LearnPage({
     return (
       <ExerciseRunner
         lesson={found.lesson}
-        onApiUse={onApiUse}
-        onWordResult={onWordResult}
-        onExit={() => setScreen('home')}
+        onWordResult={updateWordResult}
+        onExit={handleHome}
         onComplete={(correct, total) => {
-          setStats(s => {
-            let ns = { ...s };
-            if (!ns.completedLessons.includes(found.lesson.id)) {
-              ns.completedLessons = [...ns.completedLessons, found.lesson.id];
-              ns.lessonsCompletedToday++;
-              ns.wordsLearned = new Set(
-                flat.filter(l => ns.completedLessons.includes(l.id)).flatMap(l => l.vocab.map(v => v.id))
-              ).size;
-            }
-            ns.totalCorrect += correct;
-            ns.totalAttempted += total;
-            
-            // Track quests progress
-            if (correct === total) ns.perfectLessonsToday++;
-            
-            // Calculate XP
-            const xpEarned = correct * 10 + 25;
-            ns.xpToday += xpEarned;
-            ns = addXP(ns, xpEarned);
+          completeLesson(found.lesson.id, correct, total, flat);
 
-            return bumpStreak(ns);
-          });
+          const { stats: updatedStats, cloudUserId, leaderboard, setLeaderboard } = useStore.getState();
+          if (cloudUserId && updatedStats) {
+            void saveCloudProgress(cloudUserId, updatedStats).catch(console.error);
+            
+            const userInLB = leaderboard.find(e => e.userId === cloudUserId);
+            if (userInLB) {
+              const newLB = leaderboard.map(entry => 
+                entry.userId === cloudUserId 
+                  ? { ...entry, totalXP: updatedStats.totalXP, level: updatedStats.level }
+                  : entry
+              ).sort((a, b) => b.totalXP - a.totalXP);
+              setLeaderboard(newLB);
+            }
+          }
+
           setScreen('complete');
         }}
       />
@@ -176,105 +176,92 @@ export default function LearnPage({
   }
 
   /* ---- Default Path View ---- */
-  const xp = xpProgress(stats.totalXP);
-  
-  // Daily Quests
-  const dStr = new Date().toISOString().split('T')[0];
-  const quests = getDailyQuests(dStr);
+  const getUnitProgress = (unit: Unit) => {
+    const total = unit.lessons.length;
+    const done = unit.lessons.filter(l => stats.completedLessons.includes(l.id)).length;
+    return Math.round((done / total) * 100);
+  };
+
+  const staggerClasses = ['slight-left', 'slight-right', 'left', 'right'];
 
   return (
-    <div className="shell" style={{ paddingBottom: 80 }}>
-      {/* Topbar */}
-      <div className="topbar">
-        <div className="topbar-left">
-          <span className="topbar-brand">汉 HànPath</span>
-        </div>
+    <div className="shell">
+      {/* TopAppBar */}
+      <header className="topbar">
+        <span className="topbar-brand">HànPath</span>
         <div className="topbar-stats">
-          <div className="stat-chip">
-            <span className="icon streak-fire">🔥</span>
+          <div className="stat-chip streak">
+            <span className="material-symbols-outlined" style={{ color: 'var(--tertiary-container)', fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
             <span className="val">{stats.streak}</span>
           </div>
-          <div className="stat-chip">
-            <span className="icon">⭐</span>
+          <div className="stat-chip xp">
+            <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontVariationSettings: "'FILL' 1" }}>military_tech</span>
             <span className="val">{stats.totalXP}</span>
           </div>
-        </div>
-      </div>
-
-      <div className="xp-bar-wrap">
-        <div className="xp-bar-info">
-          <div className="xp-level-badge">
-            <div className="ring">{stats.level}</div>
-            Level {stats.level}
+          <div className="stat-chip level">
+            <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontVariationSettings: "'FILL' 1" }}>hotel_class</span>
+            <span className="val">{stats.level}</span>
           </div>
-          <span className="xp-text">{xp.current} / {xp.needed} XP</span>
         </div>
-        <div className="xp-bar">
-          <div className="xp-bar-fill" style={{ width: `${xp.percent}%` }} />
-        </div>
-      </div>
+      </header>
 
-      {/* Quests Section */}
-      <div className="path-section" style={{ borderTop: 'none', paddingTop: 0 }}>
-        <h3 style={{ marginBottom: 12, fontSize: 16, color: 'var(--text-main)' }}>📋 Daily Quests</h3>
-        {quests.map(q => {
-          const isDone = q.check(stats);
+      {/* Main Content */}
+      <main>
+        {units.map((unit, ui) => {
+          const progress = getUnitProgress(unit);
           return (
-            <div key={q.id} style={{
-              background: 'var(--bg-card)', padding: '12px 16px', borderRadius: 12, marginBottom: 8,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              opacity: isDone ? 0.6 : 1
-            }}>
-              <div>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{q.label}</p>
-                <p style={{ margin: 0, fontSize: 12, color: 'var(--accent)', fontWeight: 700 }}>+{q.reward} XP</p>
-              </div>
-              <div style={{
-                background: isDone ? 'var(--correct)' : 'var(--bg-shell)',
-                color: isDone ? '#fff' : 'var(--text-dim)',
-                width: 32, height: 32, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 800, fontSize: 14
-              }}>
-                {isDone ? '✓' : ''}
+            <div key={unit.id} style={{ marginBottom: 80 }}>
+              {/* Unit Header */}
+              <section className="unit-header">
+                <div className="unit-header-bg">{ui + 1}</div>
+                <p className="eyebrow">Unit {ui + 1}: {unit.description}</p>
+                <h3>{unit.title}</h3>
+                <div className="unit-progress-wrap">
+                  <div className="unit-progress-bar">
+                    <div className="unit-progress-fill" style={{ width: `${progress}%` }} />
+                  </div>
+                  <span className="unit-progress-text">{progress}%</span>
+                </div>
+              </section>
+
+              {/* Path Container */}
+              <div className="path-container">
+                <div className="path-line" />
+                {unit.lessons.map((lesson, li) => {
+                  const done = stats.completedLessons.includes(lesson.id);
+                  const unlocked = isLessonUnlocked(lesson.id, units, stats.completedLessons);
+                  const isCurrent = unlocked && !done;
+                  const stagger = staggerClasses[li % staggerClasses.length];
+
+                  return (
+                    <div key={lesson.id} className={`lesson-node-wrap ${stagger}`}>
+                      {isCurrent && (
+                        <div className="next-step-tooltip">
+                          <span className="text">Next Step!</span>
+                        </div>
+                      )}
+                      <button
+                        className={`node-btn ${done ? 'done' : isCurrent ? 'current' : 'locked'}`}
+                        onClick={() => unlocked ? openLesson(lesson.id) : undefined}
+                        disabled={!unlocked}
+                      >
+                        {done ? (
+                          <span className="material-symbols-outlined" style={{ fontSize: 40, color: '#fff', fontVariationSettings: "'FILL' 1" }}>check</span>
+                        ) : isCurrent ? (
+                          <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'var(--tertiary)', fontVariationSettings: "'FILL' 1" }}>fitness_center</span>
+                        ) : (
+                          <span className="material-symbols-outlined" style={{ fontSize: 36, color: 'var(--outline)', fontVariationSettings: "'FILL' 1" }}>lock</span>
+                        )}
+                      </button>
+                      <div className="node-label">{lesson.title}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
         })}
-      </div>
-
-      {/* Learning Path Nodes */}
-      {units.map(unit => (
-        <div key={unit.id} className="path-section">
-          <div className="unit-header">
-            <div className="unit-icon">{unit.index + 1}</div>
-            <div>
-              <h3>{unit.title}</h3>
-              <p className="unit-desc">{unit.description}</p>
-            </div>
-          </div>
-          <div className="lesson-path">
-            {unit.lessons.map((lesson, li) => {
-              const done = stats.completedLessons.includes(lesson.id);
-              const unlocked = isLessonUnlocked(lesson.id, units, stats.completedLessons);
-              const isCurrent = unlocked && !done;
-              return (
-                <div key={lesson.id}>
-                  {li > 0 && <div className={`path-connector ${done ? 'done' : ''}`} />}
-                  <button
-                    className={`lesson-node ${done ? 'done' : isCurrent ? 'current' : 'locked'}`}
-                    onClick={() => unlocked ? openLesson(lesson.id) : undefined}
-                    disabled={!unlocked}
-                  >
-                    {done ? '✓' : li + 1}
-                  </button>
-                  <div className="lesson-node-label">{lesson.title}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-
+      </main>
     </div>
   );
 }

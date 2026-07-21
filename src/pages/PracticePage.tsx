@@ -1,24 +1,26 @@
 import { useState, useMemo } from 'react';
-import type { Unit, UserStats, Exercise, VocabCard } from '../types';
+import { useNavigate } from 'react-router-dom';
+import type { VocabCard, Exercise } from '../types';
 import { allLessonsFlat, genExercisesForVocab, genSentenceBuildExercises, genToneDrillExercises } from '../utils/curriculum';
 import ExerciseRunner from '../components/exercises/ExerciseRunner';
+import { useStore } from '../store/useStore';
 
-export default function PracticePage({ units, stats, onBack, onXP, onWordResult, onApiUse, onLaunchReview }: {
-  units: Unit[]; stats: UserStats;
-  onBack: () => void; onXP: (amt: number) => void;
-  onWordResult?: (wordId: string, correct: boolean) => void;
-  onApiUse?: () => void;
-  onLaunchReview?: () => void;
-}) {
+export default function PracticePage() {
+  const { units, stats, addXP, updateWordResult, setFullScreen } = useStore();
+  const navigate = useNavigate();
   const [drillMode, setDrillMode] = useState<'menu' | 'weak' | 'random' | 'sentence' | 'tone'>('menu');
   const [drillExercises, setDrillExercises] = useState<Exercise[]>([]);
+  const dueCount = useStore(state => {
+    const today = new Date().toISOString().split('T')[0];
+    return Object.values(state.stats.wordSRS).filter((w) => w.nextReviewDate <= today).length;
+  });
 
   const allDone = useMemo(() =>
-    allLessonsFlat(units).filter(l => stats.completedLessons.includes(l.id)),
+    units ? allLessonsFlat(units).filter(l => stats.completedLessons.includes(l.id)) : [],
     [units, stats.completedLessons]
   );
 
-  const flatVocab = useMemo(() => allLessonsFlat(units).flatMap(l => l.vocab), [units]);
+  const flatVocab = useMemo(() => units ? allLessonsFlat(units).flatMap(l => l.vocab) : [], [units]);
 
   const weakWords = useMemo(() => {
     const list = Object.entries(stats.wordAccuracy)
@@ -37,7 +39,8 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
 
   const startDrill = (mode: 'weak' | 'random' | 'sentence' | 'tone') => {
     if (mode === 'weak') {
-      setDrillExercises(genExercisesForVocab(weakWords, flatVocab));
+      const allVocab = flatVocab.length >= 4 ? flatVocab : weakWords;
+      setDrillExercises(genExercisesForVocab(weakWords, allVocab));
     } else if (mode === 'sentence') {
       setDrillExercises(genSentenceBuildExercises());
     } else if (mode === 'tone') {
@@ -48,6 +51,12 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
       setDrillExercises(shuffled.slice(0, 20)); // Random 20
     }
     setDrillMode(mode);
+    setFullScreen(true);
+  };
+
+  const handleExitDrill = () => {
+    setDrillMode('menu');
+    setFullScreen(false);
   };
 
   // If we are in a drill session, render the runner
@@ -55,14 +64,14 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
     if (drillExercises.length === 0) {
       return (
         <div className="shell">
-          <div className="sub-header">
-            <button className="back-btn" onClick={() => setDrillMode('menu')}>← Back</button>
-            <h2>Drill Complete!</h2>
+          <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
+            <button className="back-btn" onClick={handleExitDrill}>← Back</button>
+            <h2 style={{ margin: 0, marginLeft: 12 }}>Drill Complete!</h2>
           </div>
           <div className="practice-empty">
             <div className="empty-icon">💪</div>
             <p>Great session! Keep it up.</p>
-            <button className="btn-primary" style={{ marginTop: 16 }} onClick={() => setDrillMode('menu')}>Back to Menu</button>
+            <button className="btn-primary" style={{ marginTop: 16 }} onClick={handleExitDrill}>Back to Menu</button>
           </div>
         </div>
       );
@@ -74,12 +83,12 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
           id: 'drill', unitId: 'none', index: 0, title: 'Practice Drill',
           summary: '', vocab: [], exercises: drillExercises
         }}
-        onWordResult={onWordResult}
-        onApiUse={onApiUse}
-        onExit={() => setDrillMode('menu')}
+        onWordResult={updateWordResult}
+        onExit={handleExitDrill}
         onComplete={(correct, _total) => {
-          onXP(correct * 5); // 5 XP per correct in drill
+          addXP(correct * 5); // 5 XP per correct in drill
           setDrillExercises([]);
+          setFullScreen(false);
         }}
       />
     );
@@ -89,9 +98,8 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
   if (allDone.length === 0) {
     return (
       <div className="shell">
-        <div className="sub-header">
-          <button className="back-btn" onClick={onBack}>← Back</button>
-          <h2>Practice</h2>
+        <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
+          <h2 style={{ margin: 0 }}>Practice</h2>
         </div>
         <div className="practice-empty">
           <div className="empty-icon">📚</div>
@@ -106,19 +114,19 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
       {/* Topbar */}
       <div className="topbar">
         <div className="topbar-left">
-          <span className="topbar-brand">汉 Practice</span>
+          <span className="topbar-brand">Hàn Practice</span>
         </div>
       </div>
 
       {weakWords.length >= 3 && (
         <div className="path-section" style={{ borderTop: 'none', paddingTop: 8 }}>
-          <h3 style={{ marginBottom: 4, fontSize: 16, color: 'var(--rose)' }}>⚠️ Trouble Words</h3>
+          <h3 style={{ marginBottom: 4, fontSize: 16, color: '#ff4b4b' }}>⚠️ Trouble Words</h3>
           <p style={{ color: 'var(--text-dim)', fontSize: 13, marginBottom: 16 }}>Words you've struggled with most</p>
           
           <div style={{ display: 'flex', overflowX: 'auto', gap: 12, paddingBottom: 16, margin: '0 -16px', paddingInline: 16 }}>
             {weakWords.map(w => (
               <div key={w.id} style={{
-                background: `color-mix(in srgb, var(--rose) ${100 - w.accuracy}%, var(--bg-card))`,
+                background: `color-mix(in srgb, #ff4b4b ${100 - w.accuracy}%, var(--bg-card))`,
                 padding: '16px 20px',
                 borderRadius: 16,
                 minWidth: 80,
@@ -130,8 +138,8 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
               </div>
             ))}
           </div>
-          <button className="btn-primary" style={{ background: 'var(--rose)' }} onClick={() => startDrill('weak')}>
-            Drill Weaknesses →
+          <button className="btn-primary btn-error" onClick={() => startDrill('weak')}>
+            Drill Weaknesses
           </button>
         </div>
       )}
@@ -140,16 +148,26 @@ export default function PracticePage({ units, stats, onBack, onXP, onWordResult,
         <h3 style={{ marginBottom: 12, fontSize: 16 }}>General Drills</h3>
         
         <div 
-          onClick={() => onLaunchReview?.()}
+          onClick={() => {
+            navigate('/review');
+            setFullScreen(true);
+          }}
           style={{
             background: 'var(--bg-card)', padding: 16, borderRadius: 16, marginBottom: 12,
-            border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+            border: dueCount > 0 ? '2px solid var(--accent)' : '1px solid var(--border)', 
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
           }}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>Flashcard Deck</div>
-            <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>Classic spaced recognition with ✨ AI Mnemonics</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ fontSize: 32 }}>📇</div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                Spaced Review
+                {dueCount > 0 && <span className="due-badge-inline">{dueCount}</span>}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>Classic SM-2 flashcards for long-term memory</div>
+            </div>
           </div>
-          <div style={{ fontSize: 24 }}>📇</div>
+          <div style={{ fontSize: 20, color: 'var(--text-dim)' }}>→</div>
         </div>
 
         <div 

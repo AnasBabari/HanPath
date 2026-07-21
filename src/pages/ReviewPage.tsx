@@ -1,34 +1,56 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { callOpenRouter } from '../utils/ai';
-import type { Unit } from '../types';
 import { allLessonsFlat } from '../utils/curriculum';
 import { speak } from '../utils/tts';
+import { useStore } from '../store/useStore';
 
-export default function ReviewPage({ units, completedLessons, revealPinyin, onApiUse, onBack }: {
-  units: Unit[]; completedLessons: string[]; revealPinyin: 'always' | 'peek';
-  onApiUse?: () => void;
-  onBack: () => void;
-}) {
+export default function ReviewPage() {
+  const { units, stats, rateWord, setFullScreen } = useStore();
+  const navigate = useNavigate();
+
   const cards = useMemo(() => {
-    const done = new Set(completedLessons);
-    return allLessonsFlat(units).filter(l => done.has(l.id)).flatMap(l => l.vocab);
-  }, [units, completedLessons]);
+    if (!units) return [];
+    const today = new Date().toISOString().split('T')[0];
+    const vocab = allLessonsFlat(units).flatMap(l => l.vocab);
+    
+    // Filter words that are learned AND due today
+    return vocab.filter(v => {
+      const srs = stats.wordSRS[v.id];
+      // If srs exists, check if it's due. If it doesn't exist, it's not "learned" via SRS yet, 
+      // but the original code used completedLessons. Let's stick to showing what's due 
+      // but also include any completed words that don't have SRS data yet (initial review).
+      if (!srs) {
+        return stats.completedLessons.some(id => {
+          const lesson = allLessonsFlat(units).find(l => l.id === id);
+          return lesson?.vocab.some(vv => vv.id === v.id);
+        });
+      }
+      return srs.nextReviewDate <= today;
+    });
+  }, [units, stats.wordSRS, stats.completedLessons]);
 
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [mnemonic, setMnemonic] = useState('');
   const [loadingMnemonic, setLoadingMnemonic] = useState(false);
 
+  const handleExit = () => {
+    navigate(-1);
+    setFullScreen(false);
+  };
+
   if (!cards.length) {
     return (
       <div className="shell">
-        <div className="sub-header">
-          <button className="back-btn" onClick={onBack}>← Back</button>
-          <h2>Review</h2>
+        <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
+          <button className="back-btn" onClick={handleExit}>← Back</button>
+          <h2 style={{ margin: 0, marginLeft: 12 }}>Review</h2>
         </div>
         <div className="practice-empty">
-          <div className="empty-icon">🔄</div>
-          <p>Complete a lesson first to build your review deck!</p>
+          <div className="empty-icon">✅</div>
+          <p>You're all caught up for today!</p>
+          <button className="btn-primary" style={{ marginTop: 16 }} onClick={handleExit}>Back</button>
         </div>
       </div>
     );
@@ -45,7 +67,6 @@ export default function ReviewPage({ units, completedLessons, revealPinyin, onAp
       
       const response = await callOpenRouter([{ role: 'user', content: prompt }]);
       setMnemonic(response);
-      onApiUse?.();
     } catch (err: unknown) {
       setMnemonic("Oops, could not generate a mnemonic. Please check your API key and connection.");
     } finally {
@@ -53,11 +74,23 @@ export default function ReviewPage({ units, completedLessons, revealPinyin, onAp
     }
   };
 
+  const handleRate = (rating: 'Hard' | 'Good' | 'Easy') => {
+    rateWord(card.id, rating);
+    setFlipped(false);
+    setMnemonic('');
+    if (idx + 1 >= cards.length) {
+      // Finished the due deck
+      handleExit();
+    } else {
+      setIdx(idx + 1);
+    }
+  };
+
   return (
     <div className="shell">
-      <div className="sub-header">
-        <button className="back-btn" onClick={onBack}>← Back</button>
-        <h2>Review · {cards.length} cards</h2>
+      <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
+        <button className="back-btn" onClick={handleExit}>← Back</button>
+        <h2 style={{ margin: 0, marginLeft: 12 }}>Review · {cards.length - (idx >= cards.length ? cards.length : idx)} left</h2>
       </div>
 
       <div className="flashcard" onClick={() => setFlipped(f => !f)} role="button" tabIndex={0}
@@ -66,7 +99,7 @@ export default function ReviewPage({ units, completedLessons, revealPinyin, onAp
           <>
             <p className="fc-label">汉字</p>
             <p className="fc-hanzi">{card.hanzi}</p>
-            {revealPinyin === 'always' && <p className="fc-pinyin">{card.pinyin}</p>}
+            {stats.revealPinyin === 'always' && <p className="fc-pinyin">{card.pinyin}</p>}
             <p className="fc-tap">Tap to reveal meaning</p>
           </>
         ) : (
@@ -87,9 +120,37 @@ export default function ReviewPage({ units, completedLessons, revealPinyin, onAp
         )}
       </div>
 
-      <div className="review-controls">
-        <button className="btn-ghost" onClick={() => { setFlipped(false); setMnemonic(''); setIdx(i => (i - 1 + cards.length) % cards.length); }}>← Prev</button>
-        <button className="btn-primary" onClick={() => { setFlipped(false); setMnemonic(''); setIdx(i => (i + 1) % cards.length); }}>Next →</button>
+      <div className="review-controls" style={{ paddingBottom: 40 }}>
+        {!flipped ? (
+          <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+            <button className="btn-ghost" style={{ flex: 1 }} onClick={handleExit}>Quit</button>
+            <button className="btn-primary" style={{ flex: 2 }} onClick={() => setFlipped(true)}>Show Answer</button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+            <button 
+              className="btn-primary btn-error" 
+              style={{ flex: 1, fontSize: 14 }}
+              onClick={() => handleRate('Hard')}
+            >
+              Hard
+            </button>
+            <button 
+              className="btn-primary" 
+              style={{ flex: 1, background: 'var(--primary)', borderBottomColor: 'var(--primary-dim)', fontSize: 14 }}
+              onClick={() => handleRate('Good')}
+            >
+              Good
+            </button>
+            <button 
+              className="btn-primary btn-success" 
+              style={{ flex: 1, fontSize: 14 }}
+              onClick={() => handleRate('Easy')}
+            >
+              Easy
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

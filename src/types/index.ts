@@ -119,6 +119,12 @@ export interface Story {
   xpReward: number;
 }
 
+export interface LeaderboardEntry {
+  userId: string;
+  totalXP: number;
+  level: number;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   content: string; // Raw text (can be JSON if parsed by UI)

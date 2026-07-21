@@ -2,9 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { callOpenRouter } from '../utils/ai';
 import type { ChatMessage } from '../types';
 
-export default function ChatPage({ onApiUse }: {
-  onApiUse?: () => void
-}) {
+export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem('hanpath_chat_history');
@@ -13,7 +11,7 @@ export default function ChatPage({ onApiUse }: {
       // ignore
     }
     return [
-      { role: 'model', content: "你好！I'm your AI Language Buddy. What would you like to practice today?" }
+      { role: 'model', content: "你好(nǐ hǎo)！I'm your AI Language Buddy. What would you like to practice today?" }
     ];
   });
 
@@ -26,7 +24,9 @@ export default function ChatPage({ onApiUse }: {
   }, [messages]);
 
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages, loading]);
 
   const handleSend = async () => {
@@ -38,56 +38,142 @@ export default function ChatPage({ onApiUse }: {
     setLoading(true);
 
     try {
-      const systemPrompt = "You are a friendly, encouraging Chinese learning AI buddy for a beginner student. You MUST converse primarily in simple Chinese characters (Hanzi) and English only. NEVER use Pinyin in your responses. If the user makes a mistake in grammar or word choice, gently point it out in English. Keep your responses short.";
+      const systemPrompt = "You are a friendly, encouraging Chinese learning AI buddy for a beginner student. You MUST converse primarily in simple Chinese characters (Hanzi) followed by Pinyin in brackets, like this: 你好(nǐ hǎo). Use English only for brief explanations or encouragement. NEVER respond with only English or only Hanzi. If the user makes a mistake in grammar or word choice, gently point it out in English. Keep your responses short.";
       
       const history = messages.map(m => ({
         role: m.role === 'user' ? 'user' : 'assistant',
         content: m.content
       }));
 
-      // Add the current message to history for the call
       history.push({ role: 'user', content: userMsg });
 
       const response = await callOpenRouter(history, systemPrompt);
-      
       setMessages(prev => [...prev, { role: 'model', content: response }]);
-      onApiUse?.();
     } catch (err: unknown) {
       const msg = (err as Error).message || 'Unknown error';
-      console.error("AI Error:", msg);
-      setMessages(prev => [...prev, { role: 'model', content: `Sorry, I hit an error: ${msg}. Please check your connection or .env file.` }]);
+      setMessages(prev => [...prev, { role: 'model', content: `Sorry, I hit an error: ${msg}. Please check your connection.` }]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="shell" style={{ display: 'flex', flexDirection: 'column', height: '100dvh', paddingBottom: 0 }}>
-      <div className="sub-header" style={{ flexShrink: 0 }}>
-        <h2>AI Learning Buddy</h2>
+    <div className="app-root" style={{ background: 'var(--bg-deep)', height: '100dvh' }}>
+      <div className="topbar">
+        <div className="topbar-left">
+           <span className="topbar-brand">AI Buddy</span>
+        </div>
+        <div className="topbar-stats">
+           <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--primary)' }}>ONLINE</span>
+           <div style={{ width: 8, height: 8, borderRadius: 4, background: 'var(--primary)' }} />
+        </div>
       </div>
       
-      <div className="chat-container" ref={scrollRef}>
+      <div 
+        ref={scrollRef}
+        style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '24px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          scrollBehavior: 'smooth'
+        }}
+      >
+        <div style={{ flex: 1 }} /> {/* Spacer to push messages to bottom */}
         {messages.map((m, i) => (
-          <div key={i} className={`chat-message ${m.role === 'user' ? 'user' : 'bot'}`}>
+          <div 
+            key={i} 
+            style={{
+              alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+              maxWidth: '85%',
+              padding: '14px 20px',
+              borderRadius: '24px',
+              borderBottomRightRadius: m.role === 'user' ? '4px' : '24px',
+              borderBottomLeftRadius: m.role === 'model' ? '4px' : '24px',
+              background: m.role === 'user' ? 'var(--secondary)' : '#fff',
+              color: m.role === 'user' ? '#fff' : 'var(--text)',
+              fontSize: '16px',
+              fontWeight: 700,
+              lineHeight: 1.5,
+              border: m.role === 'model' ? '2px solid var(--border)' : 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+              animation: 'fadeIn 0.3s ease forwards'
+            }}
+          >
             {m.content}
           </div>
         ))}
-        {loading && <div className="chat-typing">Typing...</div>}
+        {loading && (
+          <div style={{ 
+            alignSelf: 'flex-start', 
+            background: '#fff', 
+            padding: '14px 20px', 
+            borderRadius: '24px', 
+            borderBottomLeftRadius: '4px',
+            color: 'var(--text-dim)',
+            border: '2px solid var(--border)',
+            fontSize: '14px',
+            fontWeight: 800
+          }}>
+            AI Buddy is typing...
+          </div>
+        )}
       </div>
       
-      <div className="chat-input-area" style={{ paddingBottom: 80 }}>
-        <input 
-          className="chat-input"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
-          placeholder="Type your message..."
-          disabled={loading}
-        />
-        <button className="chat-send-btn" onClick={handleSend} disabled={loading || !input.trim()}>
-          ↑
-        </button>
+      <div style={{ 
+        padding: '16px 20px 40px', 
+        background: 'var(--bg-deep)',
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'center',
+        position: 'sticky',
+        bottom: 0
+      }}>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <input 
+            style={{
+              width: '100%',
+              background: '#fff',
+              border: '2px solid var(--border)',
+              borderRadius: '28px',
+              padding: '14px 56px 14px 24px',
+              color: 'var(--text)',
+              fontSize: '16px',
+              fontWeight: 700,
+              outline: 'none',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSend()}
+            placeholder="Send a message..."
+            disabled={loading}
+          />
+          <button 
+            onClick={handleSend} 
+            disabled={loading || !input.trim()}
+            style={{ 
+              position: 'absolute',
+              right: '8px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '40px', 
+              height: '40px', 
+              padding: 0, 
+              borderRadius: '50%', 
+              background: input.trim() ? 'var(--secondary)' : 'var(--bg-elevated)',
+              color: '#fff',
+              display: 'grid',
+              placeItems: 'center',
+              fontSize: '20px',
+              transition: 'all 0.2s'
+            }}
+          >
+            ↑
+          </button>
+        </div>
       </div>
     </div>
   );
