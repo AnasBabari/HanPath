@@ -142,6 +142,16 @@ function genExercises(words: VocabCard[], allCards: VocabCard[], lessonId: strin
     });
   }
 
+  // 6. One stroke order practice for a single-character word
+  const strokeWord = shuffle(words.filter(w => w.hanzi.length === 1))[0];
+  if (strokeWord) {
+    ex.push({
+      id: `${lessonId}-e${n++}`, wordId: strokeWord.id, type: 'stroke-order',
+      prompt: strokeWord.meaning, hint: strokeWord.pinyin,
+      options: [], answer: strokeWord.hanzi,
+    });
+  }
+
   // Order: reading-meaning first (gentle intro), then shuffle rest
   const first = ex.filter(e => e.type === 'reading-meaning');
   const rest = shuffle(ex.filter(e => e.type !== 'reading-meaning'));

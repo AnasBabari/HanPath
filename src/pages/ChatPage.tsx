@@ -1,57 +1,43 @@
 import { useState, useRef, useEffect } from 'react';
 import { callOpenRouter } from '../utils/ai';
-import type { ChatMessage } from '../types';
+import { useStore } from '../store/useStore';
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    try {
-      const saved = localStorage.getItem('hanpath_chat_history');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return [
-      { role: 'model', content: "你好(nǐ hǎo)！I'm your AI Language Buddy. What would you like to practice today?" }
-    ];
-  });
-
+  const { chatHistory, addChatMessage, setToast } = useStore();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    localStorage.setItem('hanpath_chat_history', JSON.stringify(messages));
-  }, [messages]);
-
-  useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, loading]);
+  }, [chatHistory, loading]);
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     
     const userMsg = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    addChatMessage({ role: 'user', content: userMsg });
     setLoading(true);
 
     try {
       const systemPrompt = "You are a friendly, encouraging Chinese learning AI buddy for a beginner student. You MUST converse primarily in simple Chinese characters (Hanzi) followed by Pinyin in brackets, like this: 你好(nǐ hǎo). Use English only for brief explanations or encouragement. NEVER respond with only English or only Hanzi. If the user makes a mistake in grammar or word choice, gently point it out in English. Keep your responses short.";
       
-      const history = messages.map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
+      const history = chatHistory.map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant' as const,
         content: m.content
       }));
 
       history.push({ role: 'user', content: userMsg });
 
       const response = await callOpenRouter(history, systemPrompt);
-      setMessages(prev => [...prev, { role: 'model', content: response }]);
+      addChatMessage({ role: 'model', content: response });
     } catch (err: unknown) {
       const msg = (err as Error).message || 'Unknown error';
-      setMessages(prev => [...prev, { role: 'model', content: `Sorry, I hit an error: ${msg}. Please check your connection.` }]);
+      console.error('Chat error:', msg);
+      setToast('Failed to reach AI Buddy. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -81,7 +67,7 @@ export default function ChatPage() {
           scrollBehavior: 'smooth'
         }}
       >
-        {messages.map((m, i) => (
+        {chatHistory.map((m, i) => (
           <div 
             key={i} 
             style={{

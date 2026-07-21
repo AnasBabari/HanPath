@@ -3,6 +3,7 @@ import { callOpenRouter } from '../../utils/ai';
 import type { Lesson, Exercise } from '../../types';
 import { playCorrect, playWrong } from '../../utils/sounds';
 import { speak, normPinyin } from '../../utils/tts';
+import StrokeOrderPractice from './StrokeOrderPractice';
 
 export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplete }: {
   lesson: Lesson;
@@ -205,6 +206,19 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
         />
       )}
 
+      {ex.type === 'stroke-order' && (
+        <StrokeOrderPractice
+          character={ex.answer[0]}
+          onComplete={() => {
+            submitted.current = true;
+            onCorrect();
+          }}
+          onMistake={() => {
+            onWrong();
+          }}
+        />
+      )}
+
       {isTileBuilder && ex.bank && (
         <div>
           <div style={{ minHeight: '64px', padding: '12px', borderBottom: '2px solid var(--surface-border)', marginBottom: '32px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
@@ -229,7 +243,7 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
         </div>
       )}
 
-      {!locked && (
+      {!locked && ex.type !== 'stroke-order' && (
         <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px', background: 'var(--bg-elevated)', borderTop: '2px solid var(--surface-border)' }}>
           <button className="btn-primary" style={{ width: '100%', background: canCheck ? 'var(--primary)' : 'var(--surface-border)', borderBottomColor: canCheck ? 'var(--primary-shadow)' : 'rgba(0,0,0,0.1)', color: canCheck ? 'white' : 'var(--text-muted)' }} disabled={!canCheck} onClick={check}>CHECK</button>
         </div>

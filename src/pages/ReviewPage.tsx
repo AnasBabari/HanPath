@@ -6,7 +6,7 @@ import { speak } from '../utils/tts';
 import { useStore } from '../store/useStore';
 
 export default function ReviewPage() {
-  const { units, stats, rateWord, setFullScreen } = useStore();
+  const { units, stats, rateWord, setFullScreen, setToast } = useStore();
   const navigate = useNavigate();
 
   const cards = useMemo(() => {
@@ -68,7 +68,9 @@ export default function ReviewPage() {
       const response = await callOpenRouter([{ role: 'user', content: prompt }]);
       setMnemonic(response);
     } catch (err: unknown) {
-      setMnemonic("Oops, could not generate a mnemonic. Please check your API key and connection.");
+      console.error('Mnemonic Error:', err);
+      setToast('Failed to contact AI. Please check your connection.');
+      setMnemonic("Mnemonic generation failed.");
     } finally {
       setLoadingMnemonic(false);
     }

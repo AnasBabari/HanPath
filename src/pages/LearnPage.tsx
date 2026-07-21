@@ -31,6 +31,14 @@ function LessonIntro({ unit, lesson, revealPinyin, onStart, onExit }: {
       <div className="vocab-grid">
         {lesson.vocab.map((card, i) => (
           <div key={card.id} className="vocab-card" style={{ animationDelay: `${i * 0.06}s` }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (revealPinyin === 'peek') setPeeks(p => { const n = new Set(p); n.add(card.id); return n; });
+              }
+            }}
             onClick={() => {
               if (revealPinyin === 'peek') setPeeks(p => { const n = new Set(p); n.add(card.id); return n; });
             }}>

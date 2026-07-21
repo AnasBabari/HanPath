@@ -56,6 +56,7 @@ interface AppState {
   isFullScreen: boolean;
   error: string | null;
   toast: string | null;
+  chatHistory: { role: 'user' | 'model'; content: string }[];
 
   /* Actions */
   setStats: (stats: UserStats | ((prev: UserStats) => UserStats)) => void;
@@ -67,6 +68,8 @@ interface AppState {
   setFullScreen: (isFullScreen: boolean) => void;
   setError: (error: string | null) => void;
   setToast: (toast: string | null) => void;
+  addChatMessage: (msg: { role: 'user' | 'model'; content: string }) => void;
+  clearChatHistory: () => void;
   
   /* Business Logic Actions */
   completeLesson: (lessonId: string, correct: number, total: number, flatVocab: Lesson[]) => void;
@@ -89,6 +92,9 @@ export const useStore = create<AppState>()(
       isFullScreen: false,
       error: null,
       toast: null,
+      chatHistory: [
+        { role: 'model', content: "你好(nǐ hǎo)！I'm your AI Language Buddy. What would you like to practice today?" }
+      ],
 
       setStats: (updater) => set((state) => ({
         stats: typeof updater === 'function' ? updater(state.stats) : updater
@@ -105,6 +111,8 @@ export const useStore = create<AppState>()(
       setFullScreen: (isFullScreen) => set({ isFullScreen }),
       setError: (error) => set({ error }),
       setToast: (toast) => set({ toast }),
+      addChatMessage: (msg) => set((state) => ({ chatHistory: [...state.chatHistory, msg] })),
+      clearChatHistory: () => set({ chatHistory: [] }),
 
       completeLesson: (lessonId, correct, total, flatVocab) => set((state) => {
         let ns = { ...state.stats };
@@ -126,7 +134,10 @@ export const useStore = create<AppState>()(
         ns = bumpStreak(ns);
 
         const parseResult = UserStatsSchema.safeParse(ns);
-        if (!parseResult.success) console.warn('UserStats validation failed:', parseResult.error);
+        if (!parseResult.success) {
+          console.error('UserStats validation failed in completeLesson, state rolled back:', parseResult.error);
+          return state; // Rollback
+        }
         return { stats: ns };
       }),
 
@@ -145,7 +156,10 @@ export const useStore = create<AppState>()(
         };
         // Runtime validation
         const parseResult = UserStatsSchema.safeParse(updatedStats);
-        if (!parseResult.success) console.warn('UserStats validation failed:', parseResult.error);
+        if (!parseResult.success) {
+          console.error('UserStats validation failed in updateWordResult, state rolled back:', parseResult.error);
+          return state;
+        }
         return { stats: updatedStats };
       }),
 
@@ -166,7 +180,10 @@ export const useStore = create<AppState>()(
 
         // Runtime validation
         const parseResult = UserStatsSchema.safeParse(updatedStats);
-        if (!parseResult.success) console.warn('UserStats validation failed:', parseResult.error);
+        if (!parseResult.success) {
+          console.error('UserStats validation failed in rateWord, state rolled back:', parseResult.error);
+          return state;
+        }
         return { stats: updatedStats };
       }),
 
@@ -186,7 +203,11 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'hanpath-progress-v3', // New version for Zustand persistence
-      partialize: (state) => ({ stats: state.stats, hskLevel: state.hskLevel }), // Persist stats and level
+      partialize: (state) => ({ 
+        stats: state.stats, 
+        hskLevel: state.hskLevel,
+        chatHistory: state.chatHistory 
+      }), // Persist stats, level, and chat history
     }
   )
 );

@@ -13,7 +13,8 @@ export type ExerciseType =
   | 'listening-meaning'
   | 'pinyin-type'
   | 'compose'
-  | 'sentence-build';
+  | 'sentence-build'
+  | 'stroke-order';
 
 export interface VocabCard {
   id: string;
