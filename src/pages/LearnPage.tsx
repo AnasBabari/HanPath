@@ -190,8 +190,6 @@ export default function LearnPage() {
     return Math.round((done / total) * 100);
   };
 
-  const staggerClasses = ['slight-left', 'slight-right', 'left', 'right'];
-
   return (
     <div className="shell">
       {/* TopAppBar */}
@@ -239,10 +237,9 @@ export default function LearnPage() {
                   const done = stats.completedLessons.includes(lesson.id);
                   const unlocked = isLessonUnlocked(lesson.id, units, stats.completedLessons);
                   const isCurrent = unlocked && !done;
-                  const stagger = staggerClasses[li % staggerClasses.length];
 
                   return (
-                    <div key={lesson.id} className={`lesson-node-wrap ${stagger}`}>
+                    <div key={lesson.id} className="lesson-node-wrap">
                       {isCurrent && (
                         <div className="next-step-tooltip">
                           <span className="text">Next Step!</span>

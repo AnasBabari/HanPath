@@ -8,6 +8,11 @@
   50% { transform: translateY(-8px); }
 }
 
+@keyframes bounce-tooltip {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -8px); }
+}
+
 @keyframes pulse-ring {
   0% { transform: scale(0.9); opacity: 1; }
   100% { transform: scale(1.4); opacity: 0; }
@@ -358,7 +363,7 @@ button:active {
   border: 2px solid var(--gold-shadow);
   border-bottom: 4px solid var(--gold-shadow);
   white-space: nowrap;
-  animation: bounce 2s infinite ease-in-out;
+  animation: bounce-tooltip 2s infinite ease-in-out;
   z-index: 20;
 }
 
