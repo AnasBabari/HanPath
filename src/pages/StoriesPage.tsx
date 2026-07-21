@@ -61,7 +61,7 @@ export default function StoriesPage() {
 
   if (activeStory) {
     return (
-      <div className="bg-surface text-on-surface font-body-md min-h-screen pb-32">
+      <div className="bg-surface text-on-surface font-body-md flex-1 flex flex-col overflow-y-auto pb-32">
         <header className="w-full top-0 sticky z-40 bg-surface shadow-md">
           <div className="flex justify-between items-center px-6 py-4 w-full max-w-5xl mx-auto">
             <div className="flex items-center gap-4">
@@ -159,7 +159,7 @@ export default function StoriesPage() {
   }
 
   return (
-    <div className="bg-surface min-h-screen pb-32">
+    <div className="bg-surface flex-1 flex flex-col overflow-y-auto pb-32">
       <header className="w-full top-0 sticky z-40 bg-surface shadow-sm">
         <div className="flex items-center px-6 py-4 w-full max-w-5xl mx-auto">
           <h1 className="font-headline-md text-3xl leading-none text-primary m-0">Stories</h1>
