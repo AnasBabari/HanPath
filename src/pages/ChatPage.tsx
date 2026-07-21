@@ -58,7 +58,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="app-root" style={{ background: 'var(--bg-deep)', height: '100dvh' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg-deep)' }}>
       <div className="topbar">
         <div className="topbar-left">
            <span className="topbar-brand">AI Buddy</span>
@@ -81,7 +81,6 @@ export default function ChatPage() {
           scrollBehavior: 'smooth'
         }}
       >
-        <div style={{ flex: 1 }} /> {/* Spacer to push messages to bottom */}
         {messages.map((m, i) => (
           <div 
             key={i} 
@@ -123,17 +122,19 @@ export default function ChatPage() {
       </div>
       
       <div style={{ 
-        padding: '16px 20px 40px', 
+        padding: '16px 20px',
+        paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))', 
         background: 'var(--bg-deep)',
         display: 'flex',
+        flexShrink: 0,
         gap: '12px',
         alignItems: 'center',
-        position: 'sticky',
-        bottom: 0
+        borderTop: '1px solid rgba(0,0,0,0.05)'
       }}>
-        <div style={{ flex: 1, position: 'relative' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', position: 'relative' }}>
           <input 
             style={{
+              flex: 1,
               width: '100%',
               background: '#fff',
               border: '2px solid var(--border)',
@@ -157,8 +158,6 @@ export default function ChatPage() {
             style={{ 
               position: 'absolute',
               right: '8px',
-              top: '50%',
-              transform: 'translateY(-50%)',
               width: '40px', 
               height: '40px', 
               padding: 0, 

@@ -116,7 +116,7 @@
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-deep);
   color: var(--text-main);
   overflow-x: hidden;
@@ -126,12 +126,13 @@ body {
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
-  min-height: 100vh;
+  height: 100dvh;
   position: relative;
   background: var(--bg-elevated);
   display: flex;
   flex-direction: column;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
 h1, h2, h3, h4, .plus-jakarta { 

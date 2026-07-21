@@ -13,11 +13,23 @@
   100% { transform: scale(1.4); opacity: 0; }
 }
 
-/* ---- Layout Components ---- */
+.app-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
 .shell {
-  padding: 80px 24px 140px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: var(--bg-elevated);
-  min-height: 100vh;
+  /* The padding will be handled by flex children and safe-area */
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ---- Buttons ---- */
@@ -82,14 +94,15 @@ button:active {
 
 /* ---- TopAppBar ---- */
 .topbar {
-  position: fixed;
-  top: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 520px;
-  height: 72px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+  width: 100%;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 24px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 24px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -215,20 +228,7 @@ button:active {
   border-radius: 8px;
 }
 
-.lesson-node-wrap {
-  position: relative;
-  z-index: 10;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.lesson-node-wrap.middle { transform: translateX(0); }
-.lesson-node-wrap.slight-left { transform: translateX(-35px); }
-.lesson-node-wrap.slight-right { transform: translateX(35px); }
-.lesson-node-wrap.left { transform: translateX(-65px); }
-.lesson-node-wrap.right { transform: translateX(65px); }
+/* Duplicate lesson-node-wrap block removed */
 
 .node-btn {
   width: 72px;
@@ -275,7 +275,8 @@ button:active {
 /* ---- Lesson Node (Duolingo Style) ---- */
 .lesson-node-wrap {
   position: relative;
-  z-index: 1;
+  z-index: 10;
+  width: 100%; /* Take full width of path so translate moves from center */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -346,10 +347,11 @@ button:active {
 /* Next Step Tooltip */
 .next-step-tooltip {
   position: absolute;
-  bottom: 100%;
+  /* Attach right above the node button (80px to 96px tall, plus gap) */
+  bottom: calc(100% - 24px); 
   left: 50%;
   transform: translateX(-50%);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   background: #fff;
   padding: 10px 20px;
   border-radius: 12px;
@@ -357,7 +359,7 @@ button:active {
   border-bottom: 4px solid var(--gold-shadow);
   white-space: nowrap;
   animation: bounce 2s infinite ease-in-out;
-  z-index: 10;
+  z-index: 20;
 }
 
 .next-step-tooltip .text {
@@ -379,14 +381,12 @@ button:active {
 
 /* ---- Bottom Nav Overhaul ---- */
 .bottom-nav {
-  position: fixed;
-  bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 520px;
-  height: 80px;
+  flex-shrink: 0;
+  width: 100%;
   background: var(--bg-elevated);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  padding: 0 12px 12px;
+  padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px));
   border-top: 2px solid var(--surface-border);
   border-radius: 24px 24px 0 0;
   z-index: 100;
