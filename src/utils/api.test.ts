@@ -81,7 +81,7 @@ describe('HSK API - fetchHSKLevel', () => {
     expect(firstCall).toHaveLength(2);
 
     // Spy on global fetch
-    const fetchSpy = vi.spyOn(global, 'fetch');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
     
     // Second fetch should use memory cache, not fetch
     const secondCall = await fetchHSKLevel(1);
