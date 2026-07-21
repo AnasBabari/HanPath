@@ -8,9 +8,14 @@
   50% { transform: translateY(-8px); }
 }
 
-@keyframes bounce-tooltip {
-  0%, 100% { transform: translate(-50%, 0); }
-  50% { transform: translate(-50%, -8px); }
+@keyframes bounce-right {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(8px); }
+}
+
+@keyframes bounce-left {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(-8px); }
 }
 
 @keyframes pulse-ring {
@@ -287,10 +292,36 @@ button:active {
   align-items: center;
 }
 
-.lesson-node-wrap.left { transform: translateX(-48px); }
-.lesson-node-wrap.right { transform: translateX(48px); }
-.lesson-node-wrap.slight-left { transform: translateX(-24px); }
-.lesson-node-wrap.slight-right { transform: translateX(24px); }
+/* Stagger transforms */
+.lesson-node-wrap.left { transform: translateX(-64px); }
+.lesson-node-wrap.right { transform: translateX(64px); }
+
+/* Connectors to central path line */
+.lesson-node-wrap.left .node-btn::before {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background: var(--surface-border);
+  z-index: -1;
+  border-radius: 0 8px 8px 0;
+}
+
+.lesson-node-wrap.right .node-btn::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background: var(--surface-border);
+  z-index: -1;
+  border-radius: 8px 0 0 8px;
+}
 
 .node-btn {
   width: 80px; height: 80px;
@@ -349,21 +380,17 @@ button:active {
   font-size: 18px;
 }
 
-/* Next Step Tooltip */
+/* Next Step Tooltip adjustments */
 .next-step-tooltip {
   position: absolute;
-  /* Attach right above the node button (80px to 96px tall, plus gap) */
-  bottom: calc(100% - 24px); 
-  left: 50%;
-  transform: translateX(-50%);
-  margin-bottom: 12px;
+  top: 50%;
+  margin-top: -24px;
   background: #fff;
   padding: 10px 20px;
   border-radius: 12px;
   border: 2px solid var(--gold-shadow);
   border-bottom: 4px solid var(--gold-shadow);
   white-space: nowrap;
-  animation: bounce-tooltip 2s infinite ease-in-out;
   z-index: 20;
 }
 
@@ -374,14 +401,34 @@ button:active {
   text-transform: uppercase;
 }
 
-.next-step-tooltip::after {
+/* For left node, tooltip sits on the right */
+.lesson-node-wrap.left .next-step-tooltip {
+  left: calc(50% + 64px);
+  animation: bounce-right 2s infinite ease-in-out;
+}
+.lesson-node-wrap.left .next-step-tooltip::after {
   content: '';
   position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
   border: 8px solid transparent;
-  border-top-color: var(--gold-shadow);
+  border-right-color: var(--gold-shadow);
+}
+
+/* For right node, tooltip sits on the left */
+.lesson-node-wrap.right .next-step-tooltip {
+  right: calc(50% + 64px);
+  animation: bounce-left 2s infinite ease-in-out;
+}
+.lesson-node-wrap.right .next-step-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  border: 8px solid transparent;
+  border-left-color: var(--gold-shadow);
 }
 
 /* ---- Bottom Nav Overhaul ---- */
