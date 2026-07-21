@@ -99,64 +99,65 @@ const STORIES: HardcodedStory[] = [
   }
 ];
 
-export default function StoriesPage({ onBack }: { onBack: () => void }) {
+export default function StoriesPage() {
   const [activeStory, setActiveStory] = useState<HardcodedStory | null>(null);
   const [activeSeg, setActiveSeg] = useState<StorySegment | null>(null);
 
   if (activeStory) {
     return (
       <div className="shell">
-        <div className="sub-header">
+        <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
           <button className="back-btn" onClick={() => setActiveStory(null)}>← Back</button>
-          <h2>{activeStory.title}</h2>
+          <h2 style={{ margin: 0, marginLeft: 12 }}>{activeStory.title}</h2>
         </div>
         
         <div style={{ padding: 16 }}>
-          <p style={{ color: 'var(--text-dim)', fontSize: 14, marginBottom: 24 }}>
+          <p style={{ color: 'var(--text-dim)', fontSize: 14, marginBottom: 24, fontWeight: 700 }}>
             Tap any character to see its meaning.
           </p>
           
           <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: '8px 4px', 
-            fontSize: 28, 
+            fontSize: 32, 
             lineHeight: 1.8,
-            marginBottom: 32
+            fontWeight: 900,
+            marginBottom: 32,
+            lineBreak: 'strict'
           }}>
-            {activeStory.segments.map((seg, i) => (
-              <span 
-                key={i} 
-                onClick={() => {
-                  if (seg.zh === '。') return;
-                  setActiveSeg(seg);
-                  speak(seg.zh);
-                }}
-                style={{
-                  cursor: seg.zh === '。' ? 'default' : 'pointer',
-                  borderBottom: activeSeg === seg ? '2px solid var(--accent)' : '2px solid transparent',
-                  paddingBottom: 2
-                }}
-              >
-                {seg.zh}
-              </span>
-            ))}
+            {activeStory.segments.map((seg, i) => {
+              const isPunctuation = /^[\s-〿＀-￯\-/:-@[\-`{-~]$/.test(seg.zh);
+              return (
+                <span 
+                  key={i} 
+                  onClick={() => {
+                    if (isPunctuation) return;
+                    setActiveSeg(seg);
+                    speak(seg.zh);
+                  }}
+                  style={{
+                    cursor: isPunctuation ? 'default' : 'pointer',
+                    borderBottom: activeSeg === seg ? '4px solid var(--primary)' : '4px solid transparent',
+                    paddingBottom: 2,
+                    transition: 'all 0.2s',
+                    marginRight: isPunctuation ? 0 : 4
+                  }}
+                >
+                  {seg.zh}
+                </span>
+              );
+            })}
           </div>
 
           {activeSeg && (
-            <div style={{
-              background: 'var(--bg-card)',
-              padding: 16,
-              borderRadius: 16,
-              border: '1px solid var(--accent)',
+            <div className="vocab-card" style={{
+              borderColor: 'var(--primary)',
               display: 'flex',
               flexDirection: 'column',
               gap: 8,
               animation: 'slideUp 0.2s ease-out'
             }}>
               <div style={{ fontSize: 32, fontWeight: 900 }}>{activeSeg.zh}</div>
-              <div style={{ color: 'var(--accent)', fontSize: 18, fontWeight: 700 }}>{activeSeg.py}</div>
-              <div style={{ fontSize: 16, color: 'var(--text-main)' }}>{activeSeg.en}</div>
+              <div style={{ color: 'var(--primary)', fontSize: 18, fontWeight: 800 }}>{activeSeg.py}</div>
+              <div style={{ fontSize: 16, color: 'var(--on-surface)' }}>{activeSeg.en}</div>
             </div>
           )}
         </div>
@@ -165,31 +166,28 @@ export default function StoriesPage({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="shell">
-      <div className="sub-header">
-        <button className="back-btn" onClick={onBack}>← Back</button>
-        <h2>Stories</h2>
+    <div className="shell" style={{ paddingBottom: 120 }}>
+      <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
+        <h2 style={{ margin: 0 }}>Stories</h2>
       </div>
       
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {STORIES.map(s => (
           <div 
             key={s.id} 
+            className="vocab-card"
             onClick={() => { setActiveStory(s); setActiveSeg(null); }}
             style={{
-              background: 'var(--bg-card)',
-              padding: 16,
-              borderRadius: 16,
-              border: '1px solid var(--border)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              marginBottom: 0
             }}
           >
             <div>
-              <div style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 800, marginBottom: 4 }}>HSK {s.hskLevel}</div>
-              <div style={{ fontSize: 18, fontWeight: 700 }}>{s.title}</div>
+              <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 900, marginBottom: 4 }}>HSK {s.hskLevel}</div>
+              <div style={{ fontSize: 18, fontWeight: 800 }}>{s.title}</div>
             </div>
             <div style={{ fontSize: 24 }}>📖</div>
           </div>

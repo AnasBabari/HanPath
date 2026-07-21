@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 import { fetchHSKLevel } from './utils/api';
 import { buildCurriculum } from './utils/curriculum';
-import { loadStats, saveStats, checkNewAchievements, resetAll } from './utils/gamification';
+import { checkNewAchievements, saveStats } from './utils/gamification';
 import { playLevelUp } from './utils/sounds';
-import { clearCloudProgress, initCloudProgress, loadCloudProgress, saveCloudProgress } from './utils/cloudProgress';
-import type { Unit, UserStats } from './types';
+import { initCloudProgress, loadCloudProgress, saveCloudProgress } from './utils/cloudProgress';
+import { useStore } from './store/useStore';
 
 // Components
 import AchievementToast from './components/ui/AchievementToast';
@@ -19,20 +20,23 @@ import ChatPage from './pages/ChatPage';
 
 import logo from './assets/logo.png';
 
-/* ---- App Router ---- */
+/* ---- App Wrapper for Navigation ---- */
 
-type Tab = 'home' | 'practice' | 'stories' | 'chat' | 'review' | 'profile';
+function AppContent() {
+  const { 
+    stats, setStats, 
+    cloudUserId, setCloudUserId, 
+    units, setUnits, 
+    hskLevel,
+    loading, setLoading, 
+    error, setError, 
+    toast, setToast,
+    isFullScreen
+  } = useStore();
 
-export default function App() {
-  const [stats, setStats] = useState<UserStats>(() => loadStats());
-  const [cloudUserId, setCloudUserId] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>('home');
-  const [units, setUnits] = useState<Unit[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const location = useLocation();
 
-  /* Persist stats */
+  /* Persist stats to localStorage (handled by Zustand persist, but we can keep the utility sync if needed) */
   useEffect(() => { saveStats(stats); }, [stats]);
 
   /* Hydrate cloud profile and migrate local stats on first run */
@@ -55,7 +59,7 @@ export default function App() {
           return;
         }
 
-        await saveCloudProgress(userId, loadStats());
+        await saveCloudProgress(userId, stats);
       } catch (e) {
         console.error('Cloud sync init failed:', e);
       }
@@ -65,6 +69,7 @@ export default function App() {
     return () => {
       active = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /* Debounced cloud save */
@@ -80,20 +85,22 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [cloudUserId, stats]);
 
-  /* Fetch HSK vocab on mount */
+  /* Fetch HSK vocab on mount or level change */
   const doFetch = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const words = await fetchHSKLevel(1);
+      const words = await fetchHSKLevel(hskLevel);
       setUnits(buildCurriculum(words));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load vocabulary');
+      setError(e instanceof Error ? e.message : `Failed to load HSK ${hskLevel} vocabulary`);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [hskLevel, setLoading, setError, setUnits]);
 
-  useEffect(() => { doFetch(); }, [doFetch]);
+  useEffect(() => {
+    void doFetch();
+  }, [doFetch]);
 
   /* Check achievements */
   useEffect(() => {
@@ -106,51 +113,15 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stats.completedLessons.length, stats.totalXP, stats.streak, stats.wordsLearned, stats.level]);
 
-  const handleWordResult = useCallback((wordId: string, correct: boolean) => {
-    setStats(s => {
-      const prev = s.wordAccuracy[wordId] ?? { correct: 0, total: 0, lastSeen: 0 };
-      return {
-        ...s,
-        wordAccuracy: {
-          ...s.wordAccuracy,
-          [wordId]: {
-            correct: prev.correct + (correct ? 1 : 0),
-            total: prev.total + 1,
-            lastSeen: Date.now(),
-          },
-        },
-      };
-    });
-  }, []);
-
-  const handleApiUse = useCallback(() => {
-    // Stat tracking removed
-  }, []);
-
-  const handleReset = useCallback(() => {
-    void (async () => {
-      try {
-        if (cloudUserId) {
-          await clearCloudProgress(cloudUserId);
-        }
-      } catch (e) {
-        console.error('Cloud reset failed:', e);
-      }
-
-      resetAll();
-      setStats(loadStats());
-      setTab('home');
-    })();
-  }, [cloudUserId]);
-
   /* Loading State */
   if (loading) {
     return (
       <div className="loading-screen">
+        <div className="loading-logo-glow" />
         <img src={logo} alt="HànPath" className="loading-logo" />
         <h1>HànPath</h1>
         <div className="loading-spinner" />
-        <p style={{ color: 'var(--text-dim)', fontWeight: 700, fontSize: 13 }}>Loading...</p>
+        <p style={{ color: 'var(--text-dim)', fontWeight: 800, fontSize: 14 }}>Connecting to curriculum...</p>
       </div>
     );
   }
@@ -158,38 +129,50 @@ export default function App() {
   if (error || !units) {
     return (
       <div className="loading-screen">
-        <img src={logo} alt="HànPath" className="loading-logo error" />
-        <h1>HànPath</h1>
-        <div className="loading-error">
-          <p>{error || 'Could not load data'}</p>
-          <button onClick={doFetch}>Try again</button>
+        <div className="loading-error-card">
+          <img src={logo} alt="HànPath" className="loading-logo error" />
+          <h1>Oops!</h1>
+          <p style={{ color: 'var(--text-dim)', marginBottom: 24, fontWeight: 700 }}>
+            {error || 'We couldn\'t load the curriculum. Please check your internet connection.'}
+          </p>
+          <button className="btn-primary" onClick={() => void doFetch()}>
+            Try again
+          </button>
         </div>
       </div>
     );
   }
 
+  /* Removed Aegis test error */
+
+  const showNav = ['/', '/practice', '/stories', '/chat', '/review', '/profile'].includes(location.pathname) && !isFullScreen;
+
   return (
     <div className="app-root">
       {toast && <AchievementToast id={toast} onDone={() => setToast(null)} />}
 
-      {tab === 'home' && <LearnPage units={units} stats={stats} setStats={setStats} onWordResult={handleWordResult} onApiUse={handleApiUse} />}
-      {tab === 'practice' && <PracticePage units={units} stats={stats} onBack={() => setTab('home')} onXP={(amt) => setStats(s => ({ ...s, totalXP: s.totalXP + amt }))} onWordResult={handleWordResult} onApiUse={handleApiUse} onLaunchReview={() => setTab('review')} />}
-      {tab === 'stories' && <StoriesPage onBack={() => setTab('home')} />}
-      {tab === 'chat' && <ChatPage onApiUse={handleApiUse} />}
-      {tab === 'review' && <ReviewPage units={units} completedLessons={stats.completedLessons} revealPinyin={stats.revealPinyin} onApiUse={handleApiUse} onBack={() => setTab('home')} />}
-      {tab === 'profile' && 
-        <ProfilePage 
-          stats={stats} 
-          onBack={() => setTab('home')} 
-          onChangeReveal={(m) => setStats(s => ({ ...s, revealPinyin: m }))} 
-          onReset={handleReset}
-        />
-      }
+      <Routes>
+        <Route path="/" element={<LearnPage />} />
+        <Route path="/practice" element={<PracticePage />} />
+        <Route path="/stories" element={<StoriesPage />} />
+        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/review" element={<ReviewPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
-      {/* Show Bottom Nav on root tabs only */}
-      {(tab === 'home' || tab === 'practice' || tab === 'stories' || tab === 'chat' || tab === 'review' || tab === 'profile') && (
-        <BottomNav active={tab} onNav={(n) => setTab(n as Tab)} />
+      {showNav && (
+        <BottomNav />
       )}
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+}
+
