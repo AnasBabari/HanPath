@@ -233,7 +233,7 @@ export default function LearnPage() {
               {/* Path Container */}
               <div className="path-container">
                 <div className="path-line" />
-                {unit.lessons.map((lesson, li) => {
+                {unit.lessons.map((lesson) => {
                   const done = stats.completedLessons.includes(lesson.id);
                   const unlocked = isLessonUnlocked(lesson.id, units, stats.completedLessons);
                   const isCurrent = unlocked && !done;
