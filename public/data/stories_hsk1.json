@@ -1,0 +1,49 @@
+[
+  {
+    "id": "i-like-apples",
+    "title": "I Like Apples",
+    "title_zh": "我喜欢苹果",
+    "hsk_level": 1,
+    "tokens": [
+      { "token": "我", "is_word": true, "hsk_level": 1, "pinyin_hint": "wǒ", "meaning": "I / me" },
+      { "token": "喜欢", "is_word": true, "hsk_level": 1, "pinyin_hint": "xǐ huan", "meaning": "to like" },
+      { "token": "吃", "is_word": true, "hsk_level": 1, "pinyin_hint": "chī", "meaning": "to eat" },
+      { "token": "苹果", "is_word": true, "hsk_level": 1, "pinyin_hint": "píng guǒ", "meaning": "apple" },
+      { "token": "。", "is_word": false, "hsk_level": 0, "pinyin_hint": "", "meaning": "" },
+      { "token": "我", "is_word": true, "hsk_level": 1, "pinyin_hint": "wǒ", "meaning": "I / me" },
+      { "token": "今天", "is_word": true, "hsk_level": 1, "pinyin_hint": "jīn tiān", "meaning": "today" },
+      { "token": "吃", "is_word": true, "hsk_level": 1, "pinyin_hint": "chī", "meaning": "to eat" },
+      { "token": "了", "is_word": true, "hsk_level": 1, "pinyin_hint": "le", "meaning": "(completed action marker)" },
+      { "token": "一", "is_word": true, "hsk_level": 1, "pinyin_hint": "yī", "meaning": "one" },
+      { "token": "个", "is_word": true, "hsk_level": 1, "pinyin_hint": "gè", "meaning": "(measure word)" },
+      { "token": "苹果", "is_word": true, "hsk_level": 1, "pinyin_hint": "píng guǒ", "meaning": "apple" },
+      { "token": "。", "is_word": false, "hsk_level": 0, "pinyin_hint": "", "meaning": "" },
+      { "token": "苹果", "is_word": true, "hsk_level": 1, "pinyin_hint": "píng guǒ", "meaning": "apple" },
+      { "token": "很", "is_word": true, "hsk_level": 1, "pinyin_hint": "hěn", "meaning": "very" },
+      { "token": "大", "is_word": true, "hsk_level": 1, "pinyin_hint": "dà", "meaning": "big" },
+      { "token": "。", "is_word": false, "hsk_level": 0, "pinyin_hint": "", "meaning": "" }
+    ]
+  },
+  {
+    "id": "going-to-the-store",
+    "title": "Going to the Store",
+    "title_zh": "去商店",
+    "hsk_level": 1,
+    "tokens": [
+      { "token": "今天", "is_word": true, "hsk_level": 1, "pinyin_hint": "jīn tiān", "meaning": "today" },
+      { "token": "星期六", "is_word": true, "hsk_level": 1, "pinyin_hint": "xīng qī liù", "meaning": "Saturday" },
+      { "token": "。", "is_word": false, "hsk_level": 0, "pinyin_hint": "", "meaning": "" },
+      { "token": "我", "is_word": true, "hsk_level": 1, "pinyin_hint": "wǒ", "meaning": "I / me" },
+      { "token": "和", "is_word": true, "hsk_level": 1, "pinyin_hint": "hé", "meaning": "and" },
+      { "token": "朋友", "is_word": true, "hsk_level": 1, "pinyin_hint": "péng you", "meaning": "friend" },
+      { "token": "去", "is_word": true, "hsk_level": 1, "pinyin_hint": "qù", "meaning": "to go" },
+      { "token": "商店", "is_word": true, "hsk_level": 1, "pinyin_hint": "shāng diàn", "meaning": "store / shop" },
+      { "token": "。", "is_word": false, "hsk_level": 0, "pinyin_hint": "", "meaning": "" },
+      { "token": "我们", "is_word": true, "hsk_level": 1, "pinyin_hint": "wǒ men", "meaning": "we / us" },
+      { "token": "去", "is_word": true, "hsk_level": 1, "pinyin_hint": "qù", "meaning": "to go" },
+      { "token": "买", "is_word": true, "hsk_level": 1, "pinyin_hint": "mǎi", "meaning": "to buy" },
+      { "token": "东西", "is_word": true, "hsk_level": 1, "pinyin_hint": "dōng xi", "meaning": "things / stuff" },
+      { "token": "。", "is_word": false, "hsk_level": 0, "pinyin_hint": "", "meaning": "" }
+    ]
+  }
+]

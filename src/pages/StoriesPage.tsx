@@ -1,81 +1,92 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { speak } from '../utils/tts';
 import { useStore } from '../store/useStore';
 import FloatingTooltip from '../components/ui/FloatingTooltip';
 
-interface StorySegment {
-  zh: string;
-  py: string;
-  en: string;
+// The schema matching our generated JSON
+interface Token {
+  token: string;
+  is_word: boolean;
+  hsk_level: number;
+  pinyin_hint: string;
+  meaning: string;
 }
 
-interface HardcodedStory {
+interface Story {
   id: string;
   title: string;
-  hskLevel: number;
-  segments: StorySegment[];
+  title_zh: string;
+  hsk_level: number;
+  tokens: Token[];
 }
 
-const STORIES: HardcodedStory[] = [
-  {
-    id: 's1', title: '我的猫 (My Cat)', hskLevel: 1,
-    segments: [
-      { zh: '我', py: 'wǒ', en: 'I / me' },
-      { zh: '有', py: 'yǒu', en: 'have / there is' },
-      { zh: '一', py: 'yì', en: 'one' },
-      { zh: '只', py: 'zhī', en: '(measure word)' },
-      { zh: '小', py: 'xiǎo', en: 'small' },
-      { zh: '猫', py: 'māo', en: 'cat' },
-      { zh: '。', py: '', en: '.' },
-      { zh: '它', py: 'tā', en: 'it' },
-      { zh: '很', py: 'hěn', en: 'very' },
-      { zh: '爱', py: 'ài', en: 'love' },
-      { zh: '吃', py: 'chī', en: 'eat' },
-      { zh: '鱼', py: 'yú', en: 'fish' },
-      { zh: '。', py: '', en: '.' }
-    ]
-  },
-  {
-    id: 's2', title: '去商店 (Going to the Store)', hskLevel: 1,
-    segments: [
-      { zh: '今天', py: 'jīn tiān', en: 'today' },
-      { zh: '我', py: 'wǒ', en: 'I' },
-      { zh: '去', py: 'qù', en: 'go' },
-      { zh: '商店', py: 'shāng diàn', en: 'store' },
-      { zh: '买', py: 'mǎi', en: 'buy' },
-      { zh: '水果', py: 'shuǐ guǒ', en: 'fruit' },
-      { zh: '。', py: '', en: '.' },
-      { zh: '苹果', py: 'píng guǒ', en: 'apple' },
-      { zh: '很好吃', py: 'hěn hǎo chī', en: 'very tasty' },
-      { zh: '。', py: '', en: '.' }
-    ]
-  }
-];
-
 export default function StoriesPage() {
-  const [activeStory, setActiveStory] = useState<HardcodedStory | null>(null);
-  const [activeSeg, setActiveSeg] = useState<StorySegment | null>(null);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [activeStory, setActiveStory] = useState<Story | null>(null);
+  const [activeToken, setActiveToken] = useState<{ token: Token; el: HTMLElement } | null>(null);
   const [showPinyin, setShowPinyin] = useState(true);
+  const [loading, setLoading] = useState(true);
   
-  const { stats } = useStore();
+  const { stats, hskLevel, markStoryRead } = useStore();
+
+  useEffect(() => {
+    async function loadStories() {
+      setLoading(true);
+      const allStories: Story[] = [];
+      // Fetch HSK 1 to 4 stories (ignoring 404s if they don't exist yet)
+      for (let i = 1; i <= 4; i++) {
+        try {
+          const res = await fetch(`/data/stories_hsk${i}.json`);
+          if (res.ok) {
+            const data = await res.json();
+            allStories.push(...data);
+          }
+        } catch (e) {
+          console.warn(`Could not load HSK ${i} stories`, e);
+        }
+      }
+      setStories(allStories);
+      setLoading(false);
+    }
+    loadStories();
+  }, []);
+
+  const storiesByLevel = useMemo(() => {
+    const groups: Record<number, Story[]> = {};
+    stories.forEach(s => {
+      if (!groups[s.hsk_level]) groups[s.hsk_level] = [];
+      groups[s.hsk_level].push(s);
+    });
+    return groups;
+  }, [stories]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-surface">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (activeStory) {
     return (
-      <div className="bg-surface text-on-surface font-body-md flex-1 flex flex-col overflow-y-auto pb-32">
+      <div className="bg-surface text-on-surface font-body-md flex-1 flex flex-col overflow-y-auto pb-32" onClick={() => setActiveToken(null)}>
         <header className="w-full top-0 sticky z-40 bg-surface shadow-md">
           <div className="flex justify-between items-center px-6 py-4 w-full max-w-5xl mx-auto">
             <div className="flex items-center gap-4">
-              <button onClick={() => setActiveStory(null)} className="active:translate-y-0.5 transition-all text-primary border-0 p-0 m-0 bg-transparent">
-                <span className="material-symbols-outlined text-2xl">arrow_back</span>
+              <button 
+                onClick={() => {
+                  setActiveStory(null);
+                  markStoryRead(activeStory.id);
+                }} 
+                className="active:translate-y-0.5 transition-all text-primary border-0 p-0 m-0 bg-transparent flex items-center"
+              >
+                <span className="material-symbols-outlined text-2xl mr-1">arrow_back</span>
+                <span className="font-bold">Finish</span>
               </button>
               <div className="flex flex-col">
                 <h1 className="font-headline-md text-2xl leading-none text-primary m-0 p-0">{activeStory.title}</h1>
-                <span className="text-[12px] font-bold text-outline uppercase tracking-wider">HSK {activeStory.hskLevel} • Story</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-primary font-bold text-sm bg-primary-glow/30 px-3 py-1 rounded-full">
-                {stats.streak} 🔥 {stats.totalXP} XP
+                <span className="text-[12px] font-bold text-outline uppercase tracking-wider">HSK {activeStory.hsk_level} • Story</span>
               </div>
             </div>
           </div>
@@ -95,57 +106,48 @@ export default function StoriesPage() {
 
           <section className="space-y-12 pb-12">
             <div className="relative group">
-              <div className="flex flex-wrap items-end gap-x-3 gap-y-6 leading-[3.5rem] line-break-strict">
-                {activeStory.segments.map((seg, i) => {
-                  const isPunctuation = /^[\s-〿＀-￯\-/:-@[\-`{-~]$/.test(seg.zh) || seg.zh === '。' || seg.zh === '，' || seg.zh === '！' || seg.zh === '？';
+              <div className="flex flex-wrap items-end gap-x-2 gap-y-6 leading-[3.5rem] line-break-strict">
+                {activeStory.tokens.map((token, i) => {
+                  const isActive = activeToken?.token === token;
                   
-                  if (isPunctuation) {
+                  if (!token.is_word) {
                     return (
-                      <div key={i} className="inline-flex flex-col items-center ml-[-4px]">
-                        <span className="text-3xl font-hanzi-display text-on-surface">{seg.zh}</span>
-                      </div>
+                      <span key={i} className="text-3xl text-on-surface/60 inline-block align-bottom pb-1">
+                        {token.token}
+                      </span>
                     );
                   }
 
-                  const isActive = activeSeg === seg;
-
                   return (
-                    <FloatingTooltip 
+                    <FloatingTooltip
                       key={i}
                       showAlways={isActive}
                       content={
-                        <div className="flex flex-col min-w-[120px]">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <h4 className="text-primary font-bold text-lg leading-tight m-0">{seg.py}</h4>
-                              <p className="text-on-surface-variant text-[16px] m-0 mt-1">{seg.en}</p>
-                            </div>
-                            <button onClick={() => speak(seg.zh)} className="text-outline hover:text-primary transition-colors p-0 border-0 bg-transparent">
-                              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>volume_up</span>
-                            </button>
-                          </div>
+                        <div className="text-base">
+                          <span className="font-bold text-primary mr-2">{token.pinyin_hint}</span>
+                          <span className="text-on-surface">{token.meaning}</span>
                         </div>
                       }
                     >
                       <div 
-                        onClick={() => {
-                          setActiveSeg(seg);
-                          speak(seg.zh);
+                        className={`inline-flex flex-col items-center justify-end cursor-pointer rounded-lg px-1 pt-1 pb-1 transition-colors
+                          ${isActive ? 'bg-primary-container text-on-primary-container ring-2 ring-primary' : 'hover:bg-surface-variant/50'}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isActive) {
+                            setActiveToken(null);
+                          } else {
+                            setActiveToken({ token, el: e.currentTarget });
+                            speak(token.token);
+                          }
                         }}
-                        className={`relative inline-flex flex-col items-center cursor-pointer rounded-lg px-1 transition-colors ${
-                          isActive 
-                            ? 'bg-primary-container/20 ring-2 ring-primary-container ring-offset-2' 
-                            : 'hover:bg-primary-glow/20'
-                        }`}
                       >
-                        {showPinyin && (
-                          <span className={`text-sm h-4 mb-1 ${isActive ? 'text-primary font-bold' : 'text-outline'}`}>
-                            {seg.py}
-                          </span>
-                        )}
-                        <span className={`text-3xl font-hanzi-display ${isActive ? 'text-primary font-bold' : 'text-on-surface'}`}>
-                          {seg.zh}
-                        </span>
+                        <div className={`text-sm text-outline font-medium transition-opacity duration-300 ${showPinyin || isActive ? 'opacity-100' : 'opacity-0'} tracking-wider mb-[-8px]`}>
+                          {token.pinyin_hint}
+                        </div>
+                        <div className="text-4xl font-chinese font-medium">
+                          {token.token}
+                        </div>
                       </div>
                     </FloatingTooltip>
                   );
@@ -159,29 +161,61 @@ export default function StoriesPage() {
   }
 
   return (
-    <div className="bg-surface flex-1 flex flex-col overflow-y-auto pb-32">
-      <header className="w-full top-0 sticky z-40 bg-surface shadow-sm">
-        <div className="flex items-center px-6 py-4 w-full max-w-5xl mx-auto">
-          <h1 className="font-headline-md text-3xl leading-none text-primary m-0">Stories</h1>
-        </div>
+    <div className="bg-surface text-on-surface font-body-md flex-1 flex flex-col overflow-y-auto pb-32">
+      <header className="px-6 pt-12 pb-6">
+        <h1 className="font-headline-lg text-4xl mb-2 text-primary">HSK Stories</h1>
+        <p className="text-on-surface-variant text-lg">Improve your reading comprehension through context.</p>
       </header>
-      
-      <main className="max-w-3xl mx-auto px-6 pt-8 space-y-4">
-        {STORIES.map(s => (
-          <div 
-            key={s.id} 
-            onClick={() => { setActiveStory(s); setActiveSeg(null); }}
-            className="bg-bg-card p-6 rounded-2xl border-2 border-border shadow-sm cursor-pointer hover:border-primary hover:shadow-md transition-all flex items-center justify-between"
-          >
-            <div>
-              <div className="text-[12px] text-primary font-bold tracking-wider uppercase mb-1">HSK {s.hskLevel}</div>
-              <div className="text-xl font-bold text-text-main">{s.title}</div>
-            </div>
-            <div className="w-12 h-12 bg-primary-glow/20 text-primary rounded-full flex items-center justify-center">
-              <span className="material-symbols-outlined text-2xl">menu_book</span>
-            </div>
-          </div>
-        ))}
+
+      <main className="px-6 space-y-10">
+        {[1, 2, 3, 4].map(level => {
+          const levelStories = storiesByLevel[level] || [];
+          if (levelStories.length === 0 && level > 1) return null;
+          
+          const isLocked = level > hskLevel;
+
+          return (
+            <section key={level} className={`space-y-4 ${isLocked ? 'opacity-60 grayscale' : ''}`}>
+              <div className="flex items-center justify-between">
+                <h2 className="font-headline-md text-2xl text-on-surface flex items-center gap-2">
+                  HSK {level} {isLocked && <span className="material-symbols-outlined text-lg">lock</span>}
+                </h2>
+                {isLocked && <span className="text-sm text-outline">Switch to HSK {level} to unlock</span>}
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {levelStories.length === 0 ? (
+                  <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 italic text-outline">
+                    Coming soon...
+                  </div>
+                ) : (
+                  levelStories.map(story => {
+                    const isCompleted = stats.readStories?.includes(story.id);
+                    return (
+                      <div 
+                        key={story.id} 
+                        onClick={() => !isLocked && setActiveStory(story)}
+                        className={`bg-surface-container p-5 rounded-2xl border border-outline-variant/50 transition-all ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-surface-container-high hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md'} flex flex-col relative overflow-hidden`}
+                      >
+                        {isCompleted && (
+                          <div className="absolute top-0 right-0 bg-secondary text-on-secondary px-3 py-1 text-xs font-bold rounded-bl-lg">
+                            READ
+                          </div>
+                        )}
+                        <h3 className="font-headline-sm text-xl mb-1 mt-2">{story.title}</h3>
+                        <p className="text-on-surface-variant mb-4 font-chinese text-lg">{story.title_zh}</p>
+                        <div className="mt-auto flex justify-between items-center text-sm font-bold text-outline">
+                          <span>{story.tokens.filter(t => t.is_word).length} words</span>
+                          {!isLocked && <span className="text-primary flex items-center gap-1">Read <span className="material-symbols-outlined text-sm">arrow_forward</span></span>}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </section>
+          );
+        })}
       </main>
     </div>
   );

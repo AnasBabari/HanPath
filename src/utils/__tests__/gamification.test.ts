@@ -21,7 +21,7 @@ describe('Gamification Logic', () => {
       lessonsCompletedToday: 0, dailyGoalMinutes: 10, minutesStudiedToday: 0,
       lastStudyDate: null, lastSessionStart: null, unlockedAchievements: [],
       revealPinyin: 'always', wordAccuracy: {}, wordSRS: {}, xpToday: 0,
-      perfectLessonsToday: 0, streakExtendedToday: false
+      perfectLessonsToday: 0, streakExtendedToday: false, readStories: []
     };
 
     const updated = addXP(stats, 150);

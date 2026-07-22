@@ -17,7 +17,8 @@ const DEFAULTS: UserStats = {
   lastStudyDate: null, lastSessionStart: null,
   unlockedAchievements: [], revealPinyin: 'always', wordAccuracy: {},
   wordSRS: {},
-  xpToday: 0, perfectLessonsToday: 0, streakExtendedToday: false
+  xpToday: 0, perfectLessonsToday: 0, streakExtendedToday: false,
+  readStories: []
 };
 
 /* ---- XP / Level math ---- */

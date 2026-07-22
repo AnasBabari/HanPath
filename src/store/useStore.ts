@@ -42,6 +42,7 @@ const UserStatsSchema = z.object({
   xpToday: z.number(),
   perfectLessonsToday: z.number(),
   streakExtendedToday: z.boolean(),
+  readStories: z.array(z.string()),
 });
 
 /* ---- Zustand Store Interface ---- */
@@ -78,6 +79,7 @@ interface AppState {
   addXP: (amt: number) => void;
   unlockAchievement: (id: string) => void;
   resetProgress: (newStats: UserStats) => void;
+  markStoryRead: (storyId: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -200,6 +202,16 @@ export const useStore = create<AppState>()(
       })),
 
       resetProgress: (newStats) => set({ stats: newStats, cloudUserId: null }),
+      
+      markStoryRead: (storyId) => set((state) => {
+        if (state.stats.readStories.includes(storyId)) return {};
+        return {
+          stats: {
+            ...state.stats,
+            readStories: [...state.stats.readStories, storyId]
+          }
+        };
+      }),
     }),
     {
       name: 'hanpath-progress-v3', // New version for Zustand persistence

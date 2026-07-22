@@ -100,6 +100,7 @@ export interface UserStats {
   xpToday: number;
   perfectLessonsToday: number;
   streakExtendedToday: boolean;
+  readStories: string[];
 }
 
 export interface Achievement {

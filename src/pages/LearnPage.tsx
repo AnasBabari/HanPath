@@ -10,11 +10,13 @@ import { useStore } from '../store/useStore';
 import { saveCloudProgress } from '../utils/cloudProgress';
 
 /* ---- Intro Screen ---- */
-function LessonIntro({ unit, lesson, revealPinyin, onStart, onExit }: {
-  unit: Unit; lesson: Lesson; revealPinyin: 'always' | 'peek';
+function LessonIntro({ 
+  unit, lesson, 
+  onStart, onExit 
+}: {
+  unit: Unit; lesson: Lesson;
   onStart: () => void; onExit: () => void;
 }) {
-  const [peeks, setPeeks] = useState<Set<string>>(new Set());
   return (
     <div className="shell lesson-intro">
       <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
@@ -36,11 +38,7 @@ function LessonIntro({ unit, lesson, revealPinyin, onStart, onExit }: {
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                if (revealPinyin === 'peek') setPeeks(p => { const n = new Set(p); n.add(card.id); return n; });
               }
-            }}
-            onClick={() => {
-              if (revealPinyin === 'peek') setPeeks(p => { const n = new Set(p); n.add(card.id); return n; });
             }}>
             <div className="hanzi-big">{card.hanzi}</div>
             <div className="details">
@@ -126,7 +124,6 @@ export default function LearnPage() {
     return (
       <LessonIntro
         unit={found.unit} lesson={found.lesson}
-        revealPinyin={stats.revealPinyin}
         onStart={() => setScreen('practice')}
         onExit={handleHome}
       />
