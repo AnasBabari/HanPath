@@ -1,0 +1,13 @@
+node_modules
+.npm
+dist
+coverage
+.git
+.gitignore
+.env
+.env.local
+*.log
+README.md
+CLAUDE.md
+implementation_plan.md
+walkthrough.md
