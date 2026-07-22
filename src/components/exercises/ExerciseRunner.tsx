@@ -228,9 +228,7 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
             submitted.current = true;
             onCorrect();
           }}
-          onMistake={() => {
-            onWrong();
-          }}
+          // Intentionally omitting onMistake so the user can finish tracing without locking the UI
         />
       )}
 
