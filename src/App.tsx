@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
-import { fetchHSKLevel } from './utils/api';
+import { fetchHSKLevel, fetchSentences } from './utils/api';
 import { buildCurriculum } from './utils/curriculum';
 import { checkNewAchievements, saveStats } from './utils/gamification';
 import { playLevelUp } from './utils/sounds';
@@ -85,12 +85,15 @@ function AppContent() {
     return () => window.clearTimeout(timer);
   }, [cloudUserId, stats]);
 
-  /* Fetch HSK vocab on mount or level change */
+  /* Fetch HSK vocab & sentences on mount or level change */
   const doFetch = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const words = await fetchHSKLevel(hskLevel);
-      setUnits(buildCurriculum(words));
+      const [words, sentences] = await Promise.all([
+        fetchHSKLevel(hskLevel),
+        fetchSentences(hskLevel)
+      ]);
+      setUnits(buildCurriculum(words, sentences));
     } catch (e) {
       setError(e instanceof Error ? e.message : `Failed to load HSK ${hskLevel} vocabulary`);
     } finally {

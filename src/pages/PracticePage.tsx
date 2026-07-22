@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import type { VocabCard, Exercise } from '../types';
 import { allLessonsFlat, genExercisesForVocab, genSentenceBuildExercises, genToneDrillExercises } from '../utils/curriculum';
 import ExerciseRunner from '../components/exercises/ExerciseRunner';
+import { fetchSentences } from '../utils/api';
 import { useStore } from '../store/useStore';
 
 export default function PracticePage() {
-  const { units, stats, addXP, updateWordResult, setFullScreen } = useStore();
+  const { units, stats, hskLevel, addXP, updateWordResult, setFullScreen } = useStore();
   const navigate = useNavigate();
   const [drillMode, setDrillMode] = useState<'menu' | 'weak' | 'random' | 'sentence' | 'tone'>('menu');
   const [drillExercises, setDrillExercises] = useState<Exercise[]>([]);
@@ -37,12 +38,13 @@ export default function PracticePage() {
     }).filter(Boolean) as (VocabCard & { accuracy: number })[];
   }, [stats.wordAccuracy, flatVocab]);
 
-  const startDrill = (mode: 'weak' | 'random' | 'sentence' | 'tone') => {
+  const startDrill = async (mode: 'weak' | 'random' | 'sentence' | 'tone') => {
     if (mode === 'weak') {
       const allVocab = flatVocab.length >= 4 ? flatVocab : weakWords;
       setDrillExercises(genExercisesForVocab(weakWords, allVocab));
     } else if (mode === 'sentence') {
-      setDrillExercises(genSentenceBuildExercises());
+      const sentences = await fetchSentences(hskLevel);
+      setDrillExercises(genSentenceBuildExercises(sentences));
     } else if (mode === 'tone') {
       setDrillExercises(genToneDrillExercises(flatVocab));
     } else {
