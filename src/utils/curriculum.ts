@@ -83,7 +83,7 @@ function filterSentencesForLesson(
     return true;
   });
 
-  return matches.length > 0 ? matches : sentences;
+  return matches;
 }
 
 /* ---- Exercise generation ---- */

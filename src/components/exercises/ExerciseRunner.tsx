@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { callOpenRouter } from '../../utils/ai';
 import type { Lesson, Exercise } from '../../types';
 import { playCorrect, playWrong } from '../../utils/sounds';
@@ -18,7 +19,7 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
   const [shake, setShake] = useState(false);
 
   const [lastWrongAnswer, setLastWrongAnswer] = useState<string | undefined>(undefined);
-  const [explanationText, setExplanationText] = useState('');
+  const [explanationText, setExplanationText] = useState<React.ReactNode>('');
   const [explanationLoading, setExplanationLoading] = useState(false);
 
   const total = lesson.exercises.length;
@@ -42,15 +43,22 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
     try {
       let prompt = '';
       if (lastWrongAnswer) {
-        prompt = `A beginner Chinese learner saw "${ex.prompt}" and answered "${lastWrongAnswer}" but the correct answer is "${ex.answer}". In 1-2 encouraging sentences, explain why "${ex.answer}" is correct and briefly clarify what "${lastWrongAnswer}" means if it is a real Chinese word. Keep it simple and beginner-friendly.`;
+        prompt = `The user answered "${lastWrongAnswer}" instead of "${ex.answer}" for "${ex.prompt}". In 1-2 encouraging sentences, explain why "${ex.answer}" is correct.`;
       } else {
-        prompt = `A beginner Chinese learner got this wrong. The question was "${ex.prompt}" and the correct answer is "${ex.answer}". In 1-2 encouraging sentences, explain what this means and give a quick memory tip. Keep it beginner-friendly.`;
+        prompt = `The user missed "${ex.prompt}" (correct: "${ex.answer}"). In 1-2 encouraging sentences, give a quick memory tip.`;
       }
       
       const response = await callOpenRouter([{ role: 'user', content: prompt }]);
       setExplanationText(response);
-    } catch (err: unknown) {
-      setExplanationText("Could not load explanation — check your API key in Profile.");
+    } catch {
+      setExplanationText(
+        <span>
+          Could not load explanation — check your API key in{' '}
+          <Link to="/profile" style={{ color: 'inherit', textDecoration: 'underline', fontWeight: 800 }}>
+            Profile
+          </Link>.
+        </span>
+      );
     } finally {
       setExplanationLoading(false);
     }
@@ -61,7 +69,14 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
       {showXP && <div className="xp-float">+10 XP</div>}
 
       <div className="exercise-topbar">
-        <button className="exit-btn" onClick={onExit} style={{ background: 'transparent', color: 'var(--text-muted)', fontSize: '28px', border: 'none', cursor: 'pointer', padding: '0 12px 0 0' }}>×</button>
+        <button
+          className="exit-btn"
+          onClick={onExit}
+          aria-label="Exit exercise"
+          style={{ background: 'transparent', color: 'var(--text-muted)', fontSize: '28px', border: 'none', cursor: 'pointer', padding: '0 12px 0 0' }}
+        >
+          ×
+        </button>
         <div className="progress-track" style={{ flex: 1, height: '16px', background: 'var(--surface-border)', borderRadius: '99px', overflow: 'hidden' }}>
           <div className="progress-fill" style={{ width: `${progress}%`, height: '100%', background: 'var(--primary)', borderRadius: '99px', transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }} />
         </div>
@@ -97,22 +112,22 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
       />
 
       {feedback === 'ok' && (
-        <div className="feedback-strip ok" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px 24px 40px', background: '#D7FFB8', borderTop: '2px solid rgba(0,0,0,0.05)', color: '#58CC02', zIndex: 1100, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#58CC02' }}>Excellent!</p>
+        <div className="feedback-strip ok" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px 24px 40px', background: 'var(--correct-bg)', borderTop: '2px solid rgba(0,0,0,0.05)', color: 'var(--correct)', zIndex: 1100, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <p className="font-display" style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--correct)' }}>Excellent!</p>
           <button className="btn-primary" style={{ width: '100%' }} onClick={advance}>CONTINUE</button>
         </div>
       )}
       {feedback === 'no' && (
-        <div className="feedback-strip no" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px 24px 40px', background: '#FFDFE0', borderTop: '2px solid rgba(0,0,0,0.05)', color: '#FF4B4B', zIndex: 1100, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="feedback-strip no" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px 24px 40px', background: 'var(--error-bg)', borderTop: '2px solid rgba(0,0,0,0.05)', color: 'var(--error)', zIndex: 1100, display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#FF4B4B' }}>Correct Solution:</p>
-              <div style={{ fontSize: '1.125rem', fontWeight: 800, color: '#FF4B4B', marginTop: '4px' }}>{ex.answer}</div>
+              <p className="font-display" style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--error)' }}>Correct Solution:</p>
+              <div style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--error)', marginTop: '4px' }}>{ex.answer}</div>
             </div>
-            <button className="btn-primary" style={{ width: 'auto', background: '#ff4b4b', borderBottomColor: '#ea2b2b' }} onClick={advance}>Continue</button>
+            <button className="btn-primary" style={{ width: 'auto', background: 'var(--error)', borderBottomColor: 'var(--rose-shadow)' }} onClick={advance}>Continue</button>
           </div>
           {!explanationText && !explanationLoading && (
-            <button onClick={handleExplain} style={{ background: 'none', color: '#ff4b4b', fontWeight: 800, fontSize: '14px', textDecoration: 'underline' }}>Wait, why?</button>
+            <button onClick={handleExplain} style={{ background: 'none', color: 'var(--error)', fontWeight: 800, fontSize: '14px', textDecoration: 'underline' }}>Wait, why?</button>
           )}
           {explanationLoading && <p style={{ fontSize: '14px' }}>Thinking...</p>}
           {explanationText && <p style={{ fontSize: '14px', lineHeight: 1.4 }}>{explanationText}</p>}

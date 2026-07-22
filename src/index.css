@@ -68,43 +68,41 @@
 }
 
 :root {
-  /* ---- Jade Path Narrative Light Palette ---- */
-  --bg-deep: #efeeea;
-  --bg-elevated: #faf9f5;
-  --bg-card: #ffffff;
-  --text-main: #1b1c1a;
-  --text-dim: #3d4a41;
-  --text-inverse: #ffffff;
+  /* ---- Claymorphism + Vibrant Palette (Duolingo-style) ---- */
+  --bg-deep: #F4F6F8;
+  --bg-elevated: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --text-main: #235390;
+  --text-muted: #7795B5;
+  --text-dim: #4B6584;
+  --text-inverse: #FFFFFF;
 
-  --primary: #00a86b; /* Jade */
-  --primary-dim: #006d43;
-  --primary-shadow: #005232;
-  --primary-glow: #59de9b;
+  --primary: #58CC02; /* Vibrant Green */
+  --primary-shadow: #46A302;
+  --primary-light: #D7FFB8;
   
-  --secondary: #fd8b00; /* Mandarin Orange */
-  --secondary-dim: #904d00;
-  --secondary-shadow: #6e3900;
+  --secondary: #1CB0F6; /* Sky Blue */
+  --secondary-shadow: #1899D6;
   
-  --tertiary: #cca72f; /* Soft Gold */
-  --tertiary-dim: #735c00;
-  --gold: #cca72f;
-  --gold-shadow: #735c00;
+  --gold: #FFC800; /* Bright Gold */
+  --gold-shadow: #E5B200;
 
-  --accent: #59de9b; 
-  --accent-glow: rgba(89, 222, 155, 0.2);
+  --rose: #FF4B4B; /* Coral Red */
+  --rose-shadow: #EA2B2B;
+  --rose-light: #FFDFE0;
   
-  --rose: #ba1a1a; /* Error */
-  --rose-dim: #93000a;
+  --correct: #58CC02;
+  --correct-bg: #D7FFB8;
+  --error: #FF4B4B;
+  --error-bg: #FFDFE0;
   
-  --correct: #78fbb6;
-  --correct-text: #002111;
-  
-  --surface-border: #bccabe;
-  --border: #bccabe;
-  --border-light: #e3e2df;
+  --surface-border: #E5E5E5;
+  --border: #E5E5E5;
+  --border-light: #F0F0F0;
+  --clay-shadow: 0 8px 0 rgba(0, 0, 0, 0.06), inset 0 2px 4px rgba(255, 255, 255, 0.6);
 
   /* ---- Typography ---- */
-  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+  font-family: 'Nunito', 'Noto Sans SC', sans-serif;
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-main);
@@ -131,12 +129,13 @@ body {
   background: var(--bg-elevated);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
-h1, h2, h3, h4, .plus-jakarta { 
-  font-family: 'Montserrat', sans-serif; 
+h1, h2, h3, h4, .font-display { 
+  font-family: 'Fredoka', 'Nunito', sans-serif; 
+  font-weight: 700;
   margin: 0;
 }
 

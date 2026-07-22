@@ -11,6 +11,8 @@ export default function PracticePage() {
   const navigate = useNavigate();
   const [drillMode, setDrillMode] = useState<'menu' | 'weak' | 'random' | 'sentence' | 'tone'>('menu');
   const [drillExercises, setDrillExercises] = useState<Exercise[]>([]);
+  const [loadingDrill, setLoadingDrill] = useState(false);
+
   const dueCount = useStore(state => {
     const today = new Date().toISOString().split('T')[0];
     return Object.values(state.stats.wordSRS).filter((w) => w.nextReviewDate <= today).length;
@@ -39,21 +41,26 @@ export default function PracticePage() {
   }, [stats.wordAccuracy, flatVocab]);
 
   const startDrill = async (mode: 'weak' | 'random' | 'sentence' | 'tone') => {
-    if (mode === 'weak') {
-      const allVocab = flatVocab.length >= 4 ? flatVocab : weakWords;
-      setDrillExercises(genExercisesForVocab(weakWords, allVocab));
-    } else if (mode === 'sentence') {
-      const sentences = await fetchSentences(hskLevel);
-      setDrillExercises(genSentenceBuildExercises(sentences));
-    } else if (mode === 'tone') {
-      setDrillExercises(genToneDrillExercises(flatVocab));
-    } else {
-      const all = allDone.flatMap(l => l.exercises);
-      const shuffled = [...all].sort(() => Math.random() - 0.5);
-      setDrillExercises(shuffled.slice(0, 20)); // Random 20
+    setLoadingDrill(true);
+    try {
+      if (mode === 'weak') {
+        const allVocab = flatVocab.length >= 4 ? flatVocab : weakWords;
+        setDrillExercises(genExercisesForVocab(weakWords, allVocab));
+      } else if (mode === 'sentence') {
+        const sentences = await fetchSentences(hskLevel);
+        setDrillExercises(genSentenceBuildExercises(sentences));
+      } else if (mode === 'tone') {
+        setDrillExercises(genToneDrillExercises(flatVocab));
+      } else {
+        const all = allDone.flatMap(l => l.exercises);
+        const shuffled = [...all].sort(() => Math.random() - 0.5);
+        setDrillExercises(shuffled.slice(0, 20)); // Random 20
+      }
+      setDrillMode(mode);
+      setFullScreen(true);
+    } finally {
+      setLoadingDrill(false);
     }
-    setDrillMode(mode);
-    setFullScreen(true);
   };
 
   const handleExitDrill = () => {
@@ -120,10 +127,17 @@ export default function PracticePage() {
         </div>
       </div>
 
+      {loadingDrill && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <div style={{ width: 40, height: 40, border: '4px solid var(--primary-light)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          <span className="font-display" style={{ fontWeight: 800, color: 'var(--primary)' }}>Loading Drill...</span>
+        </div>
+      )}
+
       {weakWords.length >= 3 && (
         <div className="path-section" style={{ borderTop: 'none', paddingTop: 8 }}>
-          <h3 style={{ marginBottom: 4, fontSize: 16, color: '#ff4b4b' }}>⚠️ Trouble Words</h3>
-          <p style={{ color: 'var(--text-dim)', fontSize: 13, marginBottom: 16 }}>Words you've struggled with most</p>
+          <h3 className="font-display" style={{ marginBottom: 4, fontSize: 16, color: 'var(--error)' }}>⚡ Needs Practice</h3>
+          <p style={{ color: 'var(--text-dim)', fontSize: 13, marginBottom: 16 }}>Review your weak words</p>
           
           <div style={{ display: 'flex', overflowX: 'auto', gap: 12, paddingBottom: 16, margin: '0 -16px', paddingInline: 16 }}>
             {weakWords.map(w => (

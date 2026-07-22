@@ -108,9 +108,11 @@ export async function fetchHSKLevel(level: number): Promise<HSKWord[]> {
     const s = localStorage.getItem(key);
     if (s) {
       const w = JSON.parse(s) as HSKWord[];
-      if (w.length) { mem.set(level, w); return w; }
+      if (Array.isArray(w) && w.length) { mem.set(level, w); return w; }
     }
-  } catch { /* ignore */ }
+  } catch {
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  }
 
   try {
     const r = await fetch(`${HSK_BASE}/${level}.min.json`);
@@ -123,7 +125,13 @@ export async function fetchHSKLevel(level: number): Promise<HSKWord[]> {
     const words = data.map((d, i) => parse(d, level, i)).filter(Boolean) as HSKWord[];
 
     mem.set(level, words);
-    try { localStorage.setItem(key, JSON.stringify(words)); } catch { /* full */ }
+    try {
+      localStorage.setItem(key, JSON.stringify(words));
+    } catch {
+      // Clear older levels if QuotaExceededError
+      clearVocabCache();
+      try { localStorage.setItem(key, JSON.stringify(words)); } catch { /* storage full */ }
+    }
     return words;
   } catch (e) {
     if (level === 1) {
