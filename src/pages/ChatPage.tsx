@@ -163,7 +163,7 @@ export default function ChatPage() {
 
       {/* Input Bar */}
       <div style={{ 
-        padding: '16px 20px 100px 20px', 
+        padding: '12px 16px 85px 16px', 
         background: '#fff', 
         borderTop: '2px solid var(--border)',
         display: 'flex',

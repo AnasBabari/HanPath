@@ -96,6 +96,82 @@ const FALLBACK_HSK1: HSKWord[] = [
   { id: 'hsk1-f20', hanzi: '什么', pinyin: 'shén me', meanings: ['what'], hskLevel: 1 },
 ];
 
+const FALLBACK_HSK2: HSKWord[] = [
+  { id: 'hsk2-f1', hanzi: '帮助', pinyin: 'bāng zhù', meanings: ['to help', 'assistance'], hskLevel: 2 },
+  { id: 'hsk2-f2', hanzi: '准备', pinyin: 'zhǔn bèi', meanings: ['to prepare', 'get ready'], hskLevel: 2 },
+  { id: 'hsk2-f3', hanzi: '希望', pinyin: 'xī wàng', meanings: ['to hope', 'wish'], hskLevel: 2 },
+  { id: 'hsk2-f4', hanzi: '跑步', pinyin: 'pǎo bù', meanings: ['to run', 'jog'], hskLevel: 2 },
+  { id: 'hsk2-f5', hanzi: '游泳', pinyin: 'yóu yǒng', meanings: ['to swim'], hskLevel: 2 },
+  { id: 'hsk2-f6', hanzi: '跳舞', pinyin: 'tiào wǔ', meanings: ['to dance'], hskLevel: 2 },
+  { id: 'hsk2-f7', hanzi: '便宜', pinyin: 'pián yi', meanings: ['cheap', 'inexpensive'], hskLevel: 2 },
+  { id: 'hsk2-f8', hanzi: '说话', pinyin: 'shuō huà', meanings: ['to speak', 'talk'], hskLevel: 2 },
+  { id: 'hsk2-f9', hanzi: '时间', pinyin: 'shí jiān', meanings: ['time', 'period'], hskLevel: 2 },
+  { id: 'hsk2-f10', hanzi: '觉得', pinyin: 'jué de', meanings: ['to feel', 'think'], hskLevel: 2 },
+  { id: 'hsk2-f11', hanzi: '机场', pinyin: 'jī chǎng', meanings: ['airport'], hskLevel: 2 },
+  { id: 'hsk2-f12', hanzi: '公共汽车', pinyin: 'gōng gòng qì chē', meanings: ['bus'], hskLevel: 2 },
+  { id: 'hsk2-f13', hanzi: '自行车', pinyin: 'zì xíng chē', meanings: ['bicycle'], hskLevel: 2 },
+  { id: 'hsk2-f14', hanzi: '快乐', pinyin: 'kuài lè', meanings: ['happy'], hskLevel: 2 },
+  { id: 'hsk2-f15', hanzi: '新', pinyin: 'xīn', meanings: ['new'], hskLevel: 2 },
+  { id: 'hsk2-f16', hanzi: '黑', pinyin: 'hēi', meanings: ['black', 'dark'], hskLevel: 2 },
+  { id: 'hsk2-f17', hanzi: '红', pinyin: 'hóng', meanings: ['red'], hskLevel: 2 },
+  { id: 'hsk2-f18', hanzi: '穿', pinyin: 'chuān', meanings: ['to wear', 'put on'], hskLevel: 2 },
+  { id: 'hsk2-f19', hanzi: '药', pinyin: 'yào', meanings: ['medicine'], hskLevel: 2 },
+  { id: 'hsk2-f20', hanzi: '生病', pinyin: 'shēng bìng', meanings: ['to get sick'], hskLevel: 2 },
+];
+
+const FALLBACK_HSK3: HSKWord[] = [
+  { id: 'hsk3-f1', hanzi: '阿姨', pinyin: 'ā yí', meanings: ['auntie', 'housekeeper'], hskLevel: 3 },
+  { id: 'hsk3-f2', hanzi: '矮', pinyin: 'ǎi', meanings: ['short (height)'], hskLevel: 3 },
+  { id: 'hsk3-f3', hanzi: '安静', pinyin: 'ān jìng', meanings: ['quiet', 'peaceful'], hskLevel: 3 },
+  { id: 'hsk3-f4', hanzi: '办法', pinyin: 'bàn fǎ', meanings: ['method', 'way of doing'], hskLevel: 3 },
+  { id: 'hsk3-f5', hanzi: '办公室', pinyin: 'bàn gōng shì', meanings: ['office'], hskLevel: 3 },
+  { id: 'hsk3-f6', hanzi: '比较', pinyin: 'bǐ jiào', meanings: ['relatively', 'to compare'], hskLevel: 3 },
+  { id: 'hsk3-f7', hanzi: '比赛', pinyin: 'bǐ sài', meanings: ['match', 'competition'], hskLevel: 3 },
+  { id: 'hsk3-f8', hanzi: '变化', pinyin: 'biàn huà', meanings: ['change', 'transformation'], hskLevel: 3 },
+  { id: 'hsk3-f9', hanzi: '表示', pinyin: 'biǎo shì', meanings: ['to express', 'indicate'], hskLevel: 3 },
+  { id: 'hsk3-f10', hanzi: '表演', pinyin: 'biǎo yǎn', meanings: ['performance', 'to perform'], hskLevel: 3 },
+  { id: 'hsk3-f11', hanzi: '超市', pinyin: 'chāo shì', meanings: ['supermarket'], hskLevel: 3 },
+  { id: 'hsk3-f12', hanzi: '简单', pinyin: 'jiǎn dān', meanings: ['simple', 'uncomplicated'], hskLevel: 3 },
+  { id: 'hsk3-f13', hanzi: '历史', pinyin: 'lì shǐ', meanings: ['history'], hskLevel: 3 },
+  { id: 'hsk3-f14', hanzi: '环境', pinyin: 'huán jìng', meanings: ['environment'], hskLevel: 3 },
+  { id: 'hsk3-f15', hanzi: '解决', pinyin: 'jiě jué', meanings: ['to solve', 'resolve'], hskLevel: 3 },
+  { id: 'hsk3-f16', hanzi: '聊天', pinyin: 'liáo tiān', meanings: ['to chat'], hskLevel: 3 },
+  { id: 'hsk3-f17', hanzi: '选择', pinyin: 'xuǎn zé', meanings: ['to choose', 'select'], hskLevel: 3 },
+  { id: 'hsk3-f18', hanzi: '努力', pinyin: 'nǔ lì', meanings: ['hardworking', 'strive'], hskLevel: 3 },
+  { id: 'hsk3-f19', hanzi: '清楚', pinyin: 'qīng chu', meanings: ['clear', 'understand clearly'], hskLevel: 3 },
+  { id: 'hsk3-f20', hanzi: '影响', pinyin: 'yǐng xiǎng', meanings: ['influence', 'impact'], hskLevel: 3 },
+];
+
+const FALLBACK_HSK4: HSKWord[] = [
+  { id: 'hsk4-f1', hanzi: '爱情', pinyin: 'ài qíng', meanings: ['love (romantic)'], hskLevel: 4 },
+  { id: 'hsk4-f2', hanzi: '安排', pinyin: 'ān pái', meanings: ['to arrange', 'plan'], hskLevel: 4 },
+  { id: 'hsk4-f3', hanzi: '保护', pinyin: 'bǎo hù', meanings: ['to protect', 'safeguard'], hskLevel: 4 },
+  { id: 'hsk4-f4', hanzi: '报名', pinyin: 'bào míng', meanings: ['to sign up', 'register'], hskLevel: 4 },
+  { id: 'hsk4-f5', hanzi: '毕业', pinyin: 'bì yè', meanings: ['to graduate'], hskLevel: 4 },
+  { id: 'hsk4-f6', hanzi: '标准', pinyin: 'biāo zhǔn', meanings: ['standard', 'criterion'], hskLevel: 4 },
+  { id: 'hsk4-f7', hanzi: '表达', pinyin: 'biǎo dá', meanings: ['to convey', 'express'], hskLevel: 4 },
+  { id: 'hsk4-f8', hanzi: '表扬', pinyin: 'biǎo yáng', meanings: ['to praise', 'commend'], hskLevel: 4 },
+  { id: 'hsk4-f9', hanzi: '成功', pinyin: 'chéng gōng', meanings: ['success', 'to succeed'], hskLevel: 4 },
+  { id: 'hsk4-f10', hanzi: '发展', pinyin: 'fā zhǎn', meanings: ['development', 'to grow'], hskLevel: 4 },
+  { id: 'hsk4-f11', hanzi: '支持', pinyin: 'zhī chí', meanings: ['to support', 'stand by'], hskLevel: 4 },
+  { id: 'hsk4-f12', hanzi: '肯定', pinyin: 'kěn dìng', meanings: ['definitely', 'certainly'], hskLevel: 4 },
+  { id: 'hsk4-f13', hanzi: '丰富', pinyin: 'fēng fù', meanings: ['abundant', 'rich'], hskLevel: 4 },
+  { id: 'hsk4-f14', hanzi: '负责', pinyin: 'fù zé', meanings: ['responsible', 'be in charge'], hskLevel: 4 },
+  { id: 'hsk4-f15', hanzi: '理解', pinyin: 'lǐ jiě', meanings: ['to comprehend', 'understand'], hskLevel: 4 },
+  { id: 'hsk4-f16', hanzi: '组织', pinyin: 'zǔ zhī', meanings: ['organization', 'to organize'], hskLevel: 4 },
+  { id: 'hsk4-f17', hanzi: '仔细', pinyin: 'zǐ xì', meanings: ['careful', 'attentive'], hskLevel: 4 },
+  { id: 'hsk4-f18', hanzi: '尊重', pinyin: 'zūn zhòng', meanings: ['to respect', 'value'], hskLevel: 4 },
+  { id: 'hsk4-f19', hanzi: '总结', pinyin: 'zǒng jié', meanings: ['to summarize'], hskLevel: 4 },
+  { id: 'hsk4-f20', hanzi: '交流', pinyin: 'jiāo liú', meanings: ['to communicate', 'exchange'], hskLevel: 4 },
+];
+
+const FALLBACKS: Record<number, HSKWord[]> = {
+  1: FALLBACK_HSK1,
+  2: FALLBACK_HSK2,
+  3: FALLBACK_HSK3,
+  4: FALLBACK_HSK4,
+};
+
 /* ---------- cache ---------- */
 
 const mem = new Map<number, HSKWord[]>();
@@ -117,7 +193,11 @@ export async function fetchHSKLevel(level: number): Promise<HSKWord[]> {
   try {
     const r = await fetch(`${HSK_BASE}/${level}.min.json`);
     if (!r.ok) {
-      if (r.status === 429 && level === 1) return FALLBACK_HSK1;
+      if (level >= 1 && level <= 4) {
+        const fb = FALLBACKS[level] || FALLBACK_HSK1;
+        mem.set(level, fb);
+        return fb;
+      }
       throw new Error(`HSK ${level} fetch failed (${r.status})`);
     }
 
@@ -134,9 +214,11 @@ export async function fetchHSKLevel(level: number): Promise<HSKWord[]> {
     }
     return words;
   } catch (e) {
-    if (level === 1) {
-      console.warn('Using local HSK 1 fallback data');
-      return FALLBACK_HSK1;
+    if (level >= 1 && level <= 4) {
+      console.warn(`Using local fallback data for HSK ${level}:`, e);
+      const fb = FALLBACKS[level] || FALLBACK_HSK1;
+      mem.set(level, fb);
+      return fb;
     }
     throw e;
   }
