@@ -112,13 +112,26 @@ async function resolveModelCandidates(requestedModel: string, apiKey: string): P
   return uniqueModels([requestedModel, ...freePool]);
 }
 
+export function getActiveApiKey(): string {
+  try {
+    const userKey = localStorage.getItem('hanpath-custom-api-key');
+    if (userKey && userKey.trim()) return userKey.trim();
+  } catch { /* ok */ }
+
+  return import.meta.env.VITE_OPENROUTER_API_KEY || 
+         import.meta.env.VITE_GEMINI_API_KEY || 
+         '';
+}
+
 export async function callOpenRouter(
   messages: { role: string; content: string }[],
   systemPrompt?: string,
   model: string = AUTO_FREE_ROUTE
 ) {
-  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error("API Key missing from .env");
+  const apiKey = getActiveApiKey();
+  if (!apiKey) {
+    throw new Error("No API Key available. Please configure your OpenRouter / Gemini API Key in Settings.");
+  }
 
   const finalMessages = systemPrompt 
     ? [{ role: 'system', content: systemPrompt }, ...messages]

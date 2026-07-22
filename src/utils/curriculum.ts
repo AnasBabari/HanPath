@@ -207,15 +207,21 @@ export function buildCurriculum(words: HSKWord[], rawSentences: HSKSentence[] = 
       if (rawSentences.length > 0) {
         const suitableSentences = filterSentencesForLesson(rawSentences, knownWordsSet, lessonWordHanzi);
         
-        // Phase 2 (Units 3-5): Lesson 5 is a Unit Boss sentence test
-        if (ui >= 2 && ui < 5 && isBossLesson) {
-          const bossSentences = pick(suitableSentences, 4);
-          extraSentenceBuilds = createSentenceBuildExercises(bossSentences, `${lid}-boss`);
+        // Stage 1 (Units 1-2: Index 0-1): Pure words & character recognition + tone drills
+        // Stage 2 (Units 3-5: Index 2-4): Introduce short phrases & Unit Boss sentence checks
+        if (ui >= 2 && ui <= 4 && isBossLesson) {
+          const bossSentences = pick(suitableSentences, 3);
+          extraSentenceBuilds = createSentenceBuildExercises(bossSentences, `${lid}-phrase`);
         }
-        // Phase 3 (Units 6+): Every lesson includes 1-2 sentence builds at the end
-        else if (ui >= 5) {
-          const endSentences = pick(suitableSentences, 2);
-          extraSentenceBuilds = createSentenceBuildExercises(endSentences, `${lid}-sent`);
+        // Stage 3 (Units 6-8: Index 5-7): Introduce 2-3 sentence builds per lesson
+        else if (ui >= 5 && ui <= 7) {
+          const midSentences = pick(suitableSentences, 2);
+          extraSentenceBuilds = createSentenceBuildExercises(midSentences, `${lid}-sent`);
+        }
+        // Stage 4 (Units 9+: Index 8+): Increasing syntactic complexity with 3-4 sentence builds per lesson
+        else if (ui >= 8) {
+          const complexSentences = pick(suitableSentences, 4);
+          extraSentenceBuilds = createSentenceBuildExercises(complexSentences, `${lid}-complex`);
         }
       }
 

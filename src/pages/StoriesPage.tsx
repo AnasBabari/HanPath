@@ -27,7 +27,7 @@ export default function StoriesPage() {
   const [showPinyin, setShowPinyin] = useState(true);
   const [loading, setLoading] = useState(true);
   
-  const { stats, hskLevel, markStoryRead, adminMode } = useStore();
+  const { stats, hskLevel, markStoryRead } = useStore();
 
   useEffect(() => {
     async function loadStories() {
@@ -172,7 +172,7 @@ export default function StoriesPage() {
           const levelStories = storiesByLevel[level] || [];
           if (levelStories.length === 0 && level > 1) return null;
           
-          const isLocked = !adminMode && level > hskLevel;
+          const isLocked = level > hskLevel;
 
           return (
             <section key={level} className={`space-y-4 ${isLocked ? 'opacity-60 grayscale' : ''}`}>
