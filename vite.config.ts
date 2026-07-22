@@ -8,18 +8,12 @@ export default defineConfig({
   resolve: {
     preserveSymlinks: true,
   },
-  server: {
-    fs: {
-      // Allow serving files from the Aegis project directory when linked
-      allow: ['..', 'C:/Users/Babar/Documents/Coding/Apps/Aegis'],
-    },
-  },
   plugins: [
     tailwindcss(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons.svg', 'hero.png', 'logo.png'],
+      includeAssets: ['favicon.svg', 'icons.svg', 'logo.png'],
       manifest: {
         name: 'HànPath Chinese Learning',
         short_name: 'HànPath',
@@ -45,7 +39,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,json}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -54,10 +48,21 @@ export default defineConfig({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                maxAgeSeconds: 60 * 60 * 24 * 365
               },
               cacheableResponse: {
                 statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /\/data\/.*\.json$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'hsk-data-cache',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 30
               }
             }
           }

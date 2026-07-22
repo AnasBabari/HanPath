@@ -6,8 +6,7 @@
 import type { UserStats } from '../types';
 import { ACHIEVEMENTS } from '../data/achievements';
 
-const STORAGE_KEY = 'hanpath-progress-v2';
-const V3_STORAGE_KEY = 'hanpath-progress-v3';
+const STORAGE_KEY = 'hanpath-progress-v3';
 
 const DEFAULTS: UserStats = {
   totalXP: 0, level: 1, streak: 0, longestStreak: 0,
@@ -72,19 +71,27 @@ export function checkNewAchievements(s: UserStats): string[] {
 
 export function loadStats(): UserStats {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      // Fallback migration from v2 if v3 is not yet populated
+      raw = localStorage.getItem('hanpath-progress-v2');
+    }
     if (!raw) return { ...DEFAULTS };
-    const p = JSON.parse(raw);
-    const s: UserStats = { ...DEFAULTS, ...p };
+    const parsed = JSON.parse(raw);
+    // If Zustand persisted state format, extract state.stats
+    const statsObj = parsed?.state?.stats ? parsed.state.stats : parsed;
+    const s: UserStats = { ...DEFAULTS, ...statsObj };
     if (s.lastStudyDate !== dateStr()) { s.lessonsCompletedToday = 0; s.minutesStudiedToday = 0; }
     return s;
   } catch { return { ...DEFAULTS }; }
 }
 
-export function saveStats(s: UserStats) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+export function saveStats(s: UserStats) { 
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); 
+}
 
 export function resetAll() {
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(V3_STORAGE_KEY);
+  localStorage.removeItem('hanpath-progress-v3');
+  localStorage.removeItem('hanpath-progress-v2');
   for (let i = 1; i <= 7; i++) try { localStorage.removeItem(`hanpath-hsk-v2-${i}`); } catch { /* ok */ }
 }

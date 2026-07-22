@@ -1,121 +1,136 @@
 import { useStore } from '../store/useStore';
+import { ACHIEVEMENTS } from '../data/achievements';
 
 export default function ProfilePage() {
-  const { stats } = useStore();
+  const { stats, hskLevel, setHSKLevel, cloudUserId } = useStore();
 
-  const achievements = [
-    { id: 'first_word', title: 'First Word', icon: '🎯', unlocked: true },
-    { id: 'streak_7', title: '7 Day Streak', icon: '📅', unlocked: true },
-    { id: 'fast_learner', title: 'Fast Learner', icon: '🚀', unlocked: true },
-    { id: 'hanzi_master', title: 'Hanzi Master', icon: '📜', unlocked: false },
-    { id: 'daily_scholar', title: 'Daily Scholar', icon: '📓', unlocked: false },
-    { id: 'storyteller', title: 'Storyteller', icon: '🎭', unlocked: false },
-  ];
+  const unlockedCount = ACHIEVEMENTS.filter(a => 
+    stats.unlockedAchievements.includes(a.id) || a.check(stats)
+  ).length;
 
   return (
-    <div className="app-root">
+    <div className="bg-surface text-on-surface font-body-md flex-1 flex flex-col overflow-y-auto pb-32">
       {/* Topbar */}
-      <div className="topbar">
-        <div className="topbar-left">
-          <span className="topbar-brand">HànPath</span>
+      <header className="w-full top-0 sticky z-40 bg-surface shadow-md">
+        <div className="flex justify-between items-center px-6 py-4 w-full max-w-5xl mx-auto">
+          <span className="font-headline-md text-2xl text-primary font-bold">Scholar Profile</span>
+          <div className="flex items-center gap-3">
+            <div className="text-primary font-bold text-sm bg-primary-glow/30 px-3 py-1 rounded-full">
+              {stats.streak} 🔥 {stats.totalXP} XP
+            </div>
+          </div>
         </div>
-        <div className="topbar-stats">
-          <div className="stat-chip"><span className="icon">🔥</span></div>
-          <div className="stat-chip"><span className="icon">🎖️</span></div>
-          <div className="stat-chip"><span className="icon">⭐</span></div>
-        </div>
-      </div>
+      </header>
 
-      <div className="shell" style={{ paddingBottom: 140 }}>
-        {/* Avatar Section */}
-        <div style={{ textAlign: 'center', marginBottom: 40, marginTop: 20 }}>
-          <div className="profile-avatar" style={{ position: 'relative' }}>
-             👨‍💻
-             <div style={{ 
-               position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)',
-               background: 'var(--primary)', color: '#fff', padding: '2px 10px', borderRadius: 10,
-               fontSize: 10, fontWeight: 900, border: '2px solid #fff', display: 'flex', alignItems: 'center', gap: 4
-             }}>
-               ✓ HSK 1
-             </div>
+      <main className="max-w-3xl mx-auto w-full px-6 pt-8 space-y-8">
+        {/* Avatar & Cloud Section */}
+        <div className="text-center space-y-3">
+          <div className="relative inline-block">
+            <div className="w-24 h-24 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-4xl shadow-lg border-2 border-primary">
+              👨‍💻
+            </div>
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-on-primary text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full shadow border border-white">
+              HSK {hskLevel}
+            </div>
           </div>
-          <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: 4 }}>Julian Cheng</h2>
-          <p style={{ color: 'var(--text-mid)', fontWeight: 700, fontSize: 13 }}>学习者 (Learner) • Joined May 2023</p>
-          
-          <div style={{ marginTop: 12, background: 'rgba(88, 204, 2, 0.1)', color: 'var(--primary)', padding: '6px 16px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 900 }}>
-             <span style={{ fontSize: 14 }}>☁️</span> SYNCING TO SUPABASE
-          </div>
-        </div>
-
-        {/* Progress Card */}
-        <div className="vocab-card" style={{ padding: 24, marginBottom: 32 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-             <div style={{ fontWeight: 900, fontSize: 13, color: 'var(--text-mid)', textTransform: 'uppercase' }}>HSK Level Path</div>
-             <div style={{ color: 'var(--primary)', fontWeight: 900, fontSize: 18 }}>74%</div>
-          </div>
-          <div style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: 12 }}>Progress to Level 2</div>
-          <div className="xp-bar" style={{ height: 12, marginBottom: 20 }}>
-             <div className="xp-bar-fill" style={{ width: '74%' }} />
-          </div>
-          <p style={{ fontSize: 12, color: 'var(--text-mid)', fontWeight: 700, lineHeight: 1.5 }}>
-             Complete 12 more Hanzi characters to unlock the HSK 2 curriculum. <br/>
-             <span style={{ color: 'var(--primary)', fontWeight: 900 }}>Keep it up!</span>
+          <h2 className="font-headline-md text-3xl font-bold text-on-surface">Scholar</h2>
+          <p className="text-on-surface-variant text-sm font-semibold">
+            Level {stats.level} • {stats.wordsLearned} Words Learned
           </p>
+
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary-container/40 text-secondary text-xs font-bold">
+            <span className="material-symbols-outlined text-base">cloud_done</span>
+            {cloudUserId ? `Cloud Synced (${cloudUserId.slice(0, 8)}...)` : 'Local Mode'}
+          </div>
         </div>
+
+        {/* HSK Level Selection */}
+        <section className="bg-surface-container p-6 rounded-2xl border border-outline-variant/40 space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-headline-sm text-xl font-bold flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">school</span>
+              Current HSK Level
+            </h3>
+            <span className="text-sm font-bold text-primary">Level {hskLevel}</span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(lvl => (
+              <button
+                key={lvl}
+                onClick={() => setHSKLevel(lvl)}
+                className={`py-3 rounded-xl font-bold text-sm transition-all border ${
+                  hskLevel === lvl
+                    ? 'bg-primary text-on-primary border-primary shadow-md'
+                    : 'bg-surface-container-high text-on-surface-variant border-outline-variant/30 hover:bg-surface-variant'
+                }`}
+              >
+                HSK {lvl}
+              </button>
+            ))}
+          </div>
+        </section>
 
         {/* Stats Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
-           <div className="vocab-card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <span style={{ fontSize: 24 }}>🔥</span>
-              <div>
-                <div style={{ fontSize: '2rem', fontWeight: 900 }}>{stats.streak}</div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Day Streak</div>
-              </div>
-           </div>
-           <div className="vocab-card" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <span style={{ fontSize: 24 }}>⭐</span>
-              <div>
-                <div style={{ fontSize: '2rem', fontWeight: 900 }}>{stats.totalXP.toLocaleString()}</div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Total XP</div>
-              </div>
-           </div>
-        </div>
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/30 text-center space-y-1">
+            <span className="text-2xl">🔥</span>
+            <div className="text-2xl font-bold text-on-surface">{stats.streak}</div>
+            <div className="text-[11px] font-bold text-outline uppercase tracking-wider">Day Streak</div>
+          </div>
 
-        {/* Leaderboard Teaser */}
-        <div className="vocab-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40, borderBottomWidth: 4 }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 24 }}>🎖️</span>
-              <div style={{ fontWeight: 900, fontSize: 15 }}>Emerald League</div>
-           </div>
-           <div style={{ background: 'var(--primary)', color: '#fff', padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 900 }}>TOP 1%</div>
-        </div>
+          <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/30 text-center space-y-1">
+            <span className="text-2xl">⭐</span>
+            <div className="text-2xl font-bold text-on-surface">{stats.totalXP}</div>
+            <div className="text-[11px] font-bold text-outline uppercase tracking-wider">Total XP</div>
+          </div>
+
+          <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/30 text-center space-y-1">
+            <span className="text-2xl">📚</span>
+            <div className="text-2xl font-bold text-on-surface">{stats.completedLessons.length}</div>
+            <div className="text-[11px] font-bold text-outline uppercase tracking-wider">Lessons</div>
+          </div>
+
+          <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/30 text-center space-y-1">
+            <span className="text-2xl">📖</span>
+            <div className="text-2xl font-bold text-on-surface">{stats.readStories.length}</div>
+            <div className="text-[11px] font-bold text-outline uppercase tracking-wider">Stories Read</div>
+          </div>
+        </section>
 
         {/* Achievements */}
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-           <span style={{ color: 'var(--primary)' }}>🎖️</span> Achievements
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 40 }}>
-           {achievements.map(a => (
-             <div key={a.id} style={{ textAlign: 'center' }}>
-                <div style={{ 
-                  width: 80, height: 80, borderRadius: '50%', border: '2px solid' + (a.unlocked ? 'var(--primary)' : 'var(--border)'),
-                  margin: '0 auto 8px', display: 'grid', placeItems: 'center', fontSize: 32,
-                  background: a.unlocked ? 'var(--grad-primary)' : 'var(--bg-deep)',
-                  opacity: a.unlocked ? 1 : 0.5,
-                  position: 'relative'
-                }}>
-                   {a.unlocked ? a.icon : '🔒'}
-                   {!a.unlocked && <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '2px dashed var(--text-dim)', opacity: 0.2 }} />}
-                </div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: a.unlocked ? 'var(--text)' : 'var(--text-dim)' }}>{a.title}</div>
-             </div>
-           ))}
-        </div>
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-headline-sm text-xl font-bold flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">emoji_events</span>
+              Achievements
+            </h3>
+            <span className="text-sm font-bold text-outline">
+              {unlockedCount} / {ACHIEVEMENTS.length}
+            </span>
+          </div>
 
-        <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-           <span>🖋️</span> Edit Scholar Profile
-        </button>
-      </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {ACHIEVEMENTS.map(a => {
+              const isUnlocked = stats.unlockedAchievements.includes(a.id) || a.check(stats);
+              return (
+                <div 
+                  key={a.id} 
+                  className={`p-4 rounded-2xl border transition-all flex flex-col items-center text-center space-y-2 ${
+                    isUnlocked
+                      ? 'bg-surface-container-high border-primary/40 shadow-sm'
+                      : 'bg-surface-container-low border-outline-variant/20 opacity-50 grayscale'
+                  }`}
+                >
+                  <div className="text-3xl">{isUnlocked ? a.icon : '🔒'}</div>
+                  <div className="font-bold text-sm text-on-surface">{a.title}</div>
+                  <div className="text-xs text-on-surface-variant leading-tight">{a.desc}</div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
