@@ -57,8 +57,9 @@ interface AppState {
   isFullScreen: boolean;
   error: string | null;
   toast: string | null;
+  adminMode: boolean;
   chatHistory: { role: 'user' | 'model'; content: string }[];
-
+  
   /* Actions */
   setStats: (stats: UserStats | ((prev: UserStats) => UserStats)) => void;
   setCloudUserId: (id: string | null) => void;
@@ -69,6 +70,8 @@ interface AppState {
   setFullScreen: (isFullScreen: boolean) => void;
   setError: (error: string | null) => void;
   setToast: (toast: string | null) => void;
+  setAdminMode: (enabled: boolean) => void;
+  toggleAdminMode: () => void;
   addChatMessage: (msg: { role: 'user' | 'model'; content: string }) => void;
   clearChatHistory: () => void;
   
@@ -94,6 +97,7 @@ export const useStore = create<AppState>()(
       isFullScreen: false,
       error: null,
       toast: null,
+      adminMode: false,
       chatHistory: [
         { role: 'model', content: "你好(nǐ hǎo)！I'm your AI Language Buddy. What would you like to practice today?" }
       ],
@@ -113,6 +117,8 @@ export const useStore = create<AppState>()(
       setFullScreen: (isFullScreen) => set({ isFullScreen }),
       setError: (error) => set({ error }),
       setToast: (toast) => set({ toast }),
+      setAdminMode: (adminMode) => set({ adminMode }),
+      toggleAdminMode: () => set((state) => ({ adminMode: !state.adminMode })),
       addChatMessage: (msg) => set((state) => ({ chatHistory: [...state.chatHistory, msg] })),
       clearChatHistory: () => set({ chatHistory: [] }),
 
@@ -218,6 +224,7 @@ export const useStore = create<AppState>()(
       partialize: (state) => ({ 
         stats: state.stats, 
         hskLevel: state.hskLevel,
+        adminMode: state.adminMode,
         chatHistory: state.chatHistory 
       }), // Persist stats, level, and chat history
     }

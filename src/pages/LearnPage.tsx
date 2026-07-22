@@ -95,7 +95,7 @@ function LessonComplete({ lesson, onNext, onHome }: {
 
 /* ---- Main Path Screen ---- */
 export default function LearnPage() {
-  const { stats, setStats, units, updateWordResult, completeLesson, setFullScreen } = useStore();
+  const { stats, setStats, units, updateWordResult, completeLesson, setFullScreen, adminMode } = useStore();
   
   const [screen, setScreen] = useState<'home' | 'intro' | 'practice' | 'complete'>('home');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
@@ -187,7 +187,23 @@ export default function LearnPage() {
     <div className="shell">
       {/* TopAppBar */}
       <header className="topbar">
-        <span className="topbar-brand">HànPath</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="topbar-brand">HànPath</span>
+          {adminMode && (
+            <span style={{ 
+              background: 'var(--tertiary-container)', 
+              color: 'var(--on-tertiary-container)', 
+              fontSize: 10, 
+              fontWeight: 900, 
+              padding: '2px 8px', 
+              borderRadius: 12,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}>
+              🔓 Admin Mode
+            </span>
+          )}
+        </div>
         <div className="topbar-stats">
           <div className="stat-chip streak">
             <span className="material-symbols-outlined" style={{ color: 'var(--tertiary-container)', fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
@@ -228,7 +244,7 @@ export default function LearnPage() {
                 <div className="path-line" />
                 {unit.lessons.map((lesson, li) => {
                   const done = stats.completedLessons.includes(lesson.id);
-                  const unlocked = isLessonUnlocked(lesson.id, units, stats.completedLessons);
+                  const unlocked = adminMode || isLessonUnlocked(lesson.id, units, stats.completedLessons);
                   const isCurrent = unlocked && !done;
                   const stagger = staggerClasses[li % staggerClasses.length];
 

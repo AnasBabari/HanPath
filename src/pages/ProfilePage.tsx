@@ -2,7 +2,7 @@ import { useStore } from '../store/useStore';
 import { ACHIEVEMENTS } from '../data/achievements';
 
 export default function ProfilePage() {
-  const { stats, hskLevel, setHSKLevel, cloudUserId } = useStore();
+  const { stats, hskLevel, setHSKLevel, cloudUserId, adminMode, toggleAdminMode } = useStore();
 
   const unlockedCount = ACHIEVEMENTS.filter(a => 
     stats.unlockedAchievements.includes(a.id) || a.check(stats)
@@ -43,6 +43,30 @@ export default function ProfilePage() {
             {cloudUserId ? `Cloud Synced (${cloudUserId.slice(0, 8)}...)` : 'Local Mode'}
           </div>
         </div>
+
+        {/* Admin Mode Toggle */}
+        <section className="bg-surface-container p-6 rounded-2xl border border-outline-variant/40 space-y-3">
+          <div className="flex justify-between items-center">
+            <div className="space-y-1">
+              <h3 className="font-headline-sm text-xl font-bold flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary">key</span>
+                Admin Mode
+              </h3>
+              <p className="text-xs text-on-surface-variant">Unlock access to any lesson & story without prerequisite locks</p>
+            </div>
+            <button
+              onClick={toggleAdminMode}
+              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all border flex items-center gap-2 ${
+                adminMode 
+                  ? 'bg-tertiary text-on-tertiary border-tertiary shadow-md' 
+                  : 'bg-surface-container-high text-on-surface-variant border-outline-variant/40 hover:bg-surface-variant'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">{adminMode ? 'lock_open' : 'lock'}</span>
+              {adminMode ? 'ENABLED' : 'DISABLED'}
+            </button>
+          </div>
+        </section>
 
         {/* HSK Level Selection */}
         <section className="bg-surface-container p-6 rounded-2xl border border-outline-variant/40 space-y-4">
