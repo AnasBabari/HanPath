@@ -44,14 +44,8 @@ function LessonIntro({ unit, lesson, revealPinyin, onStart, onExit }: {
             }}>
             <div className="hanzi-big">{card.hanzi}</div>
             <div className="details">
-              {(revealPinyin === 'always' || peeks.has(card.id)) ? (
-                <>
-                  <div className="pinyin">{card.pinyin}</div>
-                  <div className="meaning">{card.meaning}</div>
-                </>
-              ) : (
-                <div className="meaning" style={{ color: 'var(--text-dim)' }}>Tap to reveal</div>
-              )}
+              <div className="pinyin">{card.pinyin}</div>
+              <div className="meaning">{card.meaning}</div>
             </div>
             <button className="speak-btn" onClick={(e) => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
           </div>

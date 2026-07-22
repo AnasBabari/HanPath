@@ -183,9 +183,16 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
 
   return (
     <div className={`exercise-card ${shake ? 'shake' : ''}`} style={{ marginTop: '20px', paddingBottom: '160px' }}>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '24px', textAlign: 'center' }}>
-        {ex.type === 'listening-select' ? 'What did you hear?' : ex.prompt}
-      </h2>
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <h2 className="font-display" style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '8px' }}>
+          {ex.type === 'listening-select' ? 'What did you hear?' : ex.prompt}
+        </h2>
+        {ex.promptPinyin && (
+          <div style={{ fontSize: '1.125rem', color: 'var(--primary)', fontWeight: 800 }}>
+            {ex.promptPinyin}
+          </div>
+        )}
+      </div>
 
       {isMCQ && (
         <div style={{ display: 'grid', gap: '12px' }}>
