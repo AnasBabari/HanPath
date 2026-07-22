@@ -96,4 +96,12 @@ async function main() {
   console.log("All stories generated successfully!");
 }
 
-main();
+export { generateStoriesForLevel, storySchema, tokenSchema };
+
+// ES Module equivalent of require.main === module
+import { fileURLToPath } from 'url';
+const isMainModule = process.argv[1] && process.argv[1] === fileURLToPath(import.meta.url);
+
+if (isMainModule) {
+  main();
+}
