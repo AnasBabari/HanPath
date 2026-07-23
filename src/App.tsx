@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import './App.css';
 import { fetchHSKLevel, fetchSentences } from './utils/api';
 import { buildCurriculum } from './utils/curriculum';
@@ -173,6 +174,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppContent />
+      <SpeedInsights />
     </BrowserRouter>
   );
 }
