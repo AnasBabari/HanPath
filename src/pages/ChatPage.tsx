@@ -1,15 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { callOpenRouter, getActiveApiKey } from '../utils/ai';
+import { callOpenRouter } from '../utils/ai';
 import { useStore } from '../store/useStore';
 
 export default function ChatPage() {
   const { chatHistory, addChatMessage, setToast } = useStore();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showKeyModal, setShowKeyModal] = useState(false);
-  const [customKey, setCustomKey] = useState(() => {
-    try { return localStorage.getItem('hanpath_app_pref_key') || ''; } catch { return ''; }
-  });
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -17,21 +13,6 @@ export default function ChatPage() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [chatHistory, loading]);
-
-  const saveKey = (key: string) => {
-    try {
-      if (key.trim()) {
-        localStorage.setItem('hanpath_app_pref_key', key.trim());
-      } else {
-        localStorage.removeItem('hanpath_app_pref_key');
-      }
-      setCustomKey(key.trim());
-      setShowKeyModal(false);
-      setToast('API Key updated!');
-    } catch {
-      setToast('Failed to save key');
-    }
-  };
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -41,21 +22,7 @@ export default function ChatPage() {
     addChatMessage({ role: 'user', content: userMsg });
     setLoading(true);
 
-    const hasKey = !!getActiveApiKey();
-
     try {
-      if (!hasKey) {
-        // Fallback response for devices without API key
-        setTimeout(() => {
-          addChatMessage({
-            role: 'model',
-            content: "你好(nǐ hǎo)！Great to meet you! (Tip: You can add an API key in the top right ⚙️ icon to unlock live AI responses on any device!)"
-          });
-          setLoading(false);
-        }, 500);
-        return;
-      }
-
       const systemPrompt = "You are a friendly, encouraging Chinese learning AI buddy for a beginner student. You MUST converse primarily in simple Chinese characters (Hanzi) followed by Pinyin in brackets, like this: 你好(nǐ hǎo). Use English only for brief explanations or encouragement. NEVER respond with only English or only Hanzi. If the user makes a mistake in grammar or word choice, gently point it out in English. Keep your responses short.";
       
       const history = chatHistory.map(m => ({
@@ -74,7 +41,7 @@ export default function ChatPage() {
         role: 'model',
         content: "你好(nǐ hǎo)！I had trouble reaching the AI server. Let's practice: 你喜欢学中文吗(nǐ xǐ huān xué zhōng wén ma)? (Do you like learning Chinese?)"
       });
-      setToast('AI connection issue. Click ⚙️ to set custom API key.');
+      setToast('AI connection issue. (Check server logs)');
     } finally {
       setLoading(false);
     }
@@ -88,23 +55,6 @@ export default function ChatPage() {
            <span className="topbar-brand">AI Buddy</span>
         </div>
         <div className="topbar-stats" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-           <button 
-             type="button"
-             onClick={() => setShowKeyModal(true)}
-             style={{ 
-               background: 'transparent', 
-               border: 'none', 
-               cursor: 'pointer', 
-               fontSize: 18, 
-               padding: 4, 
-               display: 'flex', 
-               alignItems: 'center' 
-             }}
-             title="AI Settings"
-             aria-label="AI Settings"
-           >
-             ⚙️
-           </button>
            <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--primary)' }}>ONLINE</span>
            <div style={{ width: 8, height: 8, borderRadius: 4, background: 'var(--primary)' }} />
         </div>
@@ -197,54 +147,6 @@ export default function ChatPage() {
           Send
         </button>
       </div>
-
-      {/* Key Setup Modal */}
-      {showKeyModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
-          display: 'grid', placeItems: 'center', padding: 20
-        }}>
-          <div style={{
-            background: '#fff', borderRadius: 24, padding: 24, maxWidth: 400, width: '100%',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
-          }}>
-            <h3 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: 'var(--primary)' }}>⚙️ AI Key Setup</h3>
-            <p style={{ fontSize: 13, color: 'var(--text-dim)', margin: '8px 0 16px 0', lineHeight: 1.5 }}>
-              Enter an OpenRouter or Gemini API Key to enable AI Buddy on this device:
-            </p>
-            <input 
-              type="password"
-              aria-label="Enter API Key"
-              value={customKey}
-              onChange={(e) => setCustomKey(e.target.value)}
-              placeholder="sk-or-v1-..."
-              style={{
-                width: '100%', padding: '12px 16px', borderRadius: 12,
-                border: '2px solid var(--border)', fontSize: 14, fontWeight: 700,
-                boxSizing: 'border-box', marginBottom: 16
-              }}
-            />
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-              <button 
-                type="button"
-                onClick={() => setShowKeyModal(false)}
-                className="btn-ghost"
-                style={{ padding: '8px 16px' }}
-              >
-                Cancel
-              </button>
-              <button 
-                type="button"
-                onClick={() => saveKey(customKey)}
-                className="btn-primary"
-                style={{ padding: '8px 20px', borderRadius: 12 }}
-              >
-                Save Key
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
