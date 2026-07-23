@@ -2,7 +2,7 @@ import { useStore } from '../store/useStore';
 import { ACHIEVEMENTS } from '../data/achievements';
 
 export default function ProfilePage() {
-  const { stats, hskLevel, setHSKLevel, cloudUserId } = useStore();
+  const { stats, hskLevel, cloudUserId } = useStore();
 
   const unlockedCount = ACHIEVEMENTS.filter(a => 
     (stats.unlockedAchievements || []).includes(a.id) || a.check(stats)
@@ -44,33 +44,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* HSK Level Selection */}
-        <section className="bg-surface-container p-6 rounded-2xl border border-outline-variant/40 space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="font-headline-sm text-xl font-bold flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">school</span>
-              Current HSK Level
-            </h3>
-            <span className="text-sm font-bold text-primary">Level {hskLevel}</span>
-          </div>
 
-          <div className="grid grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map(lvl => (
-              <button
-                type="button"
-                key={lvl}
-                onClick={() => setHSKLevel(lvl)}
-                className={`py-3 rounded-xl font-bold text-sm transition-all border ${
-                  hskLevel === lvl
-                    ? 'bg-primary text-on-primary border-primary shadow-md'
-                    : 'bg-surface-container-high text-on-surface-variant border-outline-variant/30 hover:bg-surface-variant'
-                }`}
-              >
-                HSK {lvl}
-              </button>
-            ))}
-          </div>
-        </section>
 
         {/* Stats Grid */}
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">

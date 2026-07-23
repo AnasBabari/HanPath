@@ -6,8 +6,9 @@ import 'dotenv/config';
 // Initialize Gemini API
 const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '');
 
-const HSK_LEVELS = [1, 2, 3, 4];
-const STORIES_PER_LEVEL = 5;
+const HSK_LEVELS = [2];
+const BATCH_SIZE = 5;
+const TOTAL_STORIES_PER_LEVEL = 20;
 
 // Define the expected output schema using standard Gemini Schema format
 const tokenSchema = {
@@ -28,7 +29,7 @@ const storySchema = {
   items: {
     type: SchemaType.OBJECT,
     properties: {
-      id: { type: SchemaType.STRING, description: "A unique slug for the story (e.g. 'my-cat')" },
+      id: { type: SchemaType.STRING, description: "A unique slug for the story (e.g. 'hsk2-coffee-shop')" },
       title: { type: SchemaType.STRING, description: "Story title in English" },
       title_zh: { type: SchemaType.STRING, description: "Story title in Chinese" },
       hsk_level: { type: SchemaType.NUMBER },
@@ -41,10 +42,10 @@ const storySchema = {
   }
 };
 
-async function generateStoriesForLevel(level) {
-  console.log(`Generating stories for HSK ${level}...`);
+async function generateStoriesBatch(level, batchIndex) {
+  console.log(`Generating batch ${batchIndex + 1}/${TOTAL_STORIES_PER_LEVEL / BATCH_SIZE} for HSK ${level}...`);
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-2.0-flash",
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: storySchema,
@@ -52,10 +53,11 @@ async function generateStoriesForLevel(level) {
   });
 
   const prompt = `
-    Write ${STORIES_PER_LEVEL} short Chinese reading comprehension stories.
+    Write ${BATCH_SIZE} short Chinese reading comprehension stories.
     The stories must strictly use vocabulary from HSK level ${level} and below.
-    The topics should be engaging, modern, and practical (e.g., daily life, travel, technology, family).
+    The topics should be engaging, modern, and practical (e.g., daily life, travel, hobbies, food, weather, shopping).
     Each story should be about 50-80 words long.
+    Ensure story IDs are unique, e.g. "hsk${level}-batch${batchIndex+1}-story-1".
     
     Output the stories as an array of JSON objects matching the schema.
     For the "tokens" array, break down the Chinese text into individual words or punctuation marks.
@@ -66,11 +68,45 @@ async function generateStoriesForLevel(level) {
   try {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-    return JSON.parse(text);
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
-    console.error(`Failed to generate HSK ${level} stories:`, err);
+    console.error(`Failed batch ${batchIndex + 1} for HSK ${level}:`, err);
     return [];
   }
+}
+
+async function generateStoriesForLevel(level) {
+  const allStories = [];
+  const totalBatches = Math.ceil(TOTAL_STORIES_PER_LEVEL / BATCH_SIZE);
+
+  for (let b = 0; b < totalBatches; b++) {
+    let batch = [];
+    let attempts = 0;
+    while (attempts < 3) {
+      attempts++;
+      batch = await generateStoriesBatch(level, b);
+      if (batch.length > 0) break;
+      console.log(`Retrying batch ${b + 1} in 15 seconds (attempt ${attempts})...`);
+      await new Promise(r => setTimeout(r, 15000));
+    }
+    allStories.push(...batch);
+    if (b < totalBatches - 1) {
+      console.log("Waiting 6 seconds before next batch...");
+      await new Promise(r => setTimeout(r, 6000));
+    }
+  }
+
+  // Ensure unique IDs
+  const seenIds = new Set();
+  return allStories.map((story, index) => {
+    let id = story.id || `hsk${level}-story-${index + 1}`;
+    if (seenIds.has(id)) {
+      id = `hsk${level}-story-${index + 1}-${Math.random().toString(36).slice(2, 6)}`;
+    }
+    seenIds.add(id);
+    return { ...story, id, hsk_level: level };
+  });
 }
 
 async function main() {
@@ -89,16 +125,15 @@ async function main() {
     if (stories.length > 0) {
       const filePath = path.join(outDir, `stories_hsk${level}.json`);
       fs.writeFileSync(filePath, JSON.stringify(stories, null, 2));
-      console.log(`Saved ${stories.length} stories to ${filePath}`);
+      console.log(`Saved ${stories.length} HSK ${level} stories to ${filePath}`);
     }
   }
   
-  console.log("All stories generated successfully!");
+  console.log("All HSK 2 stories generated successfully!");
 }
 
 export { generateStoriesForLevel, storySchema, tokenSchema };
 
-// ES Module equivalent of require.main === module
 import { fileURLToPath } from 'url';
 const isMainModule = process.argv[1] && process.argv[1] === fileURLToPath(import.meta.url);
 

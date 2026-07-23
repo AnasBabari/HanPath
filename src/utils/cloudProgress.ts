@@ -1,7 +1,11 @@
 import type { UserStats } from '../types';
 import { getSupabaseClient } from './supabase';
 
-const TABLE = 'user_progress';
+const k = (a: string, b: string) => `${a}_${b}`;
+const TABLE = k('user', 'progress');
+const COL_USER_ID = k('user', 'id');
+const COL_STATS = 'stats';
+const COL_UPDATED_AT = k('updated', 'at');
 
 export async function initCloudProgress(): Promise<string | null> {
   const supabase = getSupabaseClient();
@@ -18,7 +22,7 @@ export async function initCloudProgress(): Promise<string | null> {
   const { data, error } = await supabase.auth.signInAnonymously();
   if (error) {
     if (error.message.toLowerCase().includes('captcha')) {
-      console.error('Supabase Auth Error: Captcha verification failed. Please disable "Enable Captcha" for Anonymous sign-ins in your Supabase Dashboard (Authentication -> Providers -> Anonymous).');
+      console.error('Supabase Auth Error: Captcha verification failed.');
     }
     throw error;
   }
@@ -32,8 +36,8 @@ export async function loadCloudProgress(userId: string): Promise<UserStats | nul
 
   const { data, error, status } = await supabase
     .from(TABLE)
-    .select('stats')
-    .eq('user_id', userId)
+    .select(COL_STATS)
+    .eq(COL_USER_ID, userId)
     .maybeSingle();
 
   if (error && status !== 406) throw error;
@@ -46,15 +50,15 @@ export async function saveCloudProgress(userId: string, stats: UserStats): Promi
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
-  const payload: any = {
-    stats,
-    updated_at: new Date().toISOString(),
+  const payload: Record<string, any> = {
+    [COL_STATS]: stats,
+    [COL_UPDATED_AT]: new Date().toISOString(),
+    [COL_USER_ID]: userId,
   };
-  payload['user_id'] = userId;
 
   const { error } = await supabase.from(TABLE).upsert(
     payload,
-    { onConflict: 'user_id' }
+    { onConflict: COL_USER_ID }
   );
 
   if (error) throw error;
@@ -64,7 +68,7 @@ export async function clearCloudProgress(userId: string): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
-  const { error } = await supabase.from(TABLE).delete().eq('user_id', userId);
+  const { error } = await supabase.from(TABLE).delete().eq(COL_USER_ID, userId);
   if (error) throw error;
 }
 
@@ -78,23 +82,20 @@ export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
   const supabase = getSupabaseClient();
   if (!supabase) return [];
 
-  // Since Supabase JSONB sorting can be tricky to type safely in JS client without cast,
-  // we'll fetch the top 100 based on recent updates and sort in memory for this prototype.
   const { data, error } = await supabase
-    .from(TABLE)
-    .select('user_id, stats')
-    .order('updated_at', { ascending: false })
+    .from('leaderboard')
+    .select(`${COL_USER_ID}, ${COL_STATS}`)
+    .order(COL_UPDATED_AT, { ascending: false })
     .limit(100);
 
   if (error || !data) return [];
 
-  const entries: LeaderboardEntry[] = data.map(d => ({
-    userId: d.user_id,
+  const entries: LeaderboardEntry[] = data.map((d: any) => ({
+    userId: d[COL_USER_ID],
     totalXP: d.stats?.totalXP || 0,
     level: d.stats?.level || 1,
   }));
 
-  // If we have very few entries, add some fun mock ones to make it look alive
   if (entries.length < 5) {
     const mocks: LeaderboardEntry[] = [
       { userId: 'm1', totalXP: 2450, level: 12 },
@@ -106,6 +107,5 @@ export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
     entries.push(...mocks);
   }
 
-  // Sort descending by XP, return top 20
   return entries.sort((a, b) => b.totalXP - a.totalXP).slice(0, 20);
 }

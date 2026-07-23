@@ -1,0 +1,4572 @@
+[
+  {
+    "id": "hsk2-hf-story-1",
+    "title": "I feel very sleepy.",
+    "title_zh": "我觉得很困。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I feel very sleepy."
+      },
+      {
+        "token": "觉",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jué",
+        "meaning": "I feel very sleepy."
+      },
+      {
+        "token": "得",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "I feel very sleepy."
+      },
+      {
+        "token": "很",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hěn",
+        "meaning": "I feel very sleepy."
+      },
+      {
+        "token": "困",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "kùn",
+        "meaning": "I feel very sleepy."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "你",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǐ",
+        "meaning": "You did a good job."
+      },
+      {
+        "token": "干",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gàn",
+        "meaning": "You did a good job."
+      },
+      {
+        "token": "得",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "You did a good job."
+      },
+      {
+        "token": "很",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hěn",
+        "meaning": "You did a good job."
+      },
+      {
+        "token": "好",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hào",
+        "meaning": "You did a good job."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "晚",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǎn",
+        "meaning": "Dinner is on me."
+      },
+      {
+        "token": "饭",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "fàn",
+        "meaning": "Dinner is on me."
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "Dinner is on me."
+      },
+      {
+        "token": "请",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐng",
+        "meaning": "Dinner is on me."
+      },
+      {
+        "token": "客",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "kè",
+        "meaning": "Dinner is on me."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I've no small change."
+      },
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "méi",
+        "meaning": "I've no small change."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "I've no small change."
+      },
+      {
+        "token": "零",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "líng",
+        "meaning": "I've no small change."
+      },
+      {
+        "token": "钱",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qián",
+        "meaning": "I've no small change."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-2",
+    "title": "I'll be right with you.",
+    "title_zh": "我马上就来。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I'll be right with you."
+      },
+      {
+        "token": "马",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mǎ",
+        "meaning": "I'll be right with you."
+      },
+      {
+        "token": "上",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shàng",
+        "meaning": "I'll be right with you."
+      },
+      {
+        "token": "就",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiù",
+        "meaning": "I'll be right with you."
+      },
+      {
+        "token": "来",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lái",
+        "meaning": "I'll be right with you."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I am a technician."
+      },
+      {
+        "token": "是",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "I am a technician."
+      },
+      {
+        "token": "技",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jì",
+        "meaning": "I am a technician."
+      },
+      {
+        "token": "术",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shù",
+        "meaning": "I am a technician."
+      },
+      {
+        "token": "员",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yuán",
+        "meaning": "I am a technician."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He is in the third grade."
+      },
+      {
+        "token": "读",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dú",
+        "meaning": "He is in the third grade."
+      },
+      {
+        "token": "三",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "sān",
+        "meaning": "He is in the third grade."
+      },
+      {
+        "token": "年",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nián",
+        "meaning": "He is in the third grade."
+      },
+      {
+        "token": "级",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jí",
+        "meaning": "He is in the third grade."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "请",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐng",
+        "meaning": "Look this way, please."
+      },
+      {
+        "token": "往",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wàng",
+        "meaning": "Look this way, please."
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "Look this way, please."
+      },
+      {
+        "token": "边",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "biān",
+        "meaning": "Look this way, please."
+      },
+      {
+        "token": "看",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "kàn",
+        "meaning": "Look this way, please."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-3",
+    "title": "I'm no good.",
+    "title_zh": "我一点儿也不行。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I'm no good."
+      },
+      {
+        "token": "一",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yī",
+        "meaning": "I'm no good."
+      },
+      {
+        "token": "点",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "diǎnr",
+        "meaning": "I'm no good."
+      },
+      {
+        "token": "儿",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yě",
+        "meaning": "I'm no good."
+      },
+      {
+        "token": "也",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "I'm no good."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xìng",
+        "meaning": "I'm no good."
+      },
+      {
+        "token": "行",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "",
+        "meaning": "I'm no good."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "一",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yī",
+        "meaning": "Everything will be OK."
+      },
+      {
+        "token": "切",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qiè",
+        "meaning": "Everything will be OK."
+      },
+      {
+        "token": "都",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dū",
+        "meaning": "Everything will be OK."
+      },
+      {
+        "token": "会",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "huì",
+        "meaning": "Everything will be OK."
+      },
+      {
+        "token": "好",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hǎo",
+        "meaning": "Everything will be OK."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "Everything will be OK."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He has taken leave of me."
+      },
+      {
+        "token": "向",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiàng",
+        "meaning": "He has taken leave of me."
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "He has taken leave of me."
+      },
+      {
+        "token": "告",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gào",
+        "meaning": "He has taken leave of me."
+      },
+      {
+        "token": "别",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bié",
+        "meaning": "He has taken leave of me."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I'm not feeling well."
+      },
+      {
+        "token": "感",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gǎn",
+        "meaning": "I'm not feeling well."
+      },
+      {
+        "token": "觉",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jué",
+        "meaning": "I'm not feeling well."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "I'm not feeling well."
+      },
+      {
+        "token": "舒",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shū",
+        "meaning": "I'm not feeling well."
+      },
+      {
+        "token": "服",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "fu",
+        "meaning": "I'm not feeling well."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-4",
+    "title": "He lives by his pen.",
+    "title_zh": "他以写作为生。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He lives by his pen."
+      },
+      {
+        "token": "以",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǐ",
+        "meaning": "He lives by his pen."
+      },
+      {
+        "token": "写",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiě",
+        "meaning": "He lives by his pen."
+      },
+      {
+        "token": "作",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zuò",
+        "meaning": "He lives by his pen."
+      },
+      {
+        "token": "为",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wéi",
+        "meaning": "He lives by his pen."
+      },
+      {
+        "token": "生",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shēng",
+        "meaning": "He lives by his pen."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I remember quite clearly."
+      },
+      {
+        "token": "记",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jì",
+        "meaning": "I remember quite clearly."
+      },
+      {
+        "token": "得",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "I remember quite clearly."
+      },
+      {
+        "token": "很",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hěn",
+        "meaning": "I remember quite clearly."
+      },
+      {
+        "token": "清",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qīng",
+        "meaning": "I remember quite clearly."
+      },
+      {
+        "token": "楚",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "chu",
+        "meaning": "I remember quite clearly."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "This way please, madam."
+      },
+      {
+        "token": "边",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "biān",
+        "meaning": "This way please, madam."
+      },
+      {
+        "token": "请",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐng",
+        "meaning": "This way please, madam."
+      },
+      {
+        "token": "，",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "夫",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "fū",
+        "meaning": "This way please, madam."
+      },
+      {
+        "token": "人",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "ren",
+        "meaning": "This way please, madam."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "东",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dōng",
+        "meaning": "The wind is in the southeast."
+      },
+      {
+        "token": "南",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nán",
+        "meaning": "The wind is in the southeast."
+      },
+      {
+        "token": "部",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "The wind is in the southeast."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "The wind is in the southeast."
+      },
+      {
+        "token": "风",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "fēng",
+        "meaning": "The wind is in the southeast."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-5",
+    "title": "His hat isn't on straight.",
+    "title_zh": "他的帽子没戴正.",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "His hat isn't on straight."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "His hat isn't on straight."
+      },
+      {
+        "token": "帽",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mào",
+        "meaning": "His hat isn't on straight."
+      },
+      {
+        "token": "子",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zi",
+        "meaning": "His hat isn't on straight."
+      },
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mò",
+        "meaning": "His hat isn't on straight."
+      },
+      {
+        "token": "戴",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dài",
+        "meaning": "His hat isn't on straight."
+      },
+      {
+        "token": "正",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhèng",
+        "meaning": "His hat isn't on straight."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "比",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bǐ",
+        "meaning": "Take Jiangxi for example."
+      },
+      {
+        "token": "如",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "rú",
+        "meaning": "Take Jiangxi for example."
+      },
+      {
+        "token": "说",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shuō",
+        "meaning": "Take Jiangxi for example."
+      },
+      {
+        "token": "江",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiāng",
+        "meaning": "Take Jiangxi for example."
+      },
+      {
+        "token": "西",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xī",
+        "meaning": "Take Jiangxi for example."
+      },
+      {
+        "token": "吧",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "ba",
+        "meaning": "Take Jiangxi for example."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He is my senior by two years."
+      },
+      {
+        "token": "比",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bì",
+        "meaning": "He is my senior by two years."
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "He is my senior by two years."
+      },
+      {
+        "token": "大",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dà",
+        "meaning": "He is my senior by two years."
+      },
+      {
+        "token": "两",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "liǎng",
+        "meaning": "He is my senior by two years."
+      },
+      {
+        "token": "岁",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "suì",
+        "meaning": "He is my senior by two years."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I miss you very much."
+      },
+      {
+        "token": "非",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "fēi",
+        "meaning": "I miss you very much."
+      },
+      {
+        "token": "常",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "cháng",
+        "meaning": "I miss you very much."
+      },
+      {
+        "token": "想",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiǎng",
+        "meaning": "I miss you very much."
+      },
+      {
+        "token": "念",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "niàn",
+        "meaning": "I miss you very much."
+      },
+      {
+        "token": "你",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǐ",
+        "meaning": "I miss you very much."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-6",
+    "title": "Sit beside your sister.",
+    "title_zh": "坐在你妹妹旁边.",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "坐",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zuò",
+        "meaning": "Sit beside your sister."
+      },
+      {
+        "token": "在",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zài",
+        "meaning": "Sit beside your sister."
+      },
+      {
+        "token": "你",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǐ",
+        "meaning": "Sit beside your sister."
+      },
+      {
+        "token": "妹",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mèi",
+        "meaning": "Sit beside your sister."
+      },
+      {
+        "token": "妹",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mei",
+        "meaning": "Sit beside your sister."
+      },
+      {
+        "token": "旁",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "páng",
+        "meaning": "Sit beside your sister."
+      },
+      {
+        "token": "边",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "biān",
+        "meaning": "Sit beside your sister."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "她",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "She parcelled up the books."
+      },
+      {
+        "token": "把",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bǎ",
+        "meaning": "She parcelled up the books."
+      },
+      {
+        "token": "书",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shū",
+        "meaning": "She parcelled up the books."
+      },
+      {
+        "token": "包",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bāo",
+        "meaning": "She parcelled up the books."
+      },
+      {
+        "token": "了",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "le",
+        "meaning": "She parcelled up the books."
+      },
+      {
+        "token": "起",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐ",
+        "meaning": "She parcelled up the books."
+      },
+      {
+        "token": "来",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lai",
+        "meaning": "She parcelled up the books."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "今",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jīn",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "后",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hòu",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "请",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐng",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "准",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhǔn",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "时",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shí",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "今",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jīn",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "后",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hòu",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "请",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐng",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "准",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhǔn",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "时",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shí",
+        "meaning": "Please be punctual in futurity."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-7",
+    "title": "You will have to wait and see.",
+    "title_zh": "你得等一等看。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "你",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǐ",
+        "meaning": "You will have to wait and see."
+      },
+      {
+        "token": "得",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "You will have to wait and see."
+      },
+      {
+        "token": "等",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "děng",
+        "meaning": "You will have to wait and see."
+      },
+      {
+        "token": "一",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yī",
+        "meaning": "You will have to wait and see."
+      },
+      {
+        "token": "等",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "děng",
+        "meaning": "You will have to wait and see."
+      },
+      {
+        "token": "看",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "kàn",
+        "meaning": "You will have to wait and see."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "人",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "rén",
+        "meaning": "All man are born equal."
+      },
+      {
+        "token": "人",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "rén",
+        "meaning": "All man are born equal."
+      },
+      {
+        "token": "生",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shēng",
+        "meaning": "All man are born equal."
+      },
+      {
+        "token": "而",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "ér",
+        "meaning": "All man are born equal."
+      },
+      {
+        "token": "平",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "píng",
+        "meaning": "All man are born equal."
+      },
+      {
+        "token": "等",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "děng",
+        "meaning": "All man are born equal."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mò",
+        "meaning": "Think nothing of it."
+      },
+      {
+        "token": "什",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shén",
+        "meaning": "Think nothing of it."
+      },
+      {
+        "token": "么",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "me",
+        "meaning": "Think nothing of it."
+      },
+      {
+        "token": "大",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dà",
+        "meaning": "Think nothing of it."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "Think nothing of it."
+      },
+      {
+        "token": "了",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "liǎo",
+        "meaning": "Think nothing of it."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "Think nothing of it."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I go there for a haircut."
+      },
+      {
+        "token": "到",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dào",
+        "meaning": "I go there for a haircut."
+      },
+      {
+        "token": "那",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nà",
+        "meaning": "I go there for a haircut."
+      },
+      {
+        "token": "里",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "li",
+        "meaning": "I go there for a haircut."
+      },
+      {
+        "token": "去",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qù",
+        "meaning": "I go there for a haircut."
+      },
+      {
+        "token": "理",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lǐ",
+        "meaning": "I go there for a haircut."
+      },
+      {
+        "token": "发",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "fà",
+        "meaning": "I go there for a haircut."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-8",
+    "title": "Forget it.",
+    "title_zh": "算了，别放在心上。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "算",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "suàn",
+        "meaning": "Forget it."
+      },
+      {
+        "token": "了",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "le",
+        "meaning": "Forget it."
+      },
+      {
+        "token": "，",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "别",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "biè",
+        "meaning": "Forget it."
+      },
+      {
+        "token": "放",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "fàng",
+        "meaning": "Forget it."
+      },
+      {
+        "token": "在",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zài",
+        "meaning": "Forget it."
+      },
+      {
+        "token": "心",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xīn",
+        "meaning": "Forget it."
+      },
+      {
+        "token": "上",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shàng",
+        "meaning": "Forget it."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "现",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiàn",
+        "meaning": "It is a quarter to five."
+      },
+      {
+        "token": "在",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zài",
+        "meaning": "It is a quarter to five."
+      },
+      {
+        "token": "五",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǔ",
+        "meaning": "It is a quarter to five."
+      },
+      {
+        "token": "点",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "diǎn",
+        "meaning": "It is a quarter to five."
+      },
+      {
+        "token": "差",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "cī",
+        "meaning": "It is a quarter to five."
+      },
+      {
+        "token": "一",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yī",
+        "meaning": "It is a quarter to five."
+      },
+      {
+        "token": "刻",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "kè",
+        "meaning": "It is a quarter to five."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "立",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lì",
+        "meaning": "A cube has six surfaces."
+      },
+      {
+        "token": "方",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "fāng",
+        "meaning": "A cube has six surfaces."
+      },
+      {
+        "token": "体",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tǐ",
+        "meaning": "A cube has six surfaces."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "A cube has six surfaces."
+      },
+      {
+        "token": "六",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "liù",
+        "meaning": "A cube has six surfaces."
+      },
+      {
+        "token": "个",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gè",
+        "meaning": "A cube has six surfaces."
+      },
+      {
+        "token": "面",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "miàn",
+        "meaning": "A cube has six surfaces."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "你",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǐ",
+        "meaning": "You should study hard."
+      },
+      {
+        "token": "应",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yīng",
+        "meaning": "You should study hard."
+      },
+      {
+        "token": "该",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gāi",
+        "meaning": "You should study hard."
+      },
+      {
+        "token": "努",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǔ",
+        "meaning": "You should study hard."
+      },
+      {
+        "token": "力",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lì",
+        "meaning": "You should study hard."
+      },
+      {
+        "token": "读",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dú",
+        "meaning": "You should study hard."
+      },
+      {
+        "token": "书",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shū",
+        "meaning": "You should study hard."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-9",
+    "title": "I met him in the street.",
+    "title_zh": "我在街上遇到他。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I met him in the street."
+      },
+      {
+        "token": "在",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zài",
+        "meaning": "I met him in the street."
+      },
+      {
+        "token": "街",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiē",
+        "meaning": "I met him in the street."
+      },
+      {
+        "token": "上",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shàng",
+        "meaning": "I met him in the street."
+      },
+      {
+        "token": "遇",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yù",
+        "meaning": "I met him in the street."
+      },
+      {
+        "token": "到",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dào",
+        "meaning": "I met him in the street."
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "I met him in the street."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He asked me to inquire after you."
+      },
+      {
+        "token": "要",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yào",
+        "meaning": "He asked me to inquire after you."
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "He asked me to inquire after you."
+      },
+      {
+        "token": "问",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wèn",
+        "meaning": "He asked me to inquire after you."
+      },
+      {
+        "token": "候",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hòu",
+        "meaning": "He asked me to inquire after you."
+      },
+      {
+        "token": "你",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǐ",
+        "meaning": "He asked me to inquire after you."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhèr",
+        "meaning": "(There must be) No talking in here!"
+      },
+      {
+        "token": "儿",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "(There must be) No talking in here!"
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xǔ",
+        "meaning": "(There must be) No talking in here!"
+      },
+      {
+        "token": "许",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiǎng",
+        "meaning": "(There must be) No talking in here!"
+      },
+      {
+        "token": "讲",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "huà",
+        "meaning": "(There must be) No talking in here!"
+      },
+      {
+        "token": "话",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "",
+        "meaning": "(There must be) No talking in here!"
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "你",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǐ",
+        "meaning": "You want to be more careful."
+      },
+      {
+        "token": "应",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yīng",
+        "meaning": "You want to be more careful."
+      },
+      {
+        "token": "该",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gāi",
+        "meaning": "You want to be more careful."
+      },
+      {
+        "token": "再",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zài",
+        "meaning": "You want to be more careful."
+      },
+      {
+        "token": "细",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xì",
+        "meaning": "You want to be more careful."
+      },
+      {
+        "token": "心",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xīn",
+        "meaning": "You want to be more careful."
+      },
+      {
+        "token": "些",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiē",
+        "meaning": "You want to be more careful."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-10",
+    "title": "He's my equal in strength.",
+    "title_zh": "他和我力气一样大.",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He's my equal in strength."
+      },
+      {
+        "token": "和",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "huò",
+        "meaning": "He's my equal in strength."
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "He's my equal in strength."
+      },
+      {
+        "token": "力",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lì",
+        "meaning": "He's my equal in strength."
+      },
+      {
+        "token": "气",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qi",
+        "meaning": "He's my equal in strength."
+      },
+      {
+        "token": "一",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yí",
+        "meaning": "He's my equal in strength."
+      },
+      {
+        "token": "样",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yàng",
+        "meaning": "He's my equal in strength."
+      },
+      {
+        "token": "大",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dà",
+        "meaning": "He's my equal in strength."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "那",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nà",
+        "meaning": "The child will be six."
+      },
+      {
+        "token": "孩",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hái",
+        "meaning": "The child will be six."
+      },
+      {
+        "token": "子",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zi",
+        "meaning": "The child will be six."
+      },
+      {
+        "token": "将",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiàng",
+        "meaning": "The child will be six."
+      },
+      {
+        "token": "满",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mǎn",
+        "meaning": "The child will be six."
+      },
+      {
+        "token": "六",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "liù",
+        "meaning": "The child will be six."
+      },
+      {
+        "token": "岁",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "suì",
+        "meaning": "The child will be six."
+      },
+      {
+        "token": "了",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "le",
+        "meaning": "The child will be six."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "她",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "She has nipped out to the bank."
+      },
+      {
+        "token": "急",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jí",
+        "meaning": "She has nipped out to the bank."
+      },
+      {
+        "token": "忙",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "máng",
+        "meaning": "She has nipped out to the bank."
+      },
+      {
+        "token": "去",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qù",
+        "meaning": "She has nipped out to the bank."
+      },
+      {
+        "token": "银",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yín",
+        "meaning": "She has nipped out to the bank."
+      },
+      {
+        "token": "行",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "háng",
+        "meaning": "She has nipped out to the bank."
+      },
+      {
+        "token": "了",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "le",
+        "meaning": "She has nipped out to the bank."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "她",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "She kind of/sort of likes him."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "She kind of/sort of likes him."
+      },
+      {
+        "token": "点",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "diǎn",
+        "meaning": "She kind of/sort of likes him."
+      },
+      {
+        "token": "儿",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "er",
+        "meaning": "She kind of/sort of likes him."
+      },
+      {
+        "token": "喜",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xǐ",
+        "meaning": "She kind of/sort of likes him."
+      },
+      {
+        "token": "欢",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "huan",
+        "meaning": "She kind of/sort of likes him."
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "She kind of/sort of likes him."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-11",
+    "title": "He is forward in his English.",
+    "title_zh": "他的英语有进步。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He is forward in his English."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "He is forward in his English."
+      },
+      {
+        "token": "英",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "Yīng",
+        "meaning": "He is forward in his English."
+      },
+      {
+        "token": "语",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǔ",
+        "meaning": "He is forward in his English."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "He is forward in his English."
+      },
+      {
+        "token": "进",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jìn",
+        "meaning": "He is forward in his English."
+      },
+      {
+        "token": "步",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "He is forward in his English."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "That's really not necessary."
+      },
+      {
+        "token": "真",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhēn",
+        "meaning": "That's really not necessary."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "That's really not necessary."
+      },
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "méi",
+        "meaning": "That's really not necessary."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "That's really not necessary."
+      },
+      {
+        "token": "必",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bì",
+        "meaning": "That's really not necessary."
+      },
+      {
+        "token": "要",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yào",
+        "meaning": "That's really not necessary."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "It is a moving film."
+      },
+      {
+        "token": "是",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "It is a moving film."
+      },
+      {
+        "token": "部",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "It is a moving film."
+      },
+      {
+        "token": "动",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dòng",
+        "meaning": "It is a moving film."
+      },
+      {
+        "token": "人",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "rén",
+        "meaning": "It is a moving film."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "It is a moving film."
+      },
+      {
+        "token": "影",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǐng",
+        "meaning": "It is a moving film."
+      },
+      {
+        "token": "片",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "piàn",
+        "meaning": "It is a moving film."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "瓶",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "píng",
+        "meaning": "The bottle is full of water."
+      },
+      {
+        "token": "子",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zi",
+        "meaning": "The bottle is full of water."
+      },
+      {
+        "token": "里",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lǐ",
+        "meaning": "The bottle is full of water."
+      },
+      {
+        "token": "装",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhuāng",
+        "meaning": "The bottle is full of water."
+      },
+      {
+        "token": "满",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mǎn",
+        "meaning": "The bottle is full of water."
+      },
+      {
+        "token": "了",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "le",
+        "meaning": "The bottle is full of water."
+      },
+      {
+        "token": "水",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shuǐ",
+        "meaning": "The bottle is full of water."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-12",
+    "title": "The next chapter deals with verbs.",
+    "title_zh": "下一章讨论动词.",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "下",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xià",
+        "meaning": "The next chapter deals with verbs."
+      },
+      {
+        "token": "一",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yī",
+        "meaning": "The next chapter deals with verbs."
+      },
+      {
+        "token": "章",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhāng",
+        "meaning": "The next chapter deals with verbs."
+      },
+      {
+        "token": "讨",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tǎo",
+        "meaning": "The next chapter deals with verbs."
+      },
+      {
+        "token": "论",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lùn",
+        "meaning": "The next chapter deals with verbs."
+      },
+      {
+        "token": "动",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dòng",
+        "meaning": "The next chapter deals with verbs."
+      },
+      {
+        "token": "词",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "cí",
+        "meaning": "The next chapter deals with verbs."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "她",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "She is an industrial designer."
+      },
+      {
+        "token": "是",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "She is an industrial designer."
+      },
+      {
+        "token": "工",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gōng",
+        "meaning": "She is an industrial designer."
+      },
+      {
+        "token": "业",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yè",
+        "meaning": "She is an industrial designer."
+      },
+      {
+        "token": "设",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shè",
+        "meaning": "She is an industrial designer."
+      },
+      {
+        "token": "计",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jì",
+        "meaning": "She is an industrial designer."
+      },
+      {
+        "token": "师",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shī",
+        "meaning": "She is an industrial designer."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "她",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "She was quite adamant that she would not come."
+      },
+      {
+        "token": "坚",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiān",
+        "meaning": "She was quite adamant that she would not come."
+      },
+      {
+        "token": "决",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jué",
+        "meaning": "She was quite adamant that she would not come."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "She was quite adamant that she would not come."
+      },
+      {
+        "token": "来",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lái",
+        "meaning": "She was quite adamant that she would not come."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "那",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nà",
+        "meaning": "The ship is outward bound."
+      },
+      {
+        "token": "船",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "chuán",
+        "meaning": "The ship is outward bound."
+      },
+      {
+        "token": "是",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "The ship is outward bound."
+      },
+      {
+        "token": "开",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "kāi",
+        "meaning": "The ship is outward bound."
+      },
+      {
+        "token": "往",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wàng",
+        "meaning": "The ship is outward bound."
+      },
+      {
+        "token": "外",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wài",
+        "meaning": "The ship is outward bound."
+      },
+      {
+        "token": "地",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dì",
+        "meaning": "The ship is outward bound."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "The ship is outward bound."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-13",
+    "title": "I'm feeling blue today.",
+    "title_zh": "我今天的心情不好。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I'm feeling blue today."
+      },
+      {
+        "token": "今",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jīn",
+        "meaning": "I'm feeling blue today."
+      },
+      {
+        "token": "天",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tiān",
+        "meaning": "I'm feeling blue today."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "I'm feeling blue today."
+      },
+      {
+        "token": "心",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xīn",
+        "meaning": "I'm feeling blue today."
+      },
+      {
+        "token": "情",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qíng",
+        "meaning": "I'm feeling blue today."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "I'm feeling blue today."
+      },
+      {
+        "token": "好",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hǎo",
+        "meaning": "I'm feeling blue today."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "My mother is a teacher."
+      },
+      {
+        "token": "母",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mǔ",
+        "meaning": "My mother is a teacher."
+      },
+      {
+        "token": "亲",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qīn",
+        "meaning": "My mother is a teacher."
+      },
+      {
+        "token": "是",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "My mother is a teacher."
+      },
+      {
+        "token": "一",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yī",
+        "meaning": "My mother is a teacher."
+      },
+      {
+        "token": "位",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wèi",
+        "meaning": "My mother is a teacher."
+      },
+      {
+        "token": "教",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiào",
+        "meaning": "My mother is a teacher."
+      },
+      {
+        "token": "师",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shī",
+        "meaning": "My mother is a teacher."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "天",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tiān",
+        "meaning": "Overhead the stars were out."
+      },
+      {
+        "token": "上",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shàng",
+        "meaning": "Overhead the stars were out."
+      },
+      {
+        "token": "星",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xīng",
+        "meaning": "Overhead the stars were out."
+      },
+      {
+        "token": "星",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xing",
+        "meaning": "Overhead the stars were out."
+      },
+      {
+        "token": "出",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "chū",
+        "meaning": "Overhead the stars were out."
+      },
+      {
+        "token": "来",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lai",
+        "meaning": "Overhead the stars were out."
+      },
+      {
+        "token": "了",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "le",
+        "meaning": "Overhead the stars were out."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "This dress doesn't fit me."
+      },
+      {
+        "token": "件",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiàn",
+        "meaning": "This dress doesn't fit me."
+      },
+      {
+        "token": "衣",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yī",
+        "meaning": "This dress doesn't fit me."
+      },
+      {
+        "token": "服",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "fu",
+        "meaning": "This dress doesn't fit me."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "This dress doesn't fit me."
+      },
+      {
+        "token": "适",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "This dress doesn't fit me."
+      },
+      {
+        "token": "合",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hé",
+        "meaning": "This dress doesn't fit me."
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "This dress doesn't fit me."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-14",
+    "title": "He's not a technician, either.",
+    "title_zh": "他也不是技术员。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He's not a technician, either."
+      },
+      {
+        "token": "也",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yě",
+        "meaning": "He's not a technician, either."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "He's not a technician, either."
+      },
+      {
+        "token": "是",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "He's not a technician, either."
+      },
+      {
+        "token": "技",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jì",
+        "meaning": "He's not a technician, either."
+      },
+      {
+        "token": "术",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shù",
+        "meaning": "He's not a technician, either."
+      },
+      {
+        "token": "员",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yuán",
+        "meaning": "He's not a technician, either."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "It doesn't matter at all."
+      },
+      {
+        "token": "根",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gēn",
+        "meaning": "It doesn't matter at all."
+      },
+      {
+        "token": "本",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "běn",
+        "meaning": "It doesn't matter at all."
+      },
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mò",
+        "meaning": "It doesn't matter at all."
+      },
+      {
+        "token": "什",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shén",
+        "meaning": "It doesn't matter at all."
+      },
+      {
+        "token": "么",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "me",
+        "meaning": "It doesn't matter at all."
+      },
+      {
+        "token": "关",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "guān",
+        "meaning": "It doesn't matter at all."
+      },
+      {
+        "token": "系",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xi",
+        "meaning": "It doesn't matter at all."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "It makes no difference to me."
+      },
+      {
+        "token": "对",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "duì",
+        "meaning": "It makes no difference to me."
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "It makes no difference to me."
+      },
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mò",
+        "meaning": "It makes no difference to me."
+      },
+      {
+        "token": "什",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shén",
+        "meaning": "It makes no difference to me."
+      },
+      {
+        "token": "么",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "me",
+        "meaning": "It makes no difference to me."
+      },
+      {
+        "token": "差",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "chā",
+        "meaning": "It makes no difference to me."
+      },
+      {
+        "token": "别",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bié",
+        "meaning": "It makes no difference to me."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I am not in the vein for work."
+      },
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "méi",
+        "meaning": "I am not in the vein for work."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "I am not in the vein for work."
+      },
+      {
+        "token": "心",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xīn",
+        "meaning": "I am not in the vein for work."
+      },
+      {
+        "token": "情",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qíng",
+        "meaning": "I am not in the vein for work."
+      },
+      {
+        "token": "工",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gōng",
+        "meaning": "I am not in the vein for work."
+      },
+      {
+        "token": "作",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zuò",
+        "meaning": "I am not in the vein for work."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-15",
+    "title": "It's not at all that bad.",
+    "title_zh": "这根本没有那么坏。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "It's not at all that bad."
+      },
+      {
+        "token": "根",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gēn",
+        "meaning": "It's not at all that bad."
+      },
+      {
+        "token": "本",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "běn",
+        "meaning": "It's not at all that bad."
+      },
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "méi",
+        "meaning": "It's not at all that bad."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "It's not at all that bad."
+      },
+      {
+        "token": "那",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nà",
+        "meaning": "It's not at all that bad."
+      },
+      {
+        "token": "么",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "me",
+        "meaning": "It's not at all that bad."
+      },
+      {
+        "token": "坏",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "huài",
+        "meaning": "It's not at all that bad."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "老",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lǎo",
+        "meaning": "Old people are sometimes forgetful."
+      },
+      {
+        "token": "人",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "rén",
+        "meaning": "Old people are sometimes forgetful."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "Old people are sometimes forgetful."
+      },
+      {
+        "token": "时",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shí",
+        "meaning": "Old people are sometimes forgetful."
+      },
+      {
+        "token": "爱",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "ài",
+        "meaning": "Old people are sometimes forgetful."
+      },
+      {
+        "token": "忘",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wàng",
+        "meaning": "Old people are sometimes forgetful."
+      },
+      {
+        "token": "事",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "Old people are sometimes forgetful."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He paid scant attention to what was said."
+      },
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mò",
+        "meaning": "He paid scant attention to what was said."
+      },
+      {
+        "token": "怎",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zěn",
+        "meaning": "He paid scant attention to what was said."
+      },
+      {
+        "token": "么",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "me",
+        "meaning": "He paid scant attention to what was said."
+      },
+      {
+        "token": "听",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tīng",
+        "meaning": "He paid scant attention to what was said."
+      },
+      {
+        "token": "讲",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiǎng",
+        "meaning": "He paid scant attention to what was said."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "你",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǐ",
+        "meaning": "You need not have got up so early."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "You need not have got up so early."
+      },
+      {
+        "token": "必",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bì",
+        "meaning": "You need not have got up so early."
+      },
+      {
+        "token": "起",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐ",
+        "meaning": "You need not have got up so early."
+      },
+      {
+        "token": "得",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "You need not have got up so early."
+      },
+      {
+        "token": "那",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nà",
+        "meaning": "You need not have got up so early."
+      },
+      {
+        "token": "么",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "me",
+        "meaning": "You need not have got up so early."
+      },
+      {
+        "token": "早",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zǎo",
+        "meaning": "You need not have got up so early."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-16",
+    "title": "I'm no good at dancing.",
+    "title_zh": "我跳舞一点儿也不行。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I'm no good at dancing."
+      },
+      {
+        "token": "跳",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tiào",
+        "meaning": "I'm no good at dancing."
+      },
+      {
+        "token": "舞",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǔ",
+        "meaning": "I'm no good at dancing."
+      },
+      {
+        "token": "一",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yī",
+        "meaning": "I'm no good at dancing."
+      },
+      {
+        "token": "点",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "diǎnr",
+        "meaning": "I'm no good at dancing."
+      },
+      {
+        "token": "儿",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yě",
+        "meaning": "I'm no good at dancing."
+      },
+      {
+        "token": "也",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "I'm no good at dancing."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xìng",
+        "meaning": "I'm no good at dancing."
+      },
+      {
+        "token": "行",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "",
+        "meaning": "I'm no good at dancing."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "姓",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xìng",
+        "meaning": "Write your name in block capitals, please."
+      },
+      {
+        "token": "名",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "míng",
+        "meaning": "Write your name in block capitals, please."
+      },
+      {
+        "token": "请",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐng",
+        "meaning": "Write your name in block capitals, please."
+      },
+      {
+        "token": "用",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yòng",
+        "meaning": "Write your name in block capitals, please."
+      },
+      {
+        "token": "大",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dà",
+        "meaning": "Write your name in block capitals, please."
+      },
+      {
+        "token": "写",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiě",
+        "meaning": "Write your name in block capitals, please."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "对",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "duì",
+        "meaning": "Take special care of it."
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "Take special care of it."
+      },
+      {
+        "token": "东",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dōng",
+        "meaning": "Take special care of it."
+      },
+      {
+        "token": "西",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xi",
+        "meaning": "Take special care of it."
+      },
+      {
+        "token": "要",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yào",
+        "meaning": "Take special care of it."
+      },
+      {
+        "token": "特",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tè",
+        "meaning": "Take special care of it."
+      },
+      {
+        "token": "别",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bié",
+        "meaning": "Take special care of it."
+      },
+      {
+        "token": "细",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xì",
+        "meaning": "Take special care of it."
+      },
+      {
+        "token": "心",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xīn",
+        "meaning": "Take special care of it."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "We travelled all over the country."
+      },
+      {
+        "token": "们",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "men",
+        "meaning": "We travelled all over the country."
+      },
+      {
+        "token": "游",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yóu",
+        "meaning": "We travelled all over the country."
+      },
+      {
+        "token": "遍",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "biàn",
+        "meaning": "We travelled all over the country."
+      },
+      {
+        "token": "全",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "quán",
+        "meaning": "We travelled all over the country."
+      },
+      {
+        "token": "国",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "guó",
+        "meaning": "We travelled all over the country."
+      },
+      {
+        "token": "各",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gè",
+        "meaning": "We travelled all over the country."
+      },
+      {
+        "token": "地",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dì",
+        "meaning": "We travelled all over the country."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-17",
+    "title": "The surface of the lake is quite st...",
+    "title_zh": "湖面相当平静。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "湖",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "hú",
+        "meaning": "The surface of the lake is quite still."
+      },
+      {
+        "token": "面",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "miàn",
+        "meaning": "The surface of the lake is quite still."
+      },
+      {
+        "token": "相",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiāng",
+        "meaning": "The surface of the lake is quite still."
+      },
+      {
+        "token": "当",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dāng",
+        "meaning": "The surface of the lake is quite still."
+      },
+      {
+        "token": "平",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "píng",
+        "meaning": "The surface of the lake is quite still."
+      },
+      {
+        "token": "静",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jìng",
+        "meaning": "The surface of the lake is quite still."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "We trooped into the meeting."
+      },
+      {
+        "token": "们",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "men",
+        "meaning": "We trooped into the meeting."
+      },
+      {
+        "token": "一",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yī",
+        "meaning": "We trooped into the meeting."
+      },
+      {
+        "token": "起",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐ",
+        "meaning": "We trooped into the meeting."
+      },
+      {
+        "token": "走",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zǒu",
+        "meaning": "We trooped into the meeting."
+      },
+      {
+        "token": "进",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jìn",
+        "meaning": "We trooped into the meeting."
+      },
+      {
+        "token": "会",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "huì",
+        "meaning": "We trooped into the meeting."
+      },
+      {
+        "token": "场",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "chǎng",
+        "meaning": "We trooped into the meeting."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "My knowledge of Japanese is rather poor."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "My knowledge of Japanese is rather poor."
+      },
+      {
+        "token": "日",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "rì",
+        "meaning": "My knowledge of Japanese is rather poor."
+      },
+      {
+        "token": "语",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǔ",
+        "meaning": "My knowledge of Japanese is rather poor."
+      },
+      {
+        "token": "相",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiāng",
+        "meaning": "My knowledge of Japanese is rather poor."
+      },
+      {
+        "token": "当",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dāng",
+        "meaning": "My knowledge of Japanese is rather poor."
+      },
+      {
+        "token": "差",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "cī",
+        "meaning": "My knowledge of Japanese is rather poor."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "该",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gāi",
+        "meaning": "The plan has a triple purpose."
+      },
+      {
+        "token": "计",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jì",
+        "meaning": "The plan has a triple purpose."
+      },
+      {
+        "token": "划",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "huà",
+        "meaning": "The plan has a triple purpose."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "The plan has a triple purpose."
+      },
+      {
+        "token": "三",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "sān",
+        "meaning": "The plan has a triple purpose."
+      },
+      {
+        "token": "个",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gè",
+        "meaning": "The plan has a triple purpose."
+      },
+      {
+        "token": "目",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mù",
+        "meaning": "The plan has a triple purpose."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dì",
+        "meaning": "The plan has a triple purpose."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-18",
+    "title": "Nobody looks after the invalid.",
+    "title_zh": "没人照顾这个病人。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "没",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mò",
+        "meaning": "Nobody looks after the invalid."
+      },
+      {
+        "token": "人",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "rén",
+        "meaning": "Nobody looks after the invalid."
+      },
+      {
+        "token": "照",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhào",
+        "meaning": "Nobody looks after the invalid."
+      },
+      {
+        "token": "顾",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gu",
+        "meaning": "Nobody looks after the invalid."
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "Nobody looks after the invalid."
+      },
+      {
+        "token": "个",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gè",
+        "meaning": "Nobody looks after the invalid."
+      },
+      {
+        "token": "病",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bìng",
+        "meaning": "Nobody looks after the invalid."
+      },
+      {
+        "token": "人",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "rén",
+        "meaning": "Nobody looks after the invalid."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "过",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "guò",
+        "meaning": "Be careful when you cross the road."
+      },
+      {
+        "token": "马",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "mǎ",
+        "meaning": "Be careful when you cross the road."
+      },
+      {
+        "token": "路",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lù",
+        "meaning": "Be careful when you cross the road."
+      },
+      {
+        "token": "时",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shí",
+        "meaning": "Be careful when you cross the road."
+      },
+      {
+        "token": "要",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yào",
+        "meaning": "Be careful when you cross the road."
+      },
+      {
+        "token": "当",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dāng",
+        "meaning": "Be careful when you cross the road."
+      },
+      {
+        "token": "心",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xīn",
+        "meaning": "Be careful when you cross the road."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He deliberately absented himself from the meeting."
+      },
+      {
+        "token": "故",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gù",
+        "meaning": "He deliberately absented himself from the meeting."
+      },
+      {
+        "token": "意",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yì",
+        "meaning": "He deliberately absented himself from the meeting."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "He deliberately absented himself from the meeting."
+      },
+      {
+        "token": "到",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dào",
+        "meaning": "He deliberately absented himself from the meeting."
+      },
+      {
+        "token": "会",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "kuài",
+        "meaning": "He deliberately absented himself from the meeting."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I'm really going to miss you."
+      },
+      {
+        "token": "真",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhēn",
+        "meaning": "I'm really going to miss you."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "I'm really going to miss you."
+      },
+      {
+        "token": "会",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "kuài",
+        "meaning": "I'm really going to miss you."
+      },
+      {
+        "token": "想",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiǎng",
+        "meaning": "I'm really going to miss you."
+      },
+      {
+        "token": "念",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "niàn",
+        "meaning": "I'm really going to miss you."
+      },
+      {
+        "token": "你",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nǐ",
+        "meaning": "I'm really going to miss you."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "I'm really going to miss you."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-19",
+    "title": "She arrive earlier than the others.",
+    "title_zh": "她比其它人到得早。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "她",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "She arrive earlier than the others."
+      },
+      {
+        "token": "比",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bì",
+        "meaning": "She arrive earlier than the others."
+      },
+      {
+        "token": "其",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qí",
+        "meaning": "She arrive earlier than the others."
+      },
+      {
+        "token": "它",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "She arrive earlier than the others."
+      },
+      {
+        "token": "人",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "rén",
+        "meaning": "She arrive earlier than the others."
+      },
+      {
+        "token": "到",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dào",
+        "meaning": "She arrive earlier than the others."
+      },
+      {
+        "token": "得",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "She arrive earlier than the others."
+      },
+      {
+        "token": "早",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zǎo",
+        "meaning": "She arrive earlier than the others."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "It was really quite unintentional."
+      },
+      {
+        "token": "实",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shí",
+        "meaning": "It was really quite unintentional."
+      },
+      {
+        "token": "在",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zài",
+        "meaning": "It was really quite unintentional."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bú",
+        "meaning": "It was really quite unintentional."
+      },
+      {
+        "token": "是",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "It was really quite unintentional."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "It was really quite unintentional."
+      },
+      {
+        "token": "意",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yì",
+        "meaning": "It was really quite unintentional."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "It was really quite unintentional."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "那",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nà",
+        "meaning": "There are some color balloons."
+      },
+      {
+        "token": "儿",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "r",
+        "meaning": "There are some color balloons."
+      },
+      {
+        "token": "有",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǒu",
+        "meaning": "There are some color balloons."
+      },
+      {
+        "token": "些",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiē",
+        "meaning": "There are some color balloons."
+      },
+      {
+        "token": "彩",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "cǎi",
+        "meaning": "There are some color balloons."
+      },
+      {
+        "token": "色",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "sè",
+        "meaning": "There are some color balloons."
+      },
+      {
+        "token": "的",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "de",
+        "meaning": "There are some color balloons."
+      },
+      {
+        "token": "气",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qì",
+        "meaning": "There are some color balloons."
+      },
+      {
+        "token": "球",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qiú",
+        "meaning": "There are some color balloons."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "It is nothing but a joke."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "It is nothing but a joke."
+      },
+      {
+        "token": "过",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "guò",
+        "meaning": "It is nothing but a joke."
+      },
+      {
+        "token": "是",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "shì",
+        "meaning": "It is nothing but a joke."
+      },
+      {
+        "token": "个",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gè",
+        "meaning": "It is nothing but a joke."
+      },
+      {
+        "token": "笑",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiào",
+        "meaning": "It is nothing but a joke."
+      },
+      {
+        "token": "话",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "huà",
+        "meaning": "It is nothing but a joke."
+      },
+      {
+        "token": "而",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "ér",
+        "meaning": "It is nothing but a joke."
+      },
+      {
+        "token": "已",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yǐ",
+        "meaning": "It is nothing but a joke."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  },
+  {
+    "id": "hsk2-hf-story-20",
+    "title": "I can't solve the problem.",
+    "title_zh": "我解答不了这个难题。",
+    "hsk_level": 2,
+    "tokens": [
+      {
+        "token": "我",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǒ",
+        "meaning": "I can't solve the problem."
+      },
+      {
+        "token": "解",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "jiě",
+        "meaning": "I can't solve the problem."
+      },
+      {
+        "token": "答",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dá",
+        "meaning": "I can't solve the problem."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bù",
+        "meaning": "I can't solve the problem."
+      },
+      {
+        "token": "了",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "liǎo",
+        "meaning": "I can't solve the problem."
+      },
+      {
+        "token": "这",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "zhè",
+        "meaning": "I can't solve the problem."
+      },
+      {
+        "token": "个",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "gè",
+        "meaning": "I can't solve the problem."
+      },
+      {
+        "token": "难",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "nán",
+        "meaning": "I can't solve the problem."
+      },
+      {
+        "token": "题",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tí",
+        "meaning": "I can't solve the problem."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "她",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "She looks like an athlete."
+      },
+      {
+        "token": "看",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "kàn",
+        "meaning": "She looks like an athlete."
+      },
+      {
+        "token": "起",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qǐ",
+        "meaning": "She looks like an athlete."
+      },
+      {
+        "token": "来",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "lai",
+        "meaning": "She looks like an athlete."
+      },
+      {
+        "token": "像",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xiàng",
+        "meaning": "She looks like an athlete."
+      },
+      {
+        "token": "运",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yùn",
+        "meaning": "She looks like an athlete."
+      },
+      {
+        "token": "动",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dòng",
+        "meaning": "She looks like an athlete."
+      },
+      {
+        "token": "员",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yuán",
+        "meaning": "She looks like an athlete."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "They were very reluctant to help."
+      },
+      {
+        "token": "们",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "men",
+        "meaning": "They were very reluctant to help."
+      },
+      {
+        "token": "不",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bú",
+        "meaning": "They were very reluctant to help."
+      },
+      {
+        "token": "大",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "dà",
+        "meaning": "They were very reluctant to help."
+      },
+      {
+        "token": "愿",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yuàn",
+        "meaning": "They were very reluctant to help."
+      },
+      {
+        "token": "意",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yì",
+        "meaning": "They were very reluctant to help."
+      },
+      {
+        "token": "帮",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "bāng",
+        "meaning": "They were very reluctant to help."
+      },
+      {
+        "token": "忙",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "máng",
+        "meaning": "They were very reluctant to help."
+      },
+      {
+        "token": "。",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      },
+      {
+        "token": "他",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "tā",
+        "meaning": "He's coming out of hospital on Friday."
+      },
+      {
+        "token": "星",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "xīng",
+        "meaning": "He's coming out of hospital on Friday."
+      },
+      {
+        "token": "期",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "qī",
+        "meaning": "He's coming out of hospital on Friday."
+      },
+      {
+        "token": "五",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "wǔ",
+        "meaning": "He's coming out of hospital on Friday."
+      },
+      {
+        "token": "要",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yào",
+        "meaning": "He's coming out of hospital on Friday."
+      },
+      {
+        "token": "出",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "chū",
+        "meaning": "He's coming out of hospital on Friday."
+      },
+      {
+        "token": "院",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "yuàn",
+        "meaning": "He's coming out of hospital on Friday."
+      },
+      {
+        "token": "了",
+        "is_word": true,
+        "hsk_level": 2,
+        "pinyin_hint": "le",
+        "meaning": "He's coming out of hospital on Friday."
+      },
+      {
+        "token": ".",
+        "is_word": false,
+        "hsk_level": 0,
+        "pinyin_hint": "",
+        "meaning": ""
+      }
+    ]
+  }
+]

@@ -200,28 +200,26 @@ export function buildCurriculum(words: HSKWord[], rawSentences: HSKSentence[] = 
     const lessons: Lesson[] = groups.map((lw, li) => {
       const lid = `${uid}-l${li}`;
       const lessonWordHanzi = lw.map(w => w.hanzi);
-      const isBossLesson = li === LESSONS_PER_UNIT - 1;
 
       let extraSentenceBuilds: Exercise[] = [];
 
       if (rawSentences.length > 0) {
         const suitableSentences = filterSentencesForLesson(rawSentences, knownWordsSet, lessonWordHanzi);
         
-        // Stage 1 (Units 1-2: Index 0-1): Pure words & character recognition + tone drills
-        // Stage 2 (Units 3-5: Index 2-4): Introduce short phrases & Unit Boss sentence checks
-        if (ui >= 2 && ui <= 4 && isBossLesson) {
-          const bossSentences = pick(suitableSentences, 3);
-          extraSentenceBuilds = createSentenceBuildExercises(bossSentences, `${lid}-phrase`);
+        // Stage 1 (Units 1-2: Index 0-1): Introduce 1 simple sentence build per lesson
+        if (ui <= 1 && suitableSentences.length >= 1) {
+          const earlySentences = pick(suitableSentences, 1);
+          extraSentenceBuilds = createSentenceBuildExercises(earlySentences, `${lid}-early-sent`, lessonWordHanzi);
         }
-        // Stage 3 (Units 6-8: Index 5-7): Introduce 2-3 sentence builds per lesson
-        else if (ui >= 5 && ui <= 7) {
+        // Stage 2 (Units 3-5: Index 2-4): Introduce 2 sentence builds per lesson
+        else if (ui >= 2 && ui <= 4 && suitableSentences.length >= 2) {
           const midSentences = pick(suitableSentences, 2);
-          extraSentenceBuilds = createSentenceBuildExercises(midSentences, `${lid}-sent`);
+          extraSentenceBuilds = createSentenceBuildExercises(midSentences, `${lid}-sent`, lessonWordHanzi);
         }
-        // Stage 4 (Units 9+: Index 8+): Increasing syntactic complexity with 3-4 sentence builds per lesson
-        else if (ui >= 8) {
-          const complexSentences = pick(suitableSentences, 4);
-          extraSentenceBuilds = createSentenceBuildExercises(complexSentences, `${lid}-complex`);
+        // Stage 3 (Units 6+: Index 5+): Introduce 3-4 sentence builds per lesson
+        else if (ui >= 5 && suitableSentences.length >= 3) {
+          const complexSentences = pick(suitableSentences, 3);
+          extraSentenceBuilds = createSentenceBuildExercises(complexSentences, `${lid}-complex`, lessonWordHanzi);
         }
       }
 
@@ -249,8 +247,8 @@ export function buildCurriculum(words: HSKWord[], rawSentences: HSKSentence[] = 
   return units;
 }
 
-function createSentenceBuildExercises(sentences: HSKSentence[], prefix: string): Exercise[] {
-  const allTiles = Array.from(new Set(sentences.flatMap(s => s.tiles)));
+function createSentenceBuildExercises(sentences: HSKSentence[], prefix: string, distractorPool: string[] = []): Exercise[] {
+  const allTiles = Array.from(new Set([...sentences.flatMap(s => s.tiles), ...distractorPool]));
 
   return sentences.map((s, i) => {
     const distractors = shuffle(allTiles.filter(t => !s.tiles.includes(t))).slice(0, 3);
