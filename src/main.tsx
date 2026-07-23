@@ -4,21 +4,25 @@ import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 
-// 2. Initialize Aegis Observability immediately
-import Aegis from '@aegis/sentinel'
-
+// 2. Initialize Aegis Observability dynamically (Graceful fallback for production builds)
 try {
-  Aegis.init({
-    dsn: 'aegis_key_440b48244a824af916be2c79b1636852',
-    environment: 'development',
-    gatewayUrl: 'http://localhost:3001'
+  import('@aegis/sentinel').then(mod => {
+    const Aegis = mod.default || mod;
+    if (Aegis && typeof Aegis.init === 'function') {
+      Aegis.init({
+        dsn: 'aegis_key_440b48244a824af916be2c79b1636852',
+        environment: 'development',
+        gatewayUrl: 'http://localhost:3001'
+      });
+      console.log('[Aegis] Initialized for Chinese App (HànPath)');
+      (window as any).Aegis = Aegis;
+    }
+  }).catch(() => {
+    /* Aegis Sentinel is optional for production builds */
   });
-  console.log('[Aegis] Initialized for Chinese App (HànPath)');
-} catch (err) {
-  console.error('[Aegis] Init error:', err);
+} catch {
+  /* Ignore when not available */
 }
-
-(window as any).Aegis = Aegis;
 
 // 3. Now import the rest of the app
 import App from './App.tsx'
