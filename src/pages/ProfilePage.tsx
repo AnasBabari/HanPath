@@ -5,7 +5,7 @@ export default function ProfilePage() {
   const { stats, hskLevel, setHSKLevel, cloudUserId } = useStore();
 
   const unlockedCount = ACHIEVEMENTS.filter(a => 
-    stats.unlockedAchievements.includes(a.id) || a.check(stats)
+    (stats.unlockedAchievements || []).includes(a.id) || a.check(stats)
   ).length;
 
   return (
@@ -88,13 +88,13 @@ export default function ProfilePage() {
 
           <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/30 text-center space-y-1">
             <span className="text-2xl">📚</span>
-            <div className="text-2xl font-bold text-on-surface">{stats.completedLessons.length}</div>
+            <div className="text-2xl font-bold text-on-surface">{(stats.completedLessons || []).length}</div>
             <div className="text-[11px] font-bold text-outline uppercase tracking-wider">Lessons</div>
           </div>
 
           <div className="bg-surface-container p-4 rounded-2xl border border-outline-variant/30 text-center space-y-1">
             <span className="text-2xl">📖</span>
-            <div className="text-2xl font-bold text-on-surface">{stats.readStories.length}</div>
+            <div className="text-2xl font-bold text-on-surface">{(stats.readStories || []).length}</div>
             <div className="text-[11px] font-bold text-outline uppercase tracking-wider">Stories Read</div>
           </div>
         </section>
@@ -113,7 +113,7 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {ACHIEVEMENTS.map(a => {
-              const isUnlocked = stats.unlockedAchievements.includes(a.id) || a.check(stats);
+              const isUnlocked = (stats.unlockedAchievements || []).includes(a.id) || a.check(stats);
               return (
                 <div 
                   key={a.id} 
