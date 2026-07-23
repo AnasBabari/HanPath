@@ -146,8 +146,6 @@ function AppContent() {
     );
   }
 
-  /* Removed Aegis test error */
-
   const showNav = ['/', '/practice', '/stories', '/chat', '/review', '/profile'].includes(location.pathname) && !isFullScreen;
 
   return (
