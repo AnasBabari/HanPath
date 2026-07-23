@@ -13,7 +13,7 @@ export const QUEST_POOL: Quest[] = [
 // Returns 3 deterministic quests per day so all users get the same ones
 export function getDailyQuests(dateStr: string): Quest[] {
   const seed = parseInt(dateStr.replace(/-/g, ''), 10) || 1;
-  const shuffled = [...QUEST_POOL].sort((a, b) => {
+  const shuffled = QUEST_POOL.toSorted((a, b) => {
     // A simple deterministic hash relying on the id string and the date seed
     let hashA = 0; for(let i=0; i<a.id.length; i++) hashA += a.id.charCodeAt(i);
     let hashB = 0; for(let i=0; i<b.id.length; i++) hashB += b.id.charCodeAt(i);

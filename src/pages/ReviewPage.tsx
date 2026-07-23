@@ -44,13 +44,13 @@ export default function ReviewPage() {
     return (
       <div className="shell">
         <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
-          <button className="back-btn" onClick={handleExit}>← Back</button>
+          <button type="button" className="back-btn" onClick={handleExit}>← Back</button>
           <h2 style={{ margin: 0, marginLeft: 12 }}>Review</h2>
         </div>
         <div className="practice-empty">
           <div className="empty-icon">✅</div>
           <p>You're all caught up for today!</p>
-          <button className="btn-primary" style={{ marginTop: 16 }} onClick={handleExit}>Back</button>
+          <button type="button" className="btn-primary" style={{ marginTop: 16 }} onClick={handleExit}>Back</button>
         </div>
       </div>
     );
@@ -91,29 +91,33 @@ export default function ReviewPage() {
   return (
     <div className="shell">
       <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
-        <button className="back-btn" onClick={handleExit}>← Back</button>
+        <button type="button" className="back-btn" onClick={handleExit}>← Back</button>
         <h2 style={{ margin: 0, marginLeft: 12 }}>Review · {cards.length - (idx >= cards.length ? cards.length : idx)} left</h2>
       </div>
 
-      <div className="flashcard" onClick={() => setFlipped(f => !f)} role="button" tabIndex={0}
-        onKeyDown={e => e.key === 'Enter' && setFlipped(f => !f)}>
+      <div className="flashcard" role="region" aria-label="Flashcard">
         {!flipped ? (
-          <>
+          <button 
+            type="button" 
+            className="fc-inner-btn"
+            onClick={() => setFlipped(true)}
+            style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'center', padding: 0, color: 'inherit', font: 'inherit' }}
+          >
             <p className="fc-label">汉字</p>
             <p className="fc-hanzi">{card.hanzi}</p>
             {stats.revealPinyin === 'always' && <p className="fc-pinyin">{card.pinyin}</p>}
             <p className="fc-tap">Tap to reveal meaning</p>
-          </>
+          </button>
         ) : (
           <>
             <p className="fc-label">Meaning</p>
             <p className="fc-meaning">{card.meaning}</p>
             <p className="fc-pinyin">{card.pinyin}</p>
-            <button className="speak-btn" style={{ marginTop: 10 }} onClick={e => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
+            <button type="button" className="speak-btn" style={{ marginTop: 10 }} onClick={e => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
             
-            <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)', width: '100%', textAlign: 'center' }} onClick={e => e.stopPropagation()}>
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)', width: '100%', textAlign: 'center' }}>
               {!mnemonic && !loadingMnemonic && (
-                <button className="btn-explain" onClick={handleGenerateMnemonic}>✨ Generate Mnemonic</button>
+                <button type="button" className="btn-explain" onClick={handleGenerateMnemonic}>✨ Generate Mnemonic</button>
               )}
               {loadingMnemonic && <div className="explanation-text">Thinking...</div>}
               {mnemonic && <div className="explanation-text" style={{ textAlign: 'left', color: 'var(--text-mid)', marginTop: 8 }}>{mnemonic}</div>}
@@ -125,12 +129,13 @@ export default function ReviewPage() {
       <div className="review-controls" style={{ paddingBottom: 40 }}>
         {!flipped ? (
           <div style={{ display: 'flex', gap: 12, width: '100%' }}>
-            <button className="btn-ghost" style={{ flex: 1 }} onClick={handleExit}>Quit</button>
-            <button className="btn-primary" style={{ flex: 2 }} onClick={() => setFlipped(true)}>Show Answer</button>
+            <button type="button" className="btn-ghost" style={{ flex: 1 }} onClick={handleExit}>Quit</button>
+            <button type="button" className="btn-primary" style={{ flex: 2 }} onClick={() => setFlipped(true)}>Show Answer</button>
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 10, width: '100%' }}>
             <button 
+              type="button"
               className="btn-primary btn-error" 
               style={{ flex: 1, fontSize: 14 }}
               onClick={() => handleRate('Hard')}
@@ -138,6 +143,7 @@ export default function ReviewPage() {
               Hard
             </button>
             <button 
+              type="button"
               className="btn-primary" 
               style={{ flex: 1, background: 'var(--primary)', borderBottomColor: 'var(--primary-dim)', fontSize: 14 }}
               onClick={() => handleRate('Good')}
@@ -145,6 +151,7 @@ export default function ReviewPage() {
               Good
             </button>
             <button 
+              type="button"
               className="btn-primary btn-success" 
               style={{ flex: 1, fontSize: 14 }}
               onClick={() => handleRate('Easy')}

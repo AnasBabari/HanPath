@@ -29,7 +29,8 @@ export function updateSRS(word: WordSRSData | undefined, wordId: string, quality
 
 export function getDueWords(srsRecord: Record<string, WordSRSData>): string[] {
   const today = new Date().toISOString().split('T')[0];
-  return Object.values(srsRecord)
-    .filter(w => w.nextReviewDate <= today)
-    .map(w => w.wordId);
+  return Object.values(srsRecord).reduce<string[]>((due, w) => {
+    if (w.nextReviewDate <= today) due.push(w.wordId);
+    return due;
+  }, []);
 }

@@ -61,9 +61,9 @@ export default function FloatingTooltip({ children, content, showAlways = false 
         <FloatingPortal>
           <div
             ref={refs.setFloating}
-            style={floatingStyles}
+            style={{ ...floatingStyles, transitionProperty: 'opacity, transform' }}
             {...getFloatingProps()}
-            className="z-50 glass-tooltip border border-outline-variant p-4 rounded-2xl shadow-xl bg-white/95 backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-300 w-64 max-w-[calc(100vw-32px)] text-left"
+            className="z-50 glass-tooltip border border-outline-variant p-4 rounded-2xl shadow-xl bg-white/95 backdrop-blur-md transition-opacity transition-transform duration-300 w-64 max-w-[calc(100vw-32px)] text-left"
           >
             {content}
             <div

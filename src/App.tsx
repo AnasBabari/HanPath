@@ -138,7 +138,7 @@ function AppContent() {
           <p style={{ color: 'var(--text-dim)', marginBottom: 24, fontWeight: 700 }}>
             {error || 'We couldn\'t load the curriculum. Please check your internet connection.'}
           </p>
-          <button className="btn-primary" onClick={() => void doFetch()}>
+          <button type="button" className="btn-primary" onClick={() => void doFetch()}>
             Try again
           </button>
         </div>

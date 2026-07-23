@@ -202,7 +202,10 @@ export async function fetchHSKLevel(level: number): Promise<HSKWord[]> {
     }
 
     const data: Raw[] = await r.json();
-    const words = data.map((d, i) => parse(d, level, i)).filter(Boolean) as HSKWord[];
+    const words = data.flatMap((d, i) => {
+      const w = parse(d, level, i);
+      return w ? [w] : [];
+    });
 
     mem.set(level, words);
     try {

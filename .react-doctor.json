@@ -1,0 +1,9 @@
+{
+  "ignore": [
+    "dist/**",
+    "node_modules/**",
+    "coverage/**",
+    "doctor_report.json",
+    "temp_doctor.json"
+  ]
+}

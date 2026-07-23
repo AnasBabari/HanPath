@@ -114,7 +114,7 @@ async function resolveModelCandidates(requestedModel: string, apiKey: string): P
 
 export function getActiveApiKey(): string {
   try {
-    const userKey = localStorage.getItem('hanpath-custom-api-key');
+    const userKey = localStorage.getItem('hanpath_app_pref_key') || localStorage.getItem('hanpath-custom-api-key');
     if (userKey && userKey.trim()) return userKey.trim();
   } catch { /* ok */ }
 
@@ -170,14 +170,7 @@ export async function callOpenRouter(
       return data.choices?.[0]?.message?.content || "";
     }
 
-    try {
-      const errorData = await response.json();
-      lastError = errorData?.error?.message || `HTTP Error ${response.status}`;
-    } catch {
-      lastError = `HTTP Error ${response.status}`;
-    }
-
-    // Auth/config problems won't be fixed by model fallback.
+    lastError = `HTTP Error ${response.status}`;
     if (response.status === 401 || response.status === 403) {
       throw new Error(lastError);
     }

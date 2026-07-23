@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { VocabCard, Exercise } from '../types';
+import type { Exercise } from '../types';
 import { allLessonsFlat, genExercisesForVocab, genSentenceBuildExercises, genToneDrillExercises } from '../utils/curriculum';
 import ExerciseRunner from '../components/exercises/ExerciseRunner';
 import { fetchSentences } from '../utils/api';
@@ -18,26 +18,31 @@ export default function PracticePage() {
     return Object.values(state.stats.wordSRS).filter((w) => w.nextReviewDate <= today).length;
   });
 
-  const allDone = useMemo(() =>
-    units ? allLessonsFlat(units).filter(l => stats.completedLessons.includes(l.id)) : [],
-    [units, stats.completedLessons]
-  );
+  const allDone = useMemo(() => {
+    if (!units) return [];
+    const setCompleted = new Set(stats.completedLessons);
+    return allLessonsFlat(units).filter(l => setCompleted.has(l.id));
+  }, [units, stats.completedLessons]);
 
   const flatVocab = useMemo(() => units ? allLessonsFlat(units).flatMap(l => l.vocab) : [], [units]);
 
   const weakWords = useMemo(() => {
     const list = Object.entries(stats.wordAccuracy)
-      .map(([wordId, data]) => ({ wordId, ...data }))
-      .filter(d => d.total >= 3 && (d.correct / d.total) < 0.70)
-      .sort((a, b) => (a.correct / a.total) - (b.correct / b.total))
+      .reduce<{ wordId: string; correct: number; total: number }[]>((acc, [wordId, data]) => {
+        if (data.total >= 3 && (data.correct / data.total) < 0.70) {
+          acc.push({ wordId, ...data });
+        }
+        return acc;
+      }, [])
+      .toSorted((a, b) => (a.correct / a.total) - (b.correct / b.total))
       .slice(0, 10);
 
     const vocabMap = new Map(flatVocab.map(v => [v.id, v]));
 
-    return list.map(d => {
+    return list.flatMap(d => {
       const v = vocabMap.get(d.wordId);
-      return v ? { ...v, accuracy: Math.round((d.correct / d.total) * 100) } : null;
-    }).filter(Boolean) as (VocabCard & { accuracy: number })[];
+      return v ? [{ ...v, accuracy: Math.round((d.correct / d.total) * 100) }] : [];
+    });
   }, [stats.wordAccuracy, flatVocab]);
 
   const startDrill = async (mode: 'weak' | 'random' | 'sentence' | 'tone') => {
@@ -53,7 +58,7 @@ export default function PracticePage() {
         setDrillExercises(genToneDrillExercises(flatVocab));
       } else {
         const all = allDone.flatMap(l => l.exercises);
-        const shuffled = [...all].sort(() => Math.random() - 0.5);
+        const shuffled = all.toSorted(() => Math.random() - 0.5);
         setDrillExercises(shuffled.slice(0, 20)); // Random 20
       }
       setDrillMode(mode);
@@ -74,13 +79,13 @@ export default function PracticePage() {
       return (
         <div className="shell">
           <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
-            <button className="back-btn" onClick={handleExitDrill}>← Back</button>
+            <button type="button" className="back-btn" onClick={handleExitDrill}>← Back</button>
             <h2 style={{ margin: 0, marginLeft: 12 }}>Drill Complete!</h2>
           </div>
           <div className="practice-empty">
             <div className="empty-icon">💪</div>
             <p>Great session! Keep it up.</p>
-            <button className="btn-primary" style={{ marginTop: 16 }} onClick={handleExitDrill}>Back to Menu</button>
+            <button type="button" className="btn-primary" style={{ marginTop: 16 }} onClick={handleExitDrill}>Back to Menu</button>
           </div>
         </div>
       );
@@ -154,7 +159,7 @@ export default function PracticePage() {
               </div>
             ))}
           </div>
-          <button className="btn-primary btn-error" onClick={() => startDrill('weak')}>
+          <button type="button" className="btn-primary btn-error" onClick={() => startDrill('weak')}>
             Drill Weaknesses
           </button>
         </div>
@@ -163,12 +168,14 @@ export default function PracticePage() {
       <div className="path-section">
         <h3 style={{ marginBottom: 12, fontSize: 16 }}>General Drills</h3>
         
-        <div 
+        <button 
+          type="button"
           onClick={() => {
             navigate('/review');
             setFullScreen(true);
           }}
           style={{
+            width: '100%', textTransform: 'none', textAlign: 'left', fontStyle: 'normal',
             background: 'var(--bg-card)', padding: 16, borderRadius: 16, marginBottom: 12,
             border: dueCount > 0 ? '2px solid var(--accent)' : '1px solid var(--border)', 
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
@@ -176,54 +183,60 @@ export default function PracticePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ fontSize: 32 }}>📇</div>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-main)' }}>
                 Spaced Review
                 {dueCount > 0 && <span className="due-badge-inline">{dueCount}</span>}
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>Classic SM-2 flashcards for long-term memory</div>
+              <div style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 400 }}>Classic SM-2 flashcards for long-term memory</div>
             </div>
           </div>
           <div style={{ fontSize: 20, color: 'var(--text-dim)' }}>→</div>
-        </div>
+        </button>
 
-        <div 
+        <button 
+          type="button"
           onClick={() => startDrill('random')}
           style={{
+            width: '100%', textTransform: 'none', textAlign: 'left', fontStyle: 'normal',
             background: 'var(--bg-card)', padding: 16, borderRadius: 16, marginBottom: 12,
             border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
           }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>Random Review</div>
-            <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>20 mixed exercises from all completed lessons</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)' }}>Random Review</div>
+            <div style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 400 }}>20 mixed exercises from all completed lessons</div>
           </div>
           <div style={{ fontSize: 24 }}>🎲</div>
-        </div>
+        </button>
 
-        <div 
+        <button 
+          type="button"
           onClick={() => startDrill('sentence')}
           style={{
+            width: '100%', textTransform: 'none', textAlign: 'left', fontStyle: 'normal',
             background: 'var(--bg-card)', padding: 16, borderRadius: 16, marginBottom: 12,
             border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
           }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>Sentence Builder</div>
-            <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>Practice HSK 1 & 2 grammar structures</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)' }}>Sentence Builder</div>
+            <div style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 400 }}>Practice HSK 1 & 2 grammar structures</div>
           </div>
           <div style={{ fontSize: 24 }}>🧩</div>
-        </div>
+        </button>
 
-        <div 
+        <button 
+          type="button"
           onClick={() => startDrill('tone')}
           style={{
+            width: '100%', textTransform: 'none', textAlign: 'left', fontStyle: 'normal',
             background: 'var(--bg-card)', padding: 16, borderRadius: 16, marginBottom: 12,
             border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
           }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>Tone Practice</div>
-            <div style={{ fontSize: 13, color: 'var(--text-dim)' }}>Train your ear to identify the 4 tones</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)' }}>Tone Practice</div>
+            <div style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 400 }}>Train your ear to identify the 4 tones</div>
           </div>
           <div style={{ fontSize: 24 }}>🎵</div>
-        </div>
+        </button>
 
       </div>
 

@@ -57,6 +57,7 @@ export default function ProfilePage() {
           <div className="grid grid-cols-4 gap-3">
             {[1, 2, 3, 4].map(lvl => (
               <button
+                type="button"
                 key={lvl}
                 onClick={() => setHSKLevel(lvl)}
                 className={`py-3 rounded-xl font-bold text-sm transition-all border ${

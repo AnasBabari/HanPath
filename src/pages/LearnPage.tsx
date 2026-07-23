@@ -20,7 +20,7 @@ function LessonIntro({
   return (
     <div className="shell lesson-intro">
       <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
-        <button className="back-btn" onClick={onExit}>✕</button>
+        <button type="button" className="back-btn" onClick={onExit}>✕</button>
         <h2 style={{ margin: 0, marginLeft: 12 }}>{unit.title}</h2>
       </div>
 
@@ -32,25 +32,18 @@ function LessonIntro({
 
       <div className="vocab-grid">
         {lesson.vocab.map((card, i) => (
-          <div key={card.id} className="vocab-card" style={{ animationDelay: `${i * 0.06}s` }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-              }
-            }}>
+          <div key={card.id} className="vocab-card" style={{ animationDelay: `${i * 0.06}s` }}>
             <div className="hanzi-big">{card.hanzi}</div>
             <div className="details">
               <div className="pinyin">{card.pinyin}</div>
               <div className="meaning">{card.meaning}</div>
             </div>
-            <button className="speak-btn" onClick={(e) => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
+            <button type="button" className="speak-btn" onClick={(e) => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
           </div>
         ))}
       </div>
 
-      <button className="btn-primary" style={{ width: '100%' }} onClick={onStart}>Start Practice</button>
+      <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={onStart}>Start Practice</button>
     </div>
   );
 }
@@ -85,8 +78,8 @@ function LessonComplete({ lesson, onNext, onHome }: {
           </div>
         </div>
         <div className="complete-actions">
-          <button className="btn-primary" onClick={onNext}>Next Lesson</button>
-          <button className="btn-ghost" onClick={onHome}>Back to Home</button>
+          <button type="button" className="btn-primary" onClick={onNext}>Next Lesson</button>
+          <button type="button" className="btn-ghost" onClick={onHome}>Back to Home</button>
         </div>
       </div>
     </div>
@@ -175,13 +168,13 @@ export default function LearnPage() {
   }
 
   /* ---- Default Path View ---- */
+  const completedSet = new Set(stats.completedLessons);
+
   const getUnitProgress = (unit: Unit) => {
     const total = unit.lessons.length;
-    const done = unit.lessons.filter(l => stats.completedLessons.includes(l.id)).length;
+    const done = unit.lessons.filter(l => completedSet.has(l.id)).length;
     return Math.round((done / total) * 100);
   };
-
-  const staggerClasses = ['left', 'right'];
 
   return (
     <div className="shell">
@@ -227,10 +220,10 @@ export default function LearnPage() {
               <div className="path-container">
                 <div className="path-line" />
                 {unit.lessons.map((lesson, li) => {
-                  const done = stats.completedLessons.includes(lesson.id);
+                  const done = completedSet.has(lesson.id);
                   const unlocked = isLessonUnlocked(lesson.id, units, stats.completedLessons);
                   const isCurrent = unlocked && !done;
-                  const stagger = staggerClasses[li % staggerClasses.length];
+                  const stagger = STAGGER_CLASSES[li % STAGGER_CLASSES.length];
 
                   return (
                     <div key={lesson.id} className={`lesson-node-wrap ${stagger}`}>
@@ -240,6 +233,7 @@ export default function LearnPage() {
                         </div>
                       )}
                       <button
+                        type="button"
                         className={`node-btn ${done ? 'done' : isCurrent ? 'current' : 'locked'}`}
                         onClick={() => unlocked ? openLesson(lesson.id) : undefined}
                         disabled={!unlocked}
@@ -264,3 +258,5 @@ export default function LearnPage() {
     </div>
   );
 }
+
+const STAGGER_CLASSES = ['left', 'right'];

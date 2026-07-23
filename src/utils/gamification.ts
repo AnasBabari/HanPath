@@ -64,7 +64,13 @@ export function addXP(s: UserStats, amt: number): UserStats {
 /* ---- Achievements check ---- */
 
 export function checkNewAchievements(s: UserStats): string[] {
-  return ACHIEVEMENTS.filter(a => !s.unlockedAchievements.includes(a.id) && a.check(s)).map(a => a.id);
+  const unlockedSet = new Set(s.unlockedAchievements);
+  return ACHIEVEMENTS.reduce<string[]>((newIds, a) => {
+    if (!unlockedSet.has(a.id) && a.check(s)) {
+      newIds.push(a.id);
+    }
+    return newIds;
+  }, []);
 }
 
 /* ---- Persistence ---- */

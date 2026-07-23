@@ -39,18 +39,19 @@ function pick<T>(arr: T[], n: number, exclude?: T): T[] {
 }
 
 function cleanMeaning(raw: string[]): string {
-  const candidates = raw
-    .flatMap(m => m.split(';'))
-    .map(m => m.trim())
-    .filter(m => m.length > 0)
-    .filter(m => !/^\(.*\)$/.test(m))
-    .map(m => m.replace(/^\([^)]*\)\s*/g, '').trim())
-    .map(m => m.replace(/\s*\([^)]*\)\s*$/g, '').trim())
-    .filter(m => m.length > 0);
+  const candidates: string[] = [];
+  for (const item of raw) {
+    for (const sub of item.split(';')) {
+      const trimmed = sub.trim();
+      if (!trimmed || /^\(.*\)$/.test(trimmed)) continue;
+      const cleaned = trimmed.replace(/^\([^)]*\)\s*/g, '').replace(/\s*\([^)]*\)\s*$/g, '').trim();
+      if (cleaned) candidates.push(cleaned);
+    }
+  }
 
   if (!candidates.length) return raw[0] || '';
-  const short = candidates.filter(c => c.length <= 20);
-  return (short.length ? short[0] : candidates[0]);
+  const short = candidates.find(c => c.length <= 20);
+  return short || candidates[0];
 }
 
 function toCard(w: HSKWord): VocabCard {
@@ -144,10 +145,9 @@ function genExercises(
   const composeWord = words.find(w => w.hanzi.length >= 2);
   if (composeWord) {
     const chars = composeWord.hanzi.split('');
+    const charSet = new Set(chars);
     const extras = shuffle(
-      allCards.filter(c => c.hanzi !== composeWord.hanzi)
-        .flatMap(c => c.hanzi.split(''))
-        .filter(c => !chars.includes(c))
+      allCards.flatMap(c => c.hanzi !== composeWord.hanzi ? c.hanzi.split('').filter(ch => !charSet.has(ch)) : [])
     ).slice(0, 2);
     ex.push({
       id: `${lessonId}-e${n++}`, wordId: composeWord.id, type: 'compose',
@@ -313,6 +313,11 @@ const TONES = [
   ['ǖ','ǘ','ǚ','ǜ','ü']
 ];
 
+const TONES_SETS = TONES.map(group => ({
+  group,
+  set: new Set(group),
+}));
+
 function generateToneDistractors(correctPinyin: string): string[] {
   const distractors = new Set<string>();
   distractors.add(correctPinyin);
@@ -321,9 +326,10 @@ function generateToneDistractors(correctPinyin: string): string[] {
   while (distractors.size < 4 && attempts < 100) {
     attempts++;
     let fakePinyin = correctPinyin;
-    for (const group of TONES) {
-      for (const char of group) {
-        if (fakePinyin.includes(char)) {
+    for (const { group, set } of TONES_SETS) {
+      for (let i = 0; i < fakePinyin.length; i++) {
+        const char = fakePinyin[i];
+        if (set.has(char)) {
           const fakeChar = group[Math.floor(Math.random() * group.length)];
           fakePinyin = fakePinyin.replace(char, fakeChar);
         }

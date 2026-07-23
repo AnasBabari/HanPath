@@ -57,7 +57,8 @@ interface AppState {
   isFullScreen: boolean;
   error: string | null;
   toast: string | null;
-  chatHistory: { role: 'user' | 'model'; content: string }[];
+  adminMode: boolean;
+  chatHistory: { id: string; role: 'user' | 'model'; content: string }[];
   
   /* Actions */
   setStats: (stats: UserStats | ((prev: UserStats) => UserStats)) => void;
@@ -96,7 +97,7 @@ export const useStore = create<AppState>()(
       toast: null,
       adminMode: false,
       chatHistory: [
-        { role: 'model', content: "你好(nǐ hǎo)！I'm your AI Language Buddy. What would you like to practice today?" }
+        { id: 'init-msg-1', role: 'model', content: "你好(nǐ hǎo)！I'm your AI Language Buddy. What would you like to practice today?" }
       ],
 
       setStats: (updater) => set((state) => ({
@@ -114,7 +115,9 @@ export const useStore = create<AppState>()(
       setFullScreen: (isFullScreen) => set({ isFullScreen }),
       setError: (error) => set({ error }),
       setToast: (toast) => set({ toast }),
-      addChatMessage: (msg) => set((state) => ({ chatHistory: [...state.chatHistory, msg] })),
+      addChatMessage: (msg) => set((state) => ({
+        chatHistory: [...state.chatHistory, { ...msg, id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }]
+      })),
       clearChatHistory: () => set({ chatHistory: [] }),
 
       completeLesson: (lessonId, correct, total, flatVocab) => set((state) => {
@@ -122,9 +125,14 @@ export const useStore = create<AppState>()(
         if (!ns.completedLessons.includes(lessonId)) {
           ns.completedLessons = [...ns.completedLessons, lessonId];
           ns.lessonsCompletedToday++;
-          ns.wordsLearned = new Set(
-            flatVocab.filter(l => ns.completedLessons.includes(l.id)).flatMap(l => l.vocab.map((v) => v.id))
-          ).size;
+          const completedSet = new Set(ns.completedLessons);
+          const learnedIds = new Set<string>();
+          for (const l of flatVocab) {
+            if (completedSet.has(l.id)) {
+              for (const v of l.vocab) learnedIds.add(v.id);
+            }
+          }
+          ns.wordsLearned = learnedIds.size;
         }
         ns.totalCorrect += correct;
         ns.totalAttempted += total;

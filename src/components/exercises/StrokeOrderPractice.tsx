@@ -41,7 +41,10 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
     writerRef.current = writer;
 
     // Give writer a tiny moment to init before starting quiz to prevent race conditions
-    setTimeout(() => {
+    let timer1: ReturnType<typeof setTimeout>;
+    let timer2: ReturnType<typeof setTimeout>;
+
+    timer1 = setTimeout(() => {
       if (isCancelled) return;
       writer.quiz({
         onMistake: () => {
@@ -49,7 +52,7 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
         },
         onComplete: () => {
           setCompleted(true);
-          setTimeout(() => {
+          timer2 = setTimeout(() => {
             if (!isCancelled) callbacks.current.onComplete();
           }, 800);
         }
@@ -58,6 +61,8 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
 
     return () => {
       isCancelled = true;
+      clearTimeout(timer1);
+      clearTimeout(timer2);
       writer.cancelQuiz();
     };
   }, [character]); 
@@ -80,6 +85,7 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
       />
       {!completed && (
         <button 
+          type="button"
           onClick={() => writerRef.current?.animateCharacter()}
           style={{
             background: 'none',

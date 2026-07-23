@@ -8,7 +8,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [customKey, setCustomKey] = useState(() => {
-    try { return localStorage.getItem('hanpath-custom-api-key') || ''; } catch { return ''; }
+    try { return localStorage.getItem('hanpath_app_pref_key') || ''; } catch { return ''; }
   });
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -21,9 +21,9 @@ export default function ChatPage() {
   const saveKey = (key: string) => {
     try {
       if (key.trim()) {
-        localStorage.setItem('hanpath-custom-api-key', key.trim());
+        localStorage.setItem('hanpath_app_pref_key', key.trim());
       } else {
-        localStorage.removeItem('hanpath-custom-api-key');
+        localStorage.removeItem('hanpath_app_pref_key');
       }
       setCustomKey(key.trim());
       setShowKeyModal(false);
@@ -89,6 +89,7 @@ export default function ChatPage() {
         </div>
         <div className="topbar-stats" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
            <button 
+             type="button"
              onClick={() => setShowKeyModal(true)}
              style={{ 
                background: 'transparent', 
@@ -100,6 +101,7 @@ export default function ChatPage() {
                alignItems: 'center' 
              }}
              title="AI Settings"
+             aria-label="AI Settings"
            >
              ⚙️
            </button>
@@ -121,9 +123,9 @@ export default function ChatPage() {
           scrollBehavior: 'smooth'
         }}
       >
-        {chatHistory.map((m, i) => (
+        {chatHistory.map(m => (
           <div 
-            key={i} 
+            key={m.id} 
             style={{
               alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
               maxWidth: '85%',
@@ -172,6 +174,7 @@ export default function ChatPage() {
         <input 
           type="text" 
           value={input} 
+          aria-label="Type in Chinese or English..."
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder="Type in Chinese or English..."
@@ -186,6 +189,7 @@ export default function ChatPage() {
           }}
         />
         <button 
+          type="button"
           onClick={handleSend}
           className="btn-primary"
           style={{ padding: '0 24px', borderRadius: '16px' }}
@@ -210,6 +214,7 @@ export default function ChatPage() {
             </p>
             <input 
               type="password"
+              aria-label="Enter API Key"
               value={customKey}
               onChange={(e) => setCustomKey(e.target.value)}
               placeholder="sk-or-v1-..."
@@ -221,6 +226,7 @@ export default function ChatPage() {
             />
             <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
               <button 
+                type="button"
                 onClick={() => setShowKeyModal(false)}
                 className="btn-ghost"
                 style={{ padding: '8px 16px' }}
@@ -228,6 +234,7 @@ export default function ChatPage() {
                 Cancel
               </button>
               <button 
+                type="button"
                 onClick={() => saveKey(customKey)}
                 className="btn-primary"
                 style={{ padding: '8px 20px', borderRadius: 12 }}
