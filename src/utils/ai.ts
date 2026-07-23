@@ -45,18 +45,19 @@ export async function callOpenRouter(
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || "";
+      if (!response.ok) {
+        const errorText = await response.text();
+        lastError = `HTTP Error ${response.status} - ${errorText}`;
+        
+        // Stop retrying if the API key is invalid or rejected by OpenRouter
+        if (response.status === 401 || response.status === 403 || response.status === 500) {
+          throw new Error(lastError);
+        }
+        continue;
       }
 
-      const errorText = await response.text();
-      lastError = `HTTP Error ${response.status} - ${errorText}`;
-      
-      // Stop retrying if the API key is invalid or rejected by OpenRouter
-      if (response.status === 401 || response.status === 403 || response.status === 500) {
-        throw new Error(lastError);
-      }
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "";
     } catch (err: any) {
       lastError = err.message || lastError;
       if (lastError.includes("401") || lastError.includes("403") || lastError.includes("500")) {
