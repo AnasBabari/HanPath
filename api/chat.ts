@@ -15,11 +15,13 @@ interface ChatBody {
 interface ApiRequest {
   method?: string;
   body?: unknown;
+  headers?: Record<string, string | string[] | undefined>;
 }
 
 interface ApiResponse {
   status(code: number): ApiResponse;
   json(body: Record<string, unknown>): void;
+  setHeader?(name: string, value: string | number): void;
 }
 
 const ALLOWED_MODELS = new Set([
@@ -31,6 +33,49 @@ const ALLOWED_MODELS = new Set([
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_CHARS = 4_000;
 const MAX_TOKENS = 1_000;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 10;
+const RATE_LIMIT_MAX_KEYS = 1_000;
+const rateLimiters = new Map<string, { count: number; resetAt: number }>();
+
+function headerValue(req: ApiRequest, name: string): string | undefined {
+  const value = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+
+function clientKey(req: ApiRequest): string {
+  const forwarded = headerValue(req, 'x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim().slice(0, 128) || 'unknown';
+  return headerValue(req, 'x-real-ip')?.slice(0, 128) || 'unknown';
+}
+
+function rateLimit(req: ApiRequest, now = Date.now()): { allowed: boolean; retryAfter: number } {
+  const key = clientKey(req);
+  const current = rateLimiters.get(key);
+  if (!current || current.resetAt <= now) {
+    if (rateLimiters.size >= RATE_LIMIT_MAX_KEYS) {
+      for (const [entryKey, entry] of rateLimiters) {
+        if (entry.resetAt <= now) rateLimiters.delete(entryKey);
+      }
+      if (rateLimiters.size >= RATE_LIMIT_MAX_KEYS) rateLimiters.clear();
+    }
+    rateLimiters.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, retryAfter: 0 };
+  }
+  current.count += 1;
+  if (current.count > RATE_LIMIT_MAX_REQUESTS) {
+    return {
+      allowed: false,
+      retryAfter: Math.max(1, Math.ceil((current.resetAt - now) / 1_000)),
+    };
+  }
+  return { allowed: true, retryAfter: 0 };
+}
+
+export function resetChatRateLimits(): void {
+  rateLimiters.clear();
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -91,6 +136,13 @@ function validateBody(value: unknown): ChatBody | null {
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  const limit = rateLimit(req);
+  if (!limit.allowed) {
+    res.setHeader?.('Retry-After', limit.retryAfter);
+    res.status(429).json({ code: 'rate_limited', error: 'Too many AI requests', retry_after_seconds: limit.retryAfter });
     return;
   }
 

@@ -53,13 +53,20 @@ ON public.user_progress
 FOR DELETE 
 USING (auth.uid() = user_id);
 
--- 5. Create a secure View for the Leaderboard
--- This allows us to keep leaderboard access completely separate from the highly secure user_progress table.
--- We expose the view securely to authenticated/anonymous users.
-CREATE OR REPLACE VIEW public.leaderboard WITH (security_invoker = off) AS
-SELECT 
-    user_id, 
-    stats,
+-- 5. Create a secure, aggregate-only leaderboard view.
+-- Never expose the private JSONB progress document to leaderboard readers.
+DROP VIEW IF EXISTS public.leaderboard;
+CREATE VIEW public.leaderboard WITH (security_invoker = off) AS
+SELECT
+    user_id,
+    CASE
+        WHEN (stats->>'totalXP') ~ '^[0-9]+$' THEN (stats->>'totalXP')::bigint
+        ELSE 0::bigint
+    END AS total_xp,
+    CASE
+        WHEN (stats->>'level') ~ '^[0-9]+$' THEN (stats->>'level')::integer
+        ELSE 1
+    END AS level,
     updated_at
 FROM public.user_progress;
 

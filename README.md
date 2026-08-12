@@ -52,9 +52,9 @@ HànPath is a client-heavy React application. Common exercise interactions updat
 * 🏃 **Exercise Runtime Engine**
   Lessons compile into explicitly typed exercise definitions (Exercise, ExerciseType) managed by a singular, highly extensible runner. It instantly handles multiple validation formats (MCQ, string match, token match).
 * 📡 **AI Request Pipeline**
-  The browser calls the Vercel `/api/chat` serverless proxy. The proxy keeps the OpenRouter credential server-side, validates the request shape, and forwards only the supported model/message options. The browser client tries a small ordered list of free model IDs when an upstream request fails.
+  The browser calls a server-side `/api/chat` proxy. Vercel uses `api/chat.ts`; the Docker image uses the same validation and safety contract in `server/chat-proxy.mjs`. Both keep the OpenRouter credential server-side, rate-limit callers, validate the request shape, and forward only supported model/message options. The browser client tries a small ordered list of free model IDs when an upstream request fails.
 * 🔄 **Progress Sync & Auth**
-  Offline readiness is achieved through local-first persistence. The app uses Supabase anonymous sessions and debounced upserts when configured. `user_progress` is protected by Postgres Row Level Security so a session can read or write only its own row.
+  Offline readiness is achieved through local-first persistence. The app uses Supabase anonymous sessions and debounced upserts when configured. Local and cloud snapshots carry an `updated_at` value: a strictly newer local snapshot wins, a newer cloud snapshot hydrates the device, and ties converge to cloud. `user_progress` is protected by Postgres Row Level Security, while the public leaderboard exposes only explicit XP/level aggregates rather than the private JSONB progress document.
 * 🎵 **Audio & UX Reliability**
   Native **Web Speech API (TTS)** and **Web Audio API (SFX)** synthesize sounds cleanly without bloated media dependencies. Complex overlapping triggers are managed through exact audio-guard locks.
 
@@ -101,6 +101,17 @@ The checked-in suite currently contains 15 Vitest tests plus 3 explicit proxy te
 
 > **Note:** Environment credentials for Supabase and the AI pipeline are directly injected at our deployment platform level (Vercel). You **do not** need local .env keys to run the base UI locally, though cloud sync and AI chats will fallback to mocked or local functionality unless connected.
 
+### Docker deployment
+
+The production container serves the Vite SPA and the `/api/chat` proxy from one Node 20 process. Set `OPENROUTER_API_KEY` only at container runtime; never use a `VITE_` variable for this secret.
+
+```bash
+docker build -t hanpath .
+docker run --rm -p 8080:8080 -e OPENROUTER_API_KEY=sk-or-v1-your-key hanpath
+```
+
+The health check is available at `http://localhost:8080/healthz`. This topology keeps the AI key private and makes Docker deployments function without relying on a separate Vercel function.
+
 ---
 
 ## 🏗️ Request and data flow
@@ -119,7 +130,7 @@ The exercise runner is deliberately shared across lesson and review flows: typed
 - **Content Constraints (v1):** Currently capped at HSK 1-2. HSK 3, 4, and 5 exercises and stories will be added in upcoming releases.
 - **Ecosystem:** Implementing account linking across devices (upgrading anonymous profiles to OAuth).
 - **Analytics:** Expanding simple XP metrics into deep skill diagnostics.
-- **Production Hardening:** Add deployment-level rate limiting and monitoring around the existing `/api/chat` proxy; the API-key boundary is already server-side.
+- **Production Hardening:** Add platform-level rate limiting and monitoring around the server-side `/api/chat` proxy; an application-level per-client limit is already enforced.
 
 ---
 
