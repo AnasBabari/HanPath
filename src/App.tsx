@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import './App.css';
@@ -6,7 +6,14 @@ import { fetchHSKLevel, fetchSentences } from './utils/api';
 import { buildCurriculum } from './utils/curriculum';
 import { checkNewAchievements, saveStats } from './utils/gamification';
 import { playLevelUp } from './utils/sounds';
-import { initCloudProgress, loadCloudProgress, saveCloudProgress } from './utils/cloudProgress';
+import {
+  getLocalProgressUpdatedAt,
+  initCloudProgress,
+  loadCloudProgress,
+  reconcileProgress,
+  saveCloudProgress,
+  setLocalProgressUpdatedAt,
+} from './utils/cloudProgress';
 import { useStore } from './store/useStore';
 
 // Components
@@ -36,9 +43,18 @@ function AppContent() {
   } = useStore();
 
   const location = useLocation();
+  const cloudSyncReady = useRef(false);
+  const statsFingerprint = useRef(JSON.stringify(stats));
 
   /* Persist stats to localStorage (handled by Zustand persist, but we can keep the utility sync if needed) */
-  useEffect(() => { saveStats(stats); }, [stats]);
+  useEffect(() => {
+    saveStats(stats);
+    const fingerprint = JSON.stringify(stats);
+    if (cloudSyncReady.current && fingerprint !== statsFingerprint.current) {
+      setLocalProgressUpdatedAt(new Date().toISOString());
+    }
+    statsFingerprint.current = fingerprint;
+  }, [stats]);
 
   /* Hydrate cloud profile and migrate local stats on first run */
   useEffect(() => {
@@ -51,16 +67,26 @@ function AppContent() {
 
         setCloudUserId(userId);
 
-        const cloudStats = await loadCloudProgress(userId);
+        const currentStats = useStore.getState().stats;
+        const cloudProgress = await loadCloudProgress(userId);
         if (!active) return;
 
-        if (cloudStats) {
-          setStats(cloudStats);
-          saveStats(cloudStats);
-          return;
+        const reconciliation = reconcileProgress(
+          currentStats,
+          getLocalProgressUpdatedAt(),
+          cloudProgress,
+        );
+        setLocalProgressUpdatedAt(reconciliation.updatedAt);
+        statsFingerprint.current = JSON.stringify(reconciliation.stats);
+
+        if (reconciliation.source === 'cloud') {
+          setStats(reconciliation.stats);
+          saveStats(reconciliation.stats);
+        } else {
+          await saveCloudProgress(userId, reconciliation.stats, reconciliation.updatedAt);
         }
 
-        await saveCloudProgress(userId, stats);
+        cloudSyncReady.current = true;
       } catch (e) {
         console.error('Cloud sync init failed:', e);
       }
@@ -78,7 +104,8 @@ function AppContent() {
     if (!cloudUserId) return;
 
     const timer = window.setTimeout(() => {
-      void saveCloudProgress(cloudUserId, stats).catch((e) => {
+      const updatedAt = getLocalProgressUpdatedAt() ?? new Date().toISOString();
+      void saveCloudProgress(cloudUserId, stats, updatedAt).catch((e) => {
         console.error('Cloud save failed:', e);
       });
     }, 800);

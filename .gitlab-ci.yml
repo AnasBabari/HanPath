@@ -1,5 +1,12 @@
-# .gitlab-ci.yml — GitLab CI/CD Pipeline for HànPath Chinese Learning App
-# Multi-stage automated building, testing, containerization, and deployment.
+# .gitlab-ci.yml — retired legacy pipeline
+#
+# GitHub Actions (.github/workflows/ci.yml) is the authoritative CI path. This
+# file is intentionally disabled so an old GitLab integration cannot run the
+# placeholder deploy jobs below or publish an unreviewed image.
+
+workflow:
+  rules:
+    - when: never
 
 image: node:20-alpine
 

@@ -11,15 +11,15 @@ RUN npm ci --prefer-offline
 COPY . .
 RUN npm run build
 
-# Production Stage (Nginx Web Server)
-FROM nginx:1.25-alpine AS runner
+# Production Stage: static SPA plus the server-side AI proxy.
+FROM node:20-alpine AS runner
 
-# Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
+ENV NODE_ENV=production
 
-# Copy static assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server/chat-proxy.mjs ./server/chat-proxy.mjs
 
-EXPOSE 80
+EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server/chat-proxy.mjs"]
