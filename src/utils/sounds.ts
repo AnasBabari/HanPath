@@ -5,7 +5,9 @@
 let ctx: AudioContext | null = null;
 function ac(): AudioContext {
   if (!ctx) {
-    const AudioContextClass = (typeof window !== 'undefined' ? ((window as any).AudioContext || (window as any)['webkitAudioContext']) : null);
+    const AudioContextClass = typeof window !== 'undefined'
+      ? (window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
+      : null;
     if (!AudioContextClass) {
       throw new Error("AudioContext not supported in this browser.");
     }

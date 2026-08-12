@@ -210,14 +210,17 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
     if (isMCQ && choice !== null) {
       const selected = ex.options[choice];
       submitted.current = true;
-      selected === ex.answer ? onCorrect() : onWrong(selected);
+      if (selected === ex.answer) onCorrect();
+      else onWrong(selected);
     } else if (ex.type === 'pinyin-type') {
       submitted.current = true;
-      normPinyin(typed) === normPinyin(ex.answer) ? onCorrect() : onWrong(typed);
+      if (normPinyin(typed) === normPinyin(ex.answer)) onCorrect();
+      else onWrong(typed);
     } else if (isTileBuilder) {
       const built = bankPick.map(i => ex.bank![i]).join('');
       submitted.current = true;
-      built === ex.answer ? onCorrect() : onWrong(built);
+      if (built === ex.answer) onCorrect();
+      else onWrong(built);
     }
   };
 

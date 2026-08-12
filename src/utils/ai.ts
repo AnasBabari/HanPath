@@ -58,8 +58,8 @@ export async function callOpenRouter(
 
       const data = await response.json();
       return data.choices?.[0]?.message?.content || "";
-    } catch (err: any) {
-      lastError = err.message || lastError;
+    } catch (err: unknown) {
+      lastError = err instanceof Error ? err.message : lastError;
       if (lastError.includes("401") || lastError.includes("403") || lastError.includes("500")) {
         throw err; // Fail fast on auth errors
       }

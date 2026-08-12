@@ -50,7 +50,7 @@ export async function saveCloudProgress(userId: string, stats: UserStats): Promi
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
-  const payload: Record<string, any> = {
+  const payload: Record<string, unknown> = {
     [COL_STATS]: stats,
     [COL_UPDATED_AT]: new Date().toISOString(),
     [COL_USER_ID]: userId,
@@ -90,11 +90,17 @@ export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
 
   if (error || !data) return [];
 
-  const entries: LeaderboardEntry[] = data.map((d: any) => ({
-    userId: d[COL_USER_ID],
-    totalXP: d.stats?.totalXP || 0,
-    level: d.stats?.level || 1,
-  }));
+  const rows = data as unknown as Array<{
+    user_id: string;
+    stats?: { totalXP?: number; level?: number };
+  }>;
+  const entries: LeaderboardEntry[] = rows.map((row) => {
+    return {
+      userId: row.user_id,
+      totalXP: row.stats?.totalXP ?? 0,
+      level: row.stats?.level ?? 1,
+    };
+  });
 
   if (entries.length < 5) {
     const mocks: LeaderboardEntry[] = [

@@ -22,7 +22,7 @@ interface FloatingTooltipProps {
 
 export default function FloatingTooltip({ children, content, showAlways = false }: FloatingTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const arrowRef = React.useRef<HTMLDivElement>(null);
+  const [arrowElement, setArrowElement] = React.useState<HTMLDivElement | null>(null);
 
   const openState = showAlways ? true : isOpen;
 
@@ -35,9 +35,15 @@ export default function FloatingTooltip({ children, content, showAlways = false 
       offset(12),
       flip({ fallbackAxisSideDirection: 'start' }),
       shift({ padding: 16 }), // This ensures it stays on screen!
-      arrow({ element: arrowRef }),
+      arrow({ element: arrowElement }),
     ],
   });
+  const setFloatingRef = React.useCallback((node: HTMLDivElement | null) => {
+    refs.setFloating(node);
+  }, [refs]);
+  const setReferenceRef = React.useCallback((node: HTMLDivElement | null) => {
+    refs.setReference(node);
+  }, [refs]);
 
   const hover = useHover(context, { move: false, enabled: !showAlways });
   const focus = useFocus(context, { enabled: !showAlways });
@@ -53,21 +59,21 @@ export default function FloatingTooltip({ children, content, showAlways = false 
 
   return (
     <>
-      <div ref={refs.setReference} {...getReferenceProps()} className="inline-block relative">
+      <div ref={setReferenceRef} {...getReferenceProps()} className="inline-block relative">
         {children}
       </div>
       
       {openState && (
         <FloatingPortal>
           <div
-            ref={refs.setFloating}
+            ref={setFloatingRef}
             style={{ ...floatingStyles, transitionProperty: 'opacity, transform' }}
             {...getFloatingProps()}
             className="z-50 glass-tooltip border border-outline-variant p-4 rounded-2xl shadow-xl bg-white/95 backdrop-blur-md transition-opacity transition-transform duration-300 w-64 max-w-[calc(100vw-32px)] text-left"
           >
             {content}
             <div
-              ref={arrowRef}
+              ref={setArrowElement}
               className="absolute w-4 h-4 rotate-45 border-r border-b border-outline-variant bg-white"
               style={{
                 left: middlewareData.arrow?.x != null ? `${middlewareData.arrow.x}px` : '',

@@ -99,7 +99,7 @@ export default function PracticePage() {
         }}
         onWordResult={updateWordResult}
         onExit={handleExitDrill}
-        onComplete={(correct, _total) => {
+        onComplete={(correct) => {
           addXP(correct * 5); // 5 XP per correct in drill
           setDrillExercises([]);
           setFullScreen(false);

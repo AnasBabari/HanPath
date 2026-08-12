@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test:api": "vitest --run api/chat.test.ts"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.20",
