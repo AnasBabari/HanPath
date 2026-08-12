@@ -9,7 +9,7 @@ This file provide AI coding assistants with comprehensive context on the HànPat
 HànPath is a premium, gamified Chinese vocabulary learning application (Duolingo-inspired). It is a **React SPA** that uses **Supabase** for persistence and **OpenRouter** for AI-enhanced learning.
 
 **Key Features:**
-- Structured HSK 1-6 Learning Path (Lessons & Units)
+- Structured HSK 1-2 Learning Path (Lessons & Units; higher-level data is not yet a complete production curriculum)
 - Spaced Repetition System (SM-2 Algorithm)
 - AI Learning Buddy (Chat) & Automated Exercise Explanations
 - Gamification: Streak, XP, Levels, and 19+ Achievements
@@ -39,7 +39,7 @@ src/
 │   │   └── ExerciseRunner.tsx    # Core logic for 7+ exercise types
 │   └── ui/                       # AchievementToast, BottomNav, Confetti, etc.
 ├── pages/
-│   ├── LearnPage.tsx             # Interactive lesson path (HSK 1-6)
+│   ├── LearnPage.tsx             # Interactive lesson path (HSK 1-2)
 │   ├── PracticePage.tsx          # SRS reviews, tone drills, grammar
 │   ├── StoriesPage.tsx           # Graded readers for HSK 1/2
 │   ├── ChatPage.tsx              # AI Learning Buddy (Hanzi + English)
@@ -79,9 +79,8 @@ src/
 
 ## Current Status & Known Issues
 
-### 🔴 Critical Bugs
-- **Supabase Auth Failure**: Console error `AuthApiError: captcha verification process failed`. This prevents anonymous sign-in and cloud syncing.
-- **Leaderboard**: Currently showing mock/limited data due to the Auth failure.
+### 🔴 Deployment dependency
+- **Supabase Auth configuration**: If the Supabase project requires CAPTCHA for anonymous sign-in, the browser reports `AuthApiError: captcha verification process failed` and cloud syncing/leaderboards remain unavailable. This is a dashboard configuration dependency, not a reason to expose service credentials in the client. Local progress remains available.
 
 ### 🟡 UI/UX & Quality Issues
 - **Chinese Typography**: Punctuation (`。`, `，`) can wrap to the start of a new line alone in Stories.
@@ -94,12 +93,12 @@ src/
 
 ### Phase 1: Polish & Stability (ACTIVE)
 - **[DONE]** Zustand migration with persistence.
-- **[TODO]** Fix Supabase Captcha/Auth integration.
+- **[TODO]** Configure and verify Supabase anonymous-auth CAPTCHA settings for the deployed origin.
 - **[TODO]** Fix Chinese typography orphans in Stories.
 - **[TODO]** Improve global UI/UX contrast and "Premium" desktop aesthetics.
 
 ### Phase 2: Content Expansion
-- **[TODO]** HSK 2–6 full curriculum toggle.
+- **[TODO]** HSK 3–6 full curriculum toggle.
 - **[TODO]** Voice Recognition for pronunciation checks.
 - **[TODO]** PWA support for offline learning.
 
@@ -109,5 +108,6 @@ src/
 ```powershell
 npm run dev      # Start dev server
 npm run build    # Production build
-npm test         # Run unit tests (if configured)
+npm test         # Run the Vitest unit suite
+npm run test:api # Run the Vercel chat-proxy boundary tests
 ```

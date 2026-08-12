@@ -23,7 +23,7 @@
 
 **HànPath** helps learners build real reading and listening confidence in Mandarin Chinese. Designed with offline resilience and real-time cloud sync, it combines a structured curriculum with a gamified, habit-building ecosystem.
 
-**Current Scope:** Covers **HSK 1-2** fundamentals, with HSK 3-5 planned on the roadmap.
+**Current Scope:** Covers **HSK 1-2** fundamentals, with additional HSK material present in the data layer but not yet presented as a complete production curriculum.
 
 ---
 
@@ -41,20 +41,20 @@
 
 ## 🛠️ Architecture & Tech Stack
 
-HànPath is engineered as a robust, client-heavy React application focusing on near-zero latency for users. 
+HànPath is a client-heavy React application. Common exercise interactions update local state immediately; cloud synchronisation and AI requests are separate network operations.
 
 **Stack:** React 19 • TypeScript • Vite 8 • Supabase • OpenRouter API • Web Speech & Audio APIs
 
 ### Core Systems
 
 * 🧠 **Application Orchestration**
-  Built as a React SPA with a unified, in-memory UserStats state. Local persistence writes are triggered reactively to keep the UI blisteringly fast.
+  Built as a React SPA with a unified Zustand `UserStats` store. Zustand persistence keeps progress in the browser, while the app separately reconciles that state to Supabase when anonymous authentication is available.
 * 🏃 **Exercise Runtime Engine**
   Lessons compile into explicitly typed exercise definitions (Exercise, ExerciseType) managed by a singular, highly extensible runner. It instantly handles multiple validation formats (MCQ, string match, token match).
 * 📡 **AI Request Pipeline**
-  Implements a dedicated OpenRouter network client. It features a free-tier candidate chain with **auto-discovery and fallback retries**—meaning if an AI model goes offline, the app dynamically routes to the next available and caches the success path.
+  The browser calls the Vercel `/api/chat` serverless proxy. The proxy keeps the OpenRouter credential server-side, validates the request shape, and forwards only the supported model/message options. The browser client tries a small ordered list of free model IDs when an upstream request fails.
 * 🔄 **Progress Sync & Auth**
-  Offline readiness is achieved through local-first persistence. The app reconciles with Supabase using stateless anonymous sessions (uth.uid()) and debounced upserts. Data stays rigorously partitioned via Postgres Row Level Security (RLS).
+  Offline readiness is achieved through local-first persistence. The app uses Supabase anonymous sessions and debounced upserts when configured. `user_progress` is protected by Postgres Row Level Security so a session can read or write only its own row.
 * 🎵 **Audio & UX Reliability**
   Native **Web Speech API (TTS)** and **Web Audio API (SFX)** synthesize sounds cleanly without bloated media dependencies. Complex overlapping triggers are managed through exact audio-guard locks.
 
@@ -89,19 +89,40 @@ npm run build
 npm run preview
 ```
 
+### Tests and quality checks
+
+```bash
+npm test -- --run       # application and data-generation tests
+npm run test:api        # Vercel chat-proxy boundary tests
+npm run lint
+```
+
+The checked-in suite currently contains 15 Vitest tests plus 3 explicit proxy tests. The story-generation test uses the script's intentional six-second inter-batch throttle, so it has a longer per-test timeout.
+
 > **Note:** Environment credentials for Supabase and the AI pipeline are directly injected at our deployment platform level (Vercel). You **do not** need local .env keys to run the base UI locally, though cloud sync and AI chats will fallback to mocked or local functionality unless connected.
 
 ---
+
+## 🏗️ Request and data flow
+
+```text
+React UI
+  ├─ exercise runner -> Zustand/localStorage
+  ├─ /api/chat -> Vercel function -> OpenRouter (server-side key)
+  └─ Supabase anonymous session -> user_progress (RLS-protected)
+```
+
+The exercise runner is deliberately shared across lesson and review flows: typed `Exercise` values select the interaction, and the runner owns answer checking, feedback, word-level results, and completion callbacks. This keeps validation rules in one testable component instead of duplicating them in each page.
 
 ## 🛣️ Roadmap
 
 - **Content Constraints (v1):** Currently capped at HSK 1-2. HSK 3, 4, and 5 exercises and stories will be added in upcoming releases.
 - **Ecosystem:** Implementing account linking across devices (upgrading anonymous profiles to OAuth).
 - **Analytics:** Expanding simple XP metrics into deep skill diagnostics.
-- **Production Hardening:** Migrating client-side AI API calls behind a secure backend proxy to prevent key exposure.
+- **Production Hardening:** Add deployment-level rate limiting and monitoring around the existing `/api/chat` proxy; the API-key boundary is already server-side.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.
+This project is licensed under the **MIT License**. See [LICENSE](LICENSE).

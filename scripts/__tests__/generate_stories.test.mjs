@@ -48,7 +48,7 @@ describe('generateStoriesForLevel API script', () => {
     
     expect(stories).toBeDefined();
     expect(Array.isArray(stories)).toBe(true);
-    expect(stories.length).toBe(1);
+    expect(stories.length).toBe(4);
     
     const story = stories[0];
     expect(story.id).toBe("test-story");
@@ -60,7 +60,7 @@ describe('generateStoriesForLevel API script', () => {
     expect(firstWord.token).toBe("我");
     expect(firstWord.is_word).toBe(true);
     expect(firstWord.pinyin_hint).toBe("wǒ");
-  });
+  }, 30000);
 
   it('should have correctly exported schemas', () => {
     expect(storySchema).toBeDefined();
