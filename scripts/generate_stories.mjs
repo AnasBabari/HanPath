@@ -76,7 +76,9 @@ async function generateStoriesBatch(level, batchIndex) {
   }
 }
 
-async function generateStoriesForLevel(level) {
+const defaultSleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+async function generateStoriesForLevel(level, { sleep = defaultSleep } = {}) {
   const allStories = [];
   const totalBatches = Math.ceil(TOTAL_STORIES_PER_LEVEL / BATCH_SIZE);
 
@@ -88,12 +90,12 @@ async function generateStoriesForLevel(level) {
       batch = await generateStoriesBatch(level, b);
       if (batch.length > 0) break;
       console.log(`Retrying batch ${b + 1} in 15 seconds (attempt ${attempts})...`);
-      await new Promise(r => setTimeout(r, 15000));
+      await sleep(15000);
     }
     allStories.push(...batch);
     if (b < totalBatches - 1) {
       console.log("Waiting 6 seconds before next batch...");
-      await new Promise(r => setTimeout(r, 6000));
+      await sleep(6000);
     }
   }
 

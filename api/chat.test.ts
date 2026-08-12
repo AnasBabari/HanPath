@@ -50,7 +50,10 @@ describe('/api/chat validation boundary', () => {
       recorder.res,
     );
 
-    expect(recorder.read()).toEqual({ statusCode: 503, body: { error: 'AI service is not configured' } });
+    expect(recorder.read()).toEqual({
+      statusCode: 503,
+      body: { code: 'ai_not_configured', error: 'AI service is not configured' },
+    });
   });
 
   it('does not expose upstream response text to the browser', async () => {

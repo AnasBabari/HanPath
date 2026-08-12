@@ -102,7 +102,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    res.status(503).json({ error: 'AI service is not configured' });
+    res.status(503).json({ code: 'ai_not_configured', error: 'AI service is not configured' });
     return;
   }
 

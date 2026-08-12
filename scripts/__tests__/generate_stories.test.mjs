@@ -44,7 +44,8 @@ describe('generateStoriesForLevel API script', () => {
   });
 
   it('should request stories for the specified HSK level', async () => {
-    const stories = await generateStoriesForLevel(1);
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    const stories = await generateStoriesForLevel(1, { sleep });
     
     expect(stories).toBeDefined();
     expect(Array.isArray(stories)).toBe(true);
@@ -60,7 +61,11 @@ describe('generateStoriesForLevel API script', () => {
     expect(firstWord.token).toBe("我");
     expect(firstWord.is_word).toBe(true);
     expect(firstWord.pinyin_hint).toBe("wǒ");
-  }, 30000);
+    expect(sleep).toHaveBeenCalledTimes(3);
+    expect(sleep).toHaveBeenNthCalledWith(1, 6000);
+    expect(sleep).toHaveBeenNthCalledWith(2, 6000);
+    expect(sleep).toHaveBeenNthCalledWith(3, 6000);
+  });
 
   it('should have correctly exported schemas', () => {
     expect(storySchema).toBeDefined();

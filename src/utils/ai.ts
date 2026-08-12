@@ -30,6 +30,7 @@ export async function callOpenRouter(
 
   for (const modelId of modelCandidates) {
     attemptedModels.push(modelId);
+    let terminalFailure = false;
 
     try {
       const response = await fetch("/api/chat", {
@@ -49,8 +50,11 @@ export async function callOpenRouter(
         const errorText = await response.text();
         lastError = `HTTP Error ${response.status} - ${errorText}`;
         
-        // Stop retrying if the API key is invalid or rejected by OpenRouter
-        if (response.status === 401 || response.status === 403 || response.status === 500) {
+        // These failures are terminal for every fallback model. In particular,
+        // 503 is the proxy's stable "server key is not configured" response;
+        // retrying another model would repeat the same failed request.
+        if ([401, 403, 500, 503].includes(response.status)) {
+          terminalFailure = true;
           throw new Error(lastError);
         }
         continue;
@@ -60,8 +64,8 @@ export async function callOpenRouter(
       return data.choices?.[0]?.message?.content || "";
     } catch (err: unknown) {
       lastError = err instanceof Error ? err.message : lastError;
-      if (lastError.includes("401") || lastError.includes("403") || lastError.includes("500")) {
-        throw err; // Fail fast on auth errors
+      if (terminalFailure) {
+        throw err; // Fail fast on terminal proxy/auth errors
       }
     }
   }
