@@ -141,8 +141,9 @@ export default function ChatPage() {
         <button 
           type="button"
           onClick={handleSend}
+          disabled={!input.trim() || loading}
           className="btn-primary"
-          style={{ padding: '0 24px', borderRadius: '16px' }}
+          style={{ padding: '0 24px', borderRadius: '16px', opacity: !input.trim() || loading ? 0.6 : 1 }}
         >
           Send
         </button>
