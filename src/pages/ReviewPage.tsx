@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { callOpenRouter } from '../utils/ai';
 import { allLessonsFlat } from '../utils/curriculum';
@@ -34,6 +34,12 @@ export default function ReviewPage() {
   const [flipped, setFlipped] = useState(false);
   const [mnemonic, setMnemonic] = useState('');
   const [loadingMnemonic, setLoadingMnemonic] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      setFullScreen(false);
+    };
+  }, [setFullScreen]);
 
   const handleExit = () => {
     navigate(-1);
@@ -113,7 +119,7 @@ export default function ReviewPage() {
             <p className="fc-label">Meaning</p>
             <p className="fc-meaning">{card.meaning}</p>
             <p className="fc-pinyin">{card.pinyin}</p>
-            <button type="button" className="speak-btn" style={{ marginTop: 10 }} onClick={e => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
+            <button type="button" className="speak-btn" aria-label={`Listen pronunciation for ${card.hanzi}`} style={{ marginTop: 10 }} onClick={e => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
             
             <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)', width: '100%', textAlign: 'center' }}>
               {!mnemonic && !loadingMnemonic && (

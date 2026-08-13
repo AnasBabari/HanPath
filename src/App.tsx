@@ -1,10 +1,10 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import './App.css';
 import { fetchHSKLevel, fetchSentences } from './utils/api';
 import { buildCurriculum } from './utils/curriculum';
-import { checkNewAchievements, saveStats } from './utils/gamification';
+import { checkNewAchievements } from './utils/gamification';
 import { playLevelUp } from './utils/sounds';
 import {
   getLocalProgressUpdatedAt,
@@ -20,13 +20,23 @@ import { useStore } from './store/useStore';
 import AchievementToast from './components/ui/AchievementToast';
 import BottomNav from './components/ui/BottomNav';
 import LearnPage from './pages/LearnPage';
-import PracticePage from './pages/PracticePage';
-import ReviewPage from './pages/ReviewPage';
-import ProfilePage from './pages/ProfilePage';
-import StoriesPage from './pages/StoriesPage';
-import ChatPage from './pages/ChatPage';
+
+// Lazy-loaded secondary routes for performance and bundle splitting
+const PracticePage = lazy(() => import('./pages/PracticePage'));
+const StoriesPage = lazy(() => import('./pages/StoriesPage'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
+const ReviewPage = lazy(() => import('./pages/ReviewPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 import logo from './assets/logo.png';
+
+function PageFallback() {
+  return (
+    <div className="shell" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="loading-spinner" />
+    </div>
+  );
+}
 
 /* ---- App Wrapper for Navigation ---- */
 
@@ -44,13 +54,12 @@ function AppContent() {
 
   const location = useLocation();
   const cloudSyncReady = useRef(false);
-  const statsFingerprint = useRef(JSON.stringify(stats));
+  const statsFingerprint = useRef<string | null>(null);
 
-  /* Persist stats to localStorage (handled by Zustand persist, but we can keep the utility sync if needed) */
+  /* Track progress changes for cloud reconciliation */
   useEffect(() => {
-    saveStats(stats);
     const fingerprint = JSON.stringify(stats);
-    if (cloudSyncReady.current && fingerprint !== statsFingerprint.current) {
+    if (cloudSyncReady.current && statsFingerprint.current !== null && fingerprint !== statsFingerprint.current) {
       setLocalProgressUpdatedAt(new Date().toISOString());
     }
     statsFingerprint.current = fingerprint;
@@ -81,7 +90,6 @@ function AppContent() {
 
         if (reconciliation.source === 'cloud') {
           setStats(reconciliation.stats);
-          saveStats(reconciliation.stats);
         } else {
           await saveCloudProgress(userId, reconciliation.stats, reconciliation.updatedAt);
         }
@@ -180,15 +188,17 @@ function AppContent() {
     <div className="app-root">
       {toast && <AchievementToast id={toast} onDone={() => setToast(null)} />}
 
-      <Routes>
-        <Route path="/" element={<LearnPage />} />
-        <Route path="/practice" element={<PracticePage />} />
-        <Route path="/stories" element={<StoriesPage />} />
-        <Route path="/chat" element={<ChatPage />} />
-        <Route path="/review" element={<ReviewPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route path="/" element={<LearnPage />} />
+          <Route path="/practice" element={<PracticePage />} />
+          <Route path="/stories" element={<StoriesPage />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/review" element={<ReviewPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
 
       {showNav && (
         <BottomNav />

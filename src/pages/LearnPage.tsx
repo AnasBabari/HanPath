@@ -20,7 +20,7 @@ function LessonIntro({
   return (
     <div className="shell lesson-intro">
       <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
-        <button type="button" className="back-btn" onClick={onExit}>✕</button>
+        <button type="button" className="back-btn" aria-label="Exit lesson" onClick={onExit}>✕</button>
         <h2 style={{ margin: 0, marginLeft: 12 }}>{unit.title}</h2>
       </div>
 
@@ -38,7 +38,7 @@ function LessonIntro({
               <div className="pinyin">{card.pinyin}</div>
               <div className="meaning">{card.meaning}</div>
             </div>
-            <button type="button" className="speak-btn" onClick={(e) => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
+            <button type="button" className="speak-btn" aria-label={`Listen pronunciation for ${card.hanzi}`} onClick={(e) => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
           </div>
         ))}
       </div>

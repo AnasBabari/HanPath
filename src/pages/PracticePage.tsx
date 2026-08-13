@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Exercise } from '../types';
 import { allLessonsFlat, genExercisesForVocab, genSentenceBuildExercises, genToneDrillExercises } from '../utils/curriculum';
@@ -12,6 +12,12 @@ export default function PracticePage() {
   const [drillMode, setDrillMode] = useState<'menu' | 'weak' | 'random' | 'sentence' | 'tone'>('menu');
   const [drillExercises, setDrillExercises] = useState<Exercise[]>([]);
   const [loadingDrill, setLoadingDrill] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      setFullScreen(false);
+    };
+  }, [setFullScreen]);
 
   const dueCount = useStore(state => {
     const today = new Date().toISOString().split('T')[0];

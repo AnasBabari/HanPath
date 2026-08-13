@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect, useReducer } from 'react';
-import { Link } from 'react-router-dom';
 import { callOpenRouter } from '../../utils/ai';
 import type { Lesson, Exercise } from '../../types';
 import { playCorrect, playWrong } from '../../utils/sounds';
@@ -96,14 +95,7 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
     } catch {
       dispatch({
         type: 'SET_EXPLANATION',
-        text: (
-          <span>
-            Could not load explanation — check your API key in{' '}
-            <Link to="/profile" style={{ color: 'inherit', textDecoration: 'underline', fontWeight: 800 }}>
-              Profile
-            </Link>.
-          </span>
-        ),
+        text: 'Could not load explanation — please check your internet connection or try again shortly.',
         loading: false,
       });
     }
