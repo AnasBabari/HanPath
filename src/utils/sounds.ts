@@ -13,6 +13,9 @@ function ac(): AudioContext {
     }
     ctx = new AudioContextClass();
   }
+  if (ctx && ctx.state === 'suspended') {
+    void ctx.resume();
+  }
   return ctx as AudioContext;
 }
 
