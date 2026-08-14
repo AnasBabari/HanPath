@@ -223,12 +223,63 @@ export const useStore = create<AppState>()(
       }),
     }),
     {
-      name: 'hanpath-progress-v3', // New version for Zustand persistence
+      name: 'hanpath-progress-v3',
+      version: 3,
+      migrate: (persistedState: unknown) => {
+        const defaultState = {
+          stats: loadStats(),
+          hskLevel: 1,
+          chatHistory: [
+            { id: 'init-msg-1', role: 'model' as const, content: "你好(nǐ hǎo)！I'm your AI Language Buddy. What would you like to practice today?" }
+          ],
+        };
+
+        if (!persistedState || typeof persistedState !== 'object') {
+          return defaultState;
+        }
+
+        const raw = persistedState as Record<string, unknown>;
+        const rawStats = (raw.stats && typeof raw.stats === 'object' ? raw.stats : {}) as Record<string, unknown>;
+
+        // Cleanly backfill any missing fields across v1/v2 schema evolutions
+        const migratedStats: UserStats = {
+          totalXP: typeof rawStats.totalXP === 'number' ? rawStats.totalXP : 0,
+          level: typeof rawStats.level === 'number' ? rawStats.level : 1,
+          streak: typeof rawStats.streak === 'number' ? rawStats.streak : 0,
+          longestStreak: typeof rawStats.longestStreak === 'number' ? rawStats.longestStreak : 0,
+          completedLessons: Array.isArray(rawStats.completedLessons) ? rawStats.completedLessons.map(String) : [],
+          wordsLearned: typeof rawStats.wordsLearned === 'number' ? rawStats.wordsLearned : 0,
+          totalCorrect: typeof rawStats.totalCorrect === 'number' ? rawStats.totalCorrect : 0,
+          totalAttempted: typeof rawStats.totalAttempted === 'number' ? rawStats.totalAttempted : 0,
+          lessonsCompletedToday: typeof rawStats.lessonsCompletedToday === 'number' ? rawStats.lessonsCompletedToday : 0,
+          dailyGoalMinutes: typeof rawStats.dailyGoalMinutes === 'number' ? rawStats.dailyGoalMinutes : 10,
+          minutesStudiedToday: typeof rawStats.minutesStudiedToday === 'number' ? rawStats.minutesStudiedToday : 0,
+          lastStudyDate: typeof rawStats.lastStudyDate === 'string' ? rawStats.lastStudyDate : null,
+          lastSessionStart: typeof rawStats.lastSessionStart === 'number' ? rawStats.lastSessionStart : null,
+          unlockedAchievements: Array.isArray(rawStats.unlockedAchievements) ? rawStats.unlockedAchievements.map(String) : [],
+          revealPinyin: rawStats.revealPinyin === 'peek' ? 'peek' : 'always',
+          wordAccuracy: (rawStats.wordAccuracy && typeof rawStats.wordAccuracy === 'object' ? rawStats.wordAccuracy : {}) as Record<string, { correct: number; total: number; lastSeen: number }>,
+          wordSRS: (rawStats.wordSRS && typeof rawStats.wordSRS === 'object' ? rawStats.wordSRS : {}) as Record<string, { wordId: string; interval: number; easeFactor: number; nextReviewDate: string; repetitions: number }>,
+          xpToday: typeof rawStats.xpToday === 'number' ? rawStats.xpToday : 0,
+          perfectLessonsToday: typeof rawStats.perfectLessonsToday === 'number' ? rawStats.perfectLessonsToday : 0,
+          streakExtendedToday: Boolean(rawStats.streakExtendedToday),
+          readStories: Array.isArray(rawStats.readStories) ? rawStats.readStories.map(String) : [],
+        };
+
+        const validated = UserStatsSchema.safeParse(migratedStats);
+        const finalStats = validated.success ? validated.data : defaultState.stats;
+
+        return {
+          stats: finalStats,
+          hskLevel: typeof raw.hskLevel === 'number' && raw.hskLevel >= 1 && raw.hskLevel <= 6 ? raw.hskLevel : 1,
+          chatHistory: Array.isArray(raw.chatHistory) && raw.chatHistory.length > 0 ? (raw.chatHistory as typeof defaultState.chatHistory) : defaultState.chatHistory,
+        };
+      },
       partialize: (state) => ({ 
         stats: state.stats, 
         hskLevel: state.hskLevel,
         chatHistory: state.chatHistory 
-      }), // Persist stats, level, and chat history
+      }),
     }
   )
 );

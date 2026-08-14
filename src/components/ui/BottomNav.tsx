@@ -10,11 +10,12 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   return (
-    <nav className="bottom-nav">
+    <nav className="bottom-nav" aria-label="Main Navigation">
       {NAV_ITEMS.map((item) => (
         <NavLink
           key={item.path}
           to={item.path}
+          aria-label={item.label}
           className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}
         >
           <span className="material-symbols-outlined">{item.icon}</span>

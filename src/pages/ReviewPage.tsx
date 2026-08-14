@@ -69,14 +69,22 @@ export default function ReviewPage() {
     
     setLoadingMnemonic(true);
     try {
-      const prompt = `Provide a short, memorable, and creative visual mnemonic device to help me remember the Chinese character "${card.hanzi}" (${card.pinyin}) which means "${card.meaning}". Break down the radicals if helpful. Limit your response to 2 or 3 sentences max. Do NOT use markdown formatting.`;
-      
-      const response = await callOpenRouter([{ role: 'user', content: prompt }]);
+      const response = await callOpenRouter(
+        [{ role: 'user', content: `Give a short memory tip for the word "${card.hanzi}" (${card.meaning}).` }],
+        {
+          context: {
+            mode: 'explain-word',
+            hskLevel: card.hskLevel || 1,
+            targetWord: `${card.hanzi} (${card.pinyin}: ${card.meaning})`,
+          },
+        }
+      );
       setMnemonic(response);
     } catch (err: unknown) {
-      console.error('Mnemonic Error:', err);
-      setToast('Failed to contact AI. Please check your connection.');
-      setMnemonic("Mnemonic generation failed.");
+      const msg = err instanceof Error ? err.message : 'AI service temporarily unavailable';
+      console.warn('Mnemonic Error:', msg);
+      setToast(msg.length < 60 ? msg : 'AI connection issue — please try again in a moment.');
+      setMnemonic("Memory tip unavailable at this moment.");
     } finally {
       setLoadingMnemonic(false);
     }

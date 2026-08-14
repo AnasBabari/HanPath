@@ -3,7 +3,7 @@ import { callOpenRouter } from '../utils/ai';
 import { useStore } from '../store/useStore';
 
 export default function ChatPage() {
-  const { chatHistory, addChatMessage, setToast } = useStore();
+  const { chatHistory, addChatMessage, setToast, hskLevel } = useStore();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -23,25 +23,28 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const systemPrompt = "You are a friendly, encouraging Chinese learning AI buddy for a beginner student. You MUST converse primarily in simple Chinese characters (Hanzi) followed by Pinyin in brackets, like this: 你好(nǐ hǎo). Use English only for brief explanations or encouragement. NEVER respond with only English or only Hanzi. If the user makes a mistake in grammar or word choice, gently point it out in English. Keep your responses short.";
-      
       const history = chatHistory.map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant' as const,
+        role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
         content: m.content
       }));
 
       history.push({ role: 'user', content: userMsg });
 
-      const response = await callOpenRouter(history, systemPrompt);
+      const response = await callOpenRouter(history, {
+        context: {
+          mode: 'chat',
+          hskLevel,
+        },
+      });
       addChatMessage({ role: 'model', content: response });
     } catch (err: unknown) {
-      const msg = (err as Error).message || 'Unknown error';
-      console.error('Chat error:', msg);
+      const msg = (err as Error).message || 'AI service temporarily unavailable';
+      console.warn('Chat request failed:', msg);
       addChatMessage({
         role: 'model',
-        content: "你好(nǐ hǎo)！I had trouble reaching the AI server. Let's practice: 你喜欢学中文吗(nǐ xǐ huān xué zhōng wén ma)? (Do you like learning Chinese?)"
+        content: "你好 (nǐ hǎo)！I'm having a little trouble connecting right now. Let's practice: 你喜欢学中文吗 (nǐ xǐ huān xué zhōng wén ma)? (Do you like learning Chinese?)"
       });
-      setToast('AI connection issue. (Check server logs)');
+      setToast(msg.length < 60 ? msg : 'AI connection issue — please try again in a moment.');
     } finally {
       setLoading(false);
     }

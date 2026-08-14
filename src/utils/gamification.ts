@@ -92,10 +92,6 @@ export function loadStats(): UserStats {
   } catch { return { ...DEFAULTS }; }
 }
 
-export function saveStats(s: UserStats) { 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); 
-}
-
 export function resetAll() {
   localStorage.removeItem('hanpath-progress-v3');
   localStorage.removeItem('hanpath-progress-v2');

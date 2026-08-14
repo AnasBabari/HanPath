@@ -123,6 +123,7 @@ export interface Story {
 
 export interface LeaderboardEntry {
   userId: string;
+  publicId?: string;
   totalXP: number;
   level: number;
 }

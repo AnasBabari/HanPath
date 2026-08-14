@@ -148,20 +148,23 @@ export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
 
   const { data, error } = await supabase
     .from('leaderboard')
-    .select(`${COL_USER_ID}, total_xp, level`)
-    .order(COL_UPDATED_AT, { ascending: false })
+    .select('public_id, total_xp, level, updated_at')
+    .order('updated_at', { ascending: false })
     .limit(100);
 
   if (error || !data) return [];
 
   const rows = data as unknown as Array<{
-    user_id: string;
+    public_id?: string;
+    user_id?: string;
     total_xp?: number;
     level?: number;
   }>;
   const entries: LeaderboardEntry[] = rows.map((row) => {
+    const safeId = row.public_id || (row.user_id ? `Scholar-${row.user_id.slice(0, 6)}` : 'Scholar');
     return {
-      userId: row.user_id,
+      userId: safeId,
+      publicId: safeId,
       totalXP: Number.isFinite(row.total_xp) ? Number(row.total_xp) : 0,
       level: Number.isFinite(row.level) ? Number(row.level) : 1,
     };

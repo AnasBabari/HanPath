@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useReducer } from 'react';
 import { callOpenRouter } from '../../utils/ai';
 import type { Lesson, Exercise } from '../../types';
 import { playCorrect, playWrong } from '../../utils/sounds';
-import { speak, normPinyin } from '../../utils/tts';
+import { speak } from '../../utils/tts';
+import { evaluateExercise } from '../../utils/exerciseEvaluator';
 import StrokeOrderPractice from './StrokeOrderPractice';
 
 type RunnerState = {
@@ -77,25 +78,46 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
     dispatch({ type: 'ADVANCE' });
   };
 
+  const advanceRef = useRef(advance);
+  useEffect(() => {
+    advanceRef.current = advance;
+  });
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (feedback !== 'idle' && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        advanceRef.current();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [feedback]);
+
   if (!ex) return null;
   const progress = ((idx + (feedback === 'ok' ? 1 : 0)) / total) * 100;
 
   const handleExplain = async () => {
     dispatch({ type: 'SET_EXPLANATION', loading: true });
     try {
-      let prompt = '';
-      if (lastWrongAnswerRef.current) {
-        prompt = `The user answered "${lastWrongAnswerRef.current}" instead of "${ex.answer}" for "${ex.prompt}". In 1-2 encouraging sentences, explain why "${ex.answer}" is correct.`;
-      } else {
-        prompt = `The user missed "${ex.prompt}" (correct: "${ex.answer}"). In 1-2 encouraging sentences, give a quick memory tip.`;
-      }
-      
-      const response = await callOpenRouter([{ role: 'user', content: prompt }]);
+      const response = await callOpenRouter(
+        [{ role: 'user', content: 'Please explain this question.' }],
+        {
+          context: {
+            mode: 'explain-mistake',
+            hskLevel: lesson.vocab[0]?.hskLevel || 1,
+            userAnswer: lastWrongAnswerRef.current,
+            correctAnswer: ex.answer,
+            exercisePrompt: ex.prompt,
+          },
+        }
+      );
       dispatch({ type: 'SET_EXPLANATION', text: response, loading: false });
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Could not load explanation.';
       dispatch({
         type: 'SET_EXPLANATION',
-        text: 'Could not load explanation — please check your internet connection or try again shortly.',
+        text: msg.length < 120 ? msg : 'Could not load explanation — please try again shortly.',
         loading: false,
       });
     }
@@ -150,8 +172,8 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
 
       {feedback === 'ok' && (
         <div className="feedback-strip ok" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px 24px 40px', background: 'var(--correct-bg)', borderTop: '2px solid rgba(0,0,0,0.05)', color: 'var(--correct)', zIndex: 1100, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <p className="font-display" style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--correct)' }}>Excellent!</p>
-          <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={advance}>CONTINUE</button>
+          <p className="font-display" style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--correct)' }}>Excellent! 🎉</p>
+          <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={advance}>CONTINUE (Enter)</button>
         </div>
       )}
       {feedback === 'no' && (
@@ -164,7 +186,7 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
             <button type="button" className="btn-primary" style={{ width: 'auto', background: 'var(--error)', borderBottomColor: 'var(--rose-shadow)' }} onClick={advance}>Continue</button>
           </div>
           {!explanationText && !explanationLoading && (
-            <button type="button" onClick={handleExplain} style={{ background: 'none', color: 'var(--error)', fontWeight: 800, fontSize: '14px', textDecoration: 'underline' }}>Wait, why?</button>
+            <button type="button" onClick={handleExplain} style={{ background: 'none', color: 'var(--error)', fontWeight: 800, fontSize: '14px', textDecoration: 'underline', border: 'none', cursor: 'pointer', textAlign: 'left' }}>Wait, why?</button>
           )}
           {explanationLoading && <p style={{ fontSize: '14px' }}>Thinking...</p>}
           {explanationText && <p style={{ fontSize: '14px', lineHeight: 1.4 }}>{explanationText}</p>}
@@ -181,6 +203,7 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
   const [choice, setChoice] = useState<number | null>(null);
   const [typed, setTyped] = useState('');
   const [bankPick, setBankPick] = useState<number[]>([]);
+  const [showAudioHint, setShowAudioHint] = useState(false);
   const submitted = useRef(false);
 
   useEffect(() => {
@@ -196,23 +219,21 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
 
   const isMCQ = ex.type === 'reading-meaning' || ex.type === 'reading-hanzi' || ex.type === 'listening-select' || ex.type === 'listening-meaning';
   const isTileBuilder = ex.type === 'compose' || ex.type === 'sentence-build';
+  const isAudioType = ex.type === 'listening-select' || ex.type === 'listening-meaning';
 
   const check = () => {
     if (locked || submitted.current) return;
-    if (isMCQ && choice !== null) {
-      const selected = ex.options[choice];
-      submitted.current = true;
-      if (selected === ex.answer) onCorrect();
-      else onWrong(selected);
-    } else if (ex.type === 'pinyin-type') {
-      submitted.current = true;
-      if (normPinyin(typed) === normPinyin(ex.answer)) onCorrect();
-      else onWrong(typed);
-    } else if (isTileBuilder) {
-      const built = bankPick.map(i => ex.bank![i]).join('');
-      submitted.current = true;
-      if (built === ex.answer) onCorrect();
-      else onWrong(built);
+    const result = evaluateExercise(ex, {
+      choiceIndex: choice,
+      typedText: typed,
+      bankPickIndices: bankPick,
+    });
+
+    submitted.current = true;
+    if (result.isCorrect) {
+      onCorrect();
+    } else {
+      onWrong(result.userAnswer || undefined);
     }
   };
 
@@ -220,6 +241,36 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
     : ex.type === 'pinyin-type' ? typed.trim() !== ''
     : isTileBuilder ? bankPick.length > 0
     : false;
+
+  const checkRef = useRef(check);
+  useEffect(() => {
+    checkRef.current = check;
+  });
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (locked || submitted.current) return;
+
+      if (isMCQ && ['1', '2', '3', '4'].includes(e.key)) {
+        const optIndex = parseInt(e.key, 10) - 1;
+        if (optIndex >= 0 && optIndex < ex.options.length) {
+          setChoice(optIndex);
+        }
+      }
+
+      if (isTileBuilder && e.key === 'Backspace') {
+        setBankPick((prev) => prev.slice(0, -1));
+      }
+
+      if (e.key === 'Enter' && canCheck && ex.type !== 'pinyin-type') {
+        checkRef.current();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [locked, isMCQ, isTileBuilder, canCheck, ex.options.length, ex.type]);
 
   return (
     <div className={`exercise-card ${shake ? 'shake' : ''}`} style={{ marginTop: '20px', paddingBottom: '160px' }}>
@@ -230,6 +281,35 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
         {ex.promptPinyin && (
           <div style={{ fontSize: '1.125rem', color: 'var(--primary)', fontWeight: 800 }}>
             {ex.promptPinyin}
+          </div>
+        )}
+
+        {/* Audio Exercise Controls & Accessibility Fallback */}
+        {isAudioType && ex.promptAudio && (
+          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              onClick={() => speak(ex.promptAudio!)}
+              aria-label="Replay audio prompt"
+              className="btn-secondary"
+              style={{ padding: '8px 16px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 700 }}
+            >
+              <span className="material-symbols-outlined text-lg">volume_up</span>
+              Replay Audio
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAudioHint((prev) => !prev)}
+              aria-label="Toggle visual transcript hint"
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' }}
+            >
+              {showAudioHint ? 'Hide Transcript' : 'Audio Hint'}
+            </button>
+            {showAudioHint && (
+              <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 800, background: 'var(--surface-container)', padding: '4px 10px', borderRadius: '8px' }}>
+                {ex.promptAudio}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -262,7 +342,7 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
           style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid var(--surface-border)', fontSize: '1.25rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-main)', fontWeight: 800 }}
           value={typed}
           disabled={locked}
-          placeholder="Type Pinyin..."
+          placeholder="Type Pinyin (e.g. ni hao)..."
           aria-label="Type Pinyin..."
           onChange={e => setTyped(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && canCheck && !locked && check()}
@@ -277,7 +357,6 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
             submitted.current = true;
             onCorrect();
           }}
-          // Intentionally omitting onMistake so the user can finish tracing without locking the UI
         />
       )}
 

@@ -36,6 +36,7 @@ describe('Zustand App State Store', () => {
       isFullScreen: false,
       error: null,
       toast: null,
+      adminMode: false,
       chatHistory: [],
     });
   });
@@ -93,5 +94,24 @@ describe('Zustand App State Store', () => {
     // Duplicate marks should not duplicate array entries
     useStore.getState().markStoryRead('hsk1-story-1');
     expect(useStore.getState().stats.readStories.length).toBe(1);
+  });
+
+  it('resets level progress when changing HSK target level', () => {
+    useStore.getState().setHSKLevel(2);
+    const state = useStore.getState();
+    expect(state.hskLevel).toBe(2);
+    expect(state.units).toBeNull();
+    expect(state.stats.completedLessons).toEqual([]);
+  });
+
+  it('adds structured chat messages to history with unique IDs', () => {
+    useStore.getState().addChatMessage({ role: 'user', content: 'Ni hao' });
+    useStore.getState().addChatMessage({ role: 'model', content: 'Ni hao! How are you?' });
+
+    const history = useStore.getState().chatHistory;
+    expect(history.length).toBe(2);
+    expect(history[0].role).toBe('user');
+    expect(history[1].role).toBe('model');
+    expect(history[0].id).not.toEqual(history[1].id);
   });
 });
