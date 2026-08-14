@@ -40,5 +40,7 @@ list_models.js
 # Local Agent Plans
 implementation_plan.md
 
-# Temporary data exports
+# Temporary data exports and profiles
 temp*.json
+.tmp*
+

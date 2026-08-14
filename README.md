@@ -15,9 +15,38 @@
 
 <div align="center">
   <a href="https://han-path.vercel.app">
-    <img src="docs/readme-preview.png" alt="HànPath App Preview" width="800" style="border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
+    <img src="docs/readme-preview.png" alt="HànPath App Preview - Interactive Learning Path" width="800" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12);" />
   </a>
 </div>
+
+## 📸 Interface & Feature Showcase
+
+<table align="center" width="100%">
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <h4>📚 Structured Learning Path</h4>
+      <img src="docs/screenshot-learn.png" alt="Learning Path" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" />
+      <p><em>Guided units with progressive exercise milestones, XP rewards, and streak tracking.</em></p>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <h4>📖 Graded Stories & Interactive Glossing</h4>
+      <img src="docs/screenshot-stories.png" alt="Graded Stories" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" />
+      <p><em>HSK-calibrated reading stories with tokenized characters, floating tooltips, and pinyin toggles.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <h4>🤖 AI Language Buddy & Mistake Tutor</h4>
+      <img src="docs/screenshot-chat.png" alt="AI Chat" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" />
+      <p><em>Real-time conversational practice and pedagogical mistake breakdowns via secured proxy.</em></p>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <h4>🏆 Scholar Profile & Spaced Repetition (SRS)</h4>
+      <img src="docs/screenshot-profile.png" alt="Scholar Profile & Stats" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);" />
+      <p><em>SuperMemo SM-2 flashcard scheduling, achievement tracking, and leaderboard rankings.</em></p>
+    </td>
+  </tr>
+</table>
 
 ## 🌟 What is HànPath?
 
