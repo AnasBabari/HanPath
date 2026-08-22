@@ -1,285 +1,670 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { z } from 'zod';
-import type { Unit, UserStats, LeaderboardEntry, Lesson } from '../types';
-import { loadStats, addXP, bumpStreak } from '../utils/gamification';
+import type { Unit, UserStats, Lesson, ProgressSnapshotV4 } from '../types';
+import { addXP as calcAddXP } from '../utils/gamification';
 import { updateSRS } from '../utils/srs';
+import { createDefaultProgressSnapshotV4, validateProgressSnapshotV4 } from '../utils/progressSchema';
+import { mergeGuestWithCloud, calculateStreakFromStudyDays } from '../utils/progressMerge';
+import { fetchCloudProgress, syncCloudProgress, deleteCloudAccount } from '../utils/cloudProgress';
+import { getSupabaseClient } from '../utils/supabase';
 
-/* ---- Zod Schemas for Runtime Validation ---- */
+const GUEST_STORAGE_KEY = 'hanpath:guest:progress_v4';
+const getUserStorageKey = (userId: string) => `hanpath:user:${userId}:progress_v4`;
 
-const WordAccuracySchema = z.object({
-  correct: z.number(),
-  total: z.number(),
-  lastSeen: z.number(),
-});
+function loadSnapshotFromStorage(key: string): ProgressSnapshotV4 {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const val = validateProgressSnapshotV4(parsed);
+      if (val.success && val.data) {
+        return val.data;
+      }
+    }
+  } catch (err) {
+    console.warn(`Failed to load snapshot from ${key}:`, err);
+  }
+  return createDefaultProgressSnapshotV4();
+}
 
-const WordSRSDataSchema = z.object({
-  wordId: z.string(),
-  interval: z.number(),
-  easeFactor: z.number(),
-  nextReviewDate: z.string(),
-  repetitions: z.number(),
-});
+function saveSnapshotToStorage(key: string, snapshot: ProgressSnapshotV4): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(snapshot));
+  } catch (err) {
+    console.warn(`Failed to save snapshot to ${key}:`, err);
+  }
+}
 
-const UserStatsSchema = z.object({
-  totalXP: z.number(),
-  level: z.number(),
-  streak: z.number(),
-  longestStreak: z.number(),
-  completedLessons: z.array(z.string()),
-  wordsLearned: z.number(),
-  totalCorrect: z.number(),
-  totalAttempted: z.number(),
-  lessonsCompletedToday: z.number(),
-  dailyGoalMinutes: z.number(),
-  minutesStudiedToday: z.number(),
-  lastStudyDate: z.string().nullable(),
-  lastSessionStart: z.number().nullable(),
-  unlockedAchievements: z.array(z.string()),
-  revealPinyin: z.enum(['always', 'peek']),
-  wordAccuracy: z.record(z.string(), WordAccuracySchema),
-  wordSRS: z.record(z.string(), WordSRSDataSchema),
-  xpToday: z.number(),
-  perfectLessonsToday: z.number(),
-  streakExtendedToday: z.boolean(),
-  readStories: z.array(z.string()),
-});
+export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
 
-/* ---- Zustand Store Interface ---- */
+export interface AuthUser {
+  id: string;
+  email?: string;
+}
+
+export interface AuthSession {
+  user: AuthUser | null;
+  token: string | null;
+}
 
 interface AppState {
-  stats: UserStats;
-  cloudUserId: string | null;
+  // Authentication & Cloud Sync
+  authSession: AuthSession;
+  syncStatus: SyncStatus;
+  cloudVersion: number;
+  lastSyncTime: string | null;
+  isDirty: boolean;
+
+  // Domain State
+  snapshot: ProgressSnapshotV4;
+  hskLevel: 1 | 2;
   units: Unit[] | null;
-  hskLevel: number;
-  leaderboard: LeaderboardEntry[];
   loading: boolean;
   isFullScreen: boolean;
   error: string | null;
   toast: string | null;
   adminMode: boolean;
   chatHistory: { id: string; role: 'user' | 'model'; content: string }[];
-  
-  /* Actions */
-  setStats: (stats: UserStats | ((prev: UserStats) => UserStats)) => void;
-  setCloudUserId: (id: string | null) => void;
-  setUnits: (units: Unit[] | null) => void;
+
+  // Derived Accessor
+  stats: UserStats;
+
+  // Actions
   setHSKLevel: (level: number) => void;
-  setLeaderboard: (leaderboard: LeaderboardEntry[]) => void;
+  setUnits: (units: Unit[] | null) => void;
   setLoading: (loading: boolean) => void;
   setFullScreen: (isFullScreen: boolean) => void;
   setError: (error: string | null) => void;
   setToast: (toast: string | null) => void;
   addChatMessage: (msg: { role: 'user' | 'model'; content: string }) => void;
   clearChatHistory: () => void;
-  
-  /* Business Logic Actions */
-  completeLesson: (lessonId: string, correct: number, total: number, flatVocab: Lesson[]) => void;
+
+  // Learning Actions
+  completeLesson: (lessonId: string, correct: number, total?: number, flatVocab?: Lesson[]) => void;
   updateWordResult: (wordId: string, correct: boolean) => void;
   rateWord: (wordId: string, rating: 'Hard' | 'Good' | 'Easy') => void;
   addXP: (amt: number) => void;
   unlockAchievement: (id: string) => void;
-  resetProgress: (newStats: UserStats) => void;
   markStoryRead: (storyId: string) => void;
+  setRevealPinyin: (pref: 'always' | 'peek') => void;
+  setDailyGoalMinutes: (mins: number) => void;
+
+  // Auth & Cloud Sync Actions
+  initAuthSession: () => Promise<void>;
+  signInWithOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  signOut: () => Promise<void>;
+  deleteAccount: () => Promise<{ success: boolean; error?: string }>;
+  performSync: () => Promise<void>;
+  exportProgressJSON: () => string;
+  importProgressJSON: (jsonStr: string) => { success: boolean; error?: string };
 }
 
-export const useStore = create<AppState>()(
-  persist(
-    (set) => ({
-      stats: loadStats(), // Initial load from existing utility
-      cloudUserId: null,
-      units: null,
-      hskLevel: 1,
-      leaderboard: [],
-      loading: true,
-      isFullScreen: false,
-      error: null,
-      toast: null,
-      adminMode: false,
+function deriveUserStats(snapshot: ProgressSnapshotV4, currentHskLevel: 1 | 2): UserStats {
+  const levelProgress = snapshot.hskLevelProgress[currentHskLevel] || { completedLessons: [] };
+  const completedLessons = levelProgress.completedLessons || [];
+
+  // Derive unique words learned from all active SRS words and unique completed lesson counts
+  const wordsLearned = Object.keys(snapshot.wordSRS).length;
+
+  const now = new Date();
+  const { currentStreak, longestStreak } = calculateStreakFromStudyDays(snapshot.studyDays || [], now);
+
+  const xp = snapshot.stats.totalXP || 0;
+  // Calculate level based on XP (Level 1 + sqrt(xp / 50))
+  const level = Math.max(1, Math.floor(1 + Math.sqrt(xp / 50)));
+
+  return {
+    totalXP: xp,
+    level,
+    streak: currentStreak,
+    longestStreak: Math.max(longestStreak, snapshot.stats.longestStreak || 0),
+    completedLessons,
+    wordsLearned,
+    totalCorrect: snapshot.stats.totalCorrect || 0,
+    totalAttempted: snapshot.stats.totalAttempted || 0,
+    lessonsCompletedToday: 0,
+    dailyGoalMinutes: snapshot.preferences.dailyGoalMinutes || 15,
+    minutesStudiedToday: snapshot.stats.minutesStudiedToday || 0,
+    dailyDate: snapshot.stats.dailyDate,
+    lastStudyDate: snapshot.stats.lastStudyDate,
+    lastSessionStart: null,
+    unlockedAchievements: snapshot.unlockedAchievements || [],
+    revealPinyin: snapshot.preferences.revealPinyin || 'always',
+    targetHskLevel: snapshot.preferences.targetHskLevel || 1,
+    wordAccuracy: snapshot.wordAccuracy || {},
+    wordSRS: snapshot.wordSRS || {},
+    studyDays: snapshot.studyDays || [],
+    xpToday: 0,
+    perfectLessonsToday: 0,
+    streakExtendedToday: currentStreak > 0,
+    readStories: snapshot.readStories || [],
+  };
+}
+
+const initialSnapshot = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
+
+export const useStore = create<AppState>((set, get) => ({
+  authSession: { user: null, token: null },
+  syncStatus: 'idle',
+  cloudVersion: 0,
+  lastSyncTime: null,
+  isDirty: false,
+
+  snapshot: initialSnapshot,
+  hskLevel: initialSnapshot.preferences.targetHskLevel || 1,
+  units: null,
+  loading: false,
+  isFullScreen: false,
+  error: null,
+  toast: null,
+  adminMode: false,
+  chatHistory: [
+    {
+      id: 'init-msg-1',
+      role: 'model',
+      content: "你好(nǐ hǎo)！I'm your AI Language Tutor. What would you like to practice today?",
+    },
+  ],
+
+  stats: deriveUserStats(initialSnapshot, initialSnapshot.preferences.targetHskLevel || 1),
+
+  setHSKLevel: (level: number) => {
+    const validLevel: 1 | 2 = level === 2 ? 2 : 1;
+    set((state) => {
+      const updatedSnapshot: ProgressSnapshotV4 = {
+        ...state.snapshot,
+        preferences: {
+          ...state.snapshot.preferences,
+          targetHskLevel: validLevel,
+        },
+      };
+      const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+      saveSnapshotToStorage(activeKey, updatedSnapshot);
+
+      return {
+        hskLevel: validLevel,
+        snapshot: updatedSnapshot,
+        units: null, // trigger reload for new level
+        stats: deriveUserStats(updatedSnapshot, validLevel),
+        isDirty: true,
+      };
+    });
+    get().performSync();
+  },
+
+  setUnits: (units) => set({ units }),
+  setLoading: (loading) => set({ loading }),
+  setFullScreen: (isFullScreen) => set({ isFullScreen }),
+  setError: (error) => set({ error }),
+  setToast: (toast) => set({ toast }),
+
+  addChatMessage: (msg) =>
+    set((state) => ({
       chatHistory: [
-        { id: 'init-msg-1', role: 'model', content: "你好(nǐ hǎo)！I'm your AI Language Buddy. What would you like to practice today?" }
+        ...state.chatHistory,
+        { ...msg, id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` },
       ],
+    })),
 
-      setStats: (updater) => set((state) => ({
-        stats: typeof updater === 'function' ? updater(state.stats) : updater
-      })),
-      setCloudUserId: (id) => set({ cloudUserId: id }),
-      setUnits: (units) => set({ units }),
-      setHSKLevel: (hskLevel) => set((state) => ({ 
-        hskLevel, 
-        units: null,
-        stats: { ...state.stats, completedLessons: [] } // Reset progress when switching HSK level
-      })),
-      setLeaderboard: (leaderboard) => set({ leaderboard }),
-      setLoading: (loading) => set({ loading }),
-      setFullScreen: (isFullScreen) => set({ isFullScreen }),
-      setError: (error) => set({ error }),
-      setToast: (toast) => set({ toast }),
-      addChatMessage: (msg) => set((state) => ({
-        chatHistory: [...state.chatHistory, { ...msg, id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }]
-      })),
-      clearChatHistory: () => set({ chatHistory: [] }),
+  clearChatHistory: () => set({ chatHistory: [] }),
 
-      completeLesson: (lessonId, correct, total, flatVocab) => set((state) => {
-        let ns = { ...state.stats };
-        if (!ns.completedLessons.includes(lessonId)) {
-          ns.completedLessons = [...ns.completedLessons, lessonId];
-          ns.lessonsCompletedToday++;
-          const completedSet = new Set(ns.completedLessons);
-          const learnedIds = new Set<string>();
-          for (const l of flatVocab) {
-            if (completedSet.has(l.id)) {
-              for (const v of l.vocab) learnedIds.add(v.id);
+  completeLesson: (lessonId, correct, total = 10) => {
+    const state = get();
+    const currentHsk = state.hskLevel;
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const currentLessons = state.snapshot.hskLevelProgress[currentHsk]?.completedLessons || [];
+    const isNewLesson = !currentLessons.includes(lessonId);
+    const updatedLessons = isNewLesson ? [...currentLessons, lessonId] : currentLessons;
+
+    const xpEarned = correct * 10 + 25;
+    const studyDays = Array.from(new Set([...(state.snapshot.studyDays || []), todayStr])).slice(-365);
+
+    const updatedSnapshot: ProgressSnapshotV4 = {
+      ...state.snapshot,
+      hskLevelProgress: {
+        ...state.snapshot.hskLevelProgress,
+        [currentHsk]: { completedLessons: updatedLessons },
+      },
+      studyDays,
+      stats: {
+        ...state.snapshot.stats,
+        totalXP: (state.snapshot.stats.totalXP || 0) + xpEarned,
+        totalCorrect: (state.snapshot.stats.totalCorrect || 0) + correct,
+        totalAttempted: (state.snapshot.stats.totalAttempted || 0) + total,
+        minutesStudiedToday: (state.snapshot.stats.minutesStudiedToday || 0) + 3,
+        dailyDate: todayStr,
+        lastStudyDate: todayStr,
+      },
+    };
+
+    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+    saveSnapshotToStorage(activeKey, updatedSnapshot);
+
+    set({
+      snapshot: updatedSnapshot,
+      stats: deriveUserStats(updatedSnapshot, currentHsk),
+      isDirty: true,
+    });
+
+    get().performSync();
+  },
+
+  updateWordResult: (wordId, correct) => {
+    const state = get();
+    const prev = state.snapshot.wordAccuracy[wordId] || { correct: 0, total: 0, lastSeen: 0 };
+    const updatedAccuracy = {
+      ...state.snapshot.wordAccuracy,
+      [wordId]: {
+        correct: prev.correct + (correct ? 1 : 0),
+        total: prev.total + 1,
+        lastSeen: Date.now(),
+      },
+    };
+
+    const updatedSnapshot: ProgressSnapshotV4 = {
+      ...state.snapshot,
+      wordAccuracy: updatedAccuracy,
+    };
+
+    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+    saveSnapshotToStorage(activeKey, updatedSnapshot);
+
+    set({
+      snapshot: updatedSnapshot,
+      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
+      isDirty: true,
+    });
+  },
+
+  rateWord: (wordId, rating) => {
+    const state = get();
+    const qualityMap = { Hard: 2, Good: 4, Easy: 5 } as const;
+    const quality = qualityMap[rating];
+
+    const currentSRS = state.snapshot.wordSRS[wordId];
+    const updatedSRS = updateSRS(currentSRS, wordId, quality);
+
+    const updatedSnapshot: ProgressSnapshotV4 = {
+      ...state.snapshot,
+      wordSRS: {
+        ...state.snapshot.wordSRS,
+        [wordId]: updatedSRS,
+      },
+    };
+
+    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+    saveSnapshotToStorage(activeKey, updatedSnapshot);
+
+    set({
+      snapshot: updatedSnapshot,
+      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
+      isDirty: true,
+    });
+  },
+
+  addXP: (amt) => {
+    const state = get();
+    const currentStats = deriveUserStats(state.snapshot, state.hskLevel);
+    const updatedStats = calcAddXP(currentStats, amt);
+
+    const updatedSnapshot: ProgressSnapshotV4 = {
+      ...state.snapshot,
+      stats: {
+        ...state.snapshot.stats,
+        totalXP: updatedStats.totalXP,
+      },
+    };
+
+    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+    saveSnapshotToStorage(activeKey, updatedSnapshot);
+
+    set({
+      snapshot: updatedSnapshot,
+      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
+      isDirty: true,
+    });
+  },
+
+  unlockAchievement: (id) => {
+    const state = get();
+    if (state.snapshot.unlockedAchievements.includes(id)) return;
+
+    const updatedSnapshot: ProgressSnapshotV4 = {
+      ...state.snapshot,
+      unlockedAchievements: [...state.snapshot.unlockedAchievements, id],
+    };
+
+    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+    saveSnapshotToStorage(activeKey, updatedSnapshot);
+
+    set({
+      snapshot: updatedSnapshot,
+      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
+      isDirty: true,
+    });
+  },
+
+  markStoryRead: (storyId) => {
+    const state = get();
+    if (state.snapshot.readStories.includes(storyId)) return;
+
+    const updatedSnapshot: ProgressSnapshotV4 = {
+      ...state.snapshot,
+      readStories: [...state.snapshot.readStories, storyId],
+    };
+
+    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+    saveSnapshotToStorage(activeKey, updatedSnapshot);
+
+    set({
+      snapshot: updatedSnapshot,
+      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
+      isDirty: true,
+    });
+
+    get().performSync();
+  },
+
+  setRevealPinyin: (pref) => {
+    const state = get();
+    const updatedSnapshot: ProgressSnapshotV4 = {
+      ...state.snapshot,
+      preferences: {
+        ...state.snapshot.preferences,
+        revealPinyin: pref,
+      },
+    };
+
+    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+    saveSnapshotToStorage(activeKey, updatedSnapshot);
+
+    set({
+      snapshot: updatedSnapshot,
+      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
+      isDirty: true,
+    });
+
+    get().performSync();
+  },
+
+  setDailyGoalMinutes: (mins) => {
+    const state = get();
+    const updatedSnapshot: ProgressSnapshotV4 = {
+      ...state.snapshot,
+      preferences: {
+        ...state.snapshot.preferences,
+        dailyGoalMinutes: mins,
+      },
+    };
+
+    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+    saveSnapshotToStorage(activeKey, updatedSnapshot);
+
+    set({
+      snapshot: updatedSnapshot,
+      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
+      isDirty: true,
+    });
+
+    get().performSync();
+  },
+
+  // Auth & Cloud Sync Implementation
+  initAuthSession: async () => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user?.id && session.access_token) {
+        const user: AuthUser = { id: session.user.id, email: session.user.email };
+        const token = session.access_token;
+        const userKey = getUserStorageKey(user.id);
+
+        let activeSnapshot = loadSnapshotFromStorage(userKey);
+
+        // Fetch cloud progress and merge
+        try {
+          const cloudEnv = await fetchCloudProgress(token);
+          if (cloudEnv) {
+            activeSnapshot = mergeGuestWithCloud(activeSnapshot, cloudEnv.snapshot, false);
+            saveSnapshotToStorage(userKey, activeSnapshot);
+            set({ cloudVersion: cloudEnv.version });
+          } else {
+            // First time link: push local snapshot to cloud
+            const guestSnap = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
+            const merged = mergeGuestWithCloud(guestSnap, null, true);
+            activeSnapshot = merged;
+            saveSnapshotToStorage(userKey, activeSnapshot);
+            const syncRes = await syncCloudProgress(token, activeSnapshot, 0);
+            if (syncRes.success && syncRes.envelope) {
+              set({ cloudVersion: syncRes.envelope.version });
             }
           }
-          ns.wordsLearned = learnedIds.size;
+        } catch (syncErr) {
+          console.warn('Initial cloud sync error:', syncErr);
         }
-        ns.totalCorrect += correct;
-        ns.totalAttempted += total;
-        
-        if (correct === total) ns.perfectLessonsToday++;
-        
-        const xpEarned = correct * 10 + 25;
-        ns.xpToday += xpEarned;
-        ns = addXP(ns, xpEarned);
-        ns = bumpStreak(ns);
 
-        const parseResult = UserStatsSchema.safeParse(ns);
-        if (!parseResult.success) {
-          console.error('UserStats validation failed in completeLesson, state rolled back:', parseResult.error);
-          return state; // Rollback
-        }
-        return { stats: ns };
-      }),
+        set({
+          authSession: { user, token },
+          snapshot: activeSnapshot,
+          hskLevel: activeSnapshot.preferences.targetHskLevel || 1,
+          stats: deriveUserStats(activeSnapshot, activeSnapshot.preferences.targetHskLevel || 1),
+          syncStatus: 'synced',
+          lastSyncTime: new Date().toLocaleTimeString(),
+        });
+      }
 
-      updateWordResult: (wordId, correct) => set((state) => {
-        const prev = state.stats.wordAccuracy[wordId] ?? { correct: 0, total: 0, lastSeen: 0 };
-        const updatedStats = {
-          ...state.stats,
-          wordAccuracy: {
-            ...state.stats.wordAccuracy,
-            [wordId]: {
-              correct: prev.correct + (correct ? 1 : 0),
-              total: prev.total + 1,
-              lastSeen: Date.now(),
-            },
-          },
-        };
-        // Runtime validation
-        const parseResult = UserStatsSchema.safeParse(updatedStats);
-        if (!parseResult.success) {
-          console.error('UserStats validation failed in updateWordResult, state rolled back:', parseResult.error);
-          return state;
-        }
-        return { stats: updatedStats };
-      }),
+      // Listen for auth state changes
+      supabase.auth.onAuthStateChange(async (event, newSession) => {
+        if (event === 'SIGNED_IN' && newSession?.user?.id && newSession.access_token) {
+          const user: AuthUser = { id: newSession.user.id, email: newSession.user.email };
+          const token = newSession.access_token;
+          const userKey = getUserStorageKey(user.id);
 
-      rateWord: (wordId, rating) => set((state) => {
-        const qualityMap = { 'Hard': 2, 'Good': 4, 'Easy': 5 } as const;
-        const quality = qualityMap[rating];
-        
-        const currentSRS = state.stats.wordSRS[wordId];
-        const updatedSRS = updateSRS(currentSRS, wordId, quality);
+          const guestSnap = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
+          let userSnap = loadSnapshotFromStorage(userKey);
 
-        const updatedStats = {
-          ...state.stats,
-          wordSRS: {
-            ...state.stats.wordSRS,
-            [wordId]: updatedSRS,
-          },
-        };
+          try {
+            const cloudEnv = await fetchCloudProgress(token);
+            const merged = mergeGuestWithCloud(guestSnap, cloudEnv ? cloudEnv.snapshot : userSnap, true);
+            userSnap = merged;
+            saveSnapshotToStorage(userKey, userSnap);
 
-        // Runtime validation
-        const parseResult = UserStatsSchema.safeParse(updatedStats);
-        if (!parseResult.success) {
-          console.error('UserStats validation failed in rateWord, state rolled back:', parseResult.error);
-          return state;
-        }
-        return { stats: updatedStats };
-      }),
+            const pushRes = await syncCloudProgress(token, userSnap, cloudEnv ? cloudEnv.version : 0);
+            const newVersion = pushRes.envelope ? pushRes.envelope.version : 1;
 
-      addXP: (amt) => set((state) => {
-        const updatedStats = { ...state.stats, totalXP: state.stats.totalXP + amt };
-        return { stats: updatedStats };
-      }),
-
-      unlockAchievement: (id) => set((state) => ({
-        stats: {
-          ...state.stats,
-          unlockedAchievements: [...state.stats.unlockedAchievements, id]
-        }
-      })),
-
-      resetProgress: (newStats) => set({ stats: newStats, cloudUserId: null }),
-      
-      markStoryRead: (storyId) => set((state) => {
-        if (state.stats.readStories.includes(storyId)) return {};
-        return {
-          stats: {
-            ...state.stats,
-            readStories: [...state.stats.readStories, storyId]
+            set({
+              authSession: { user, token },
+              snapshot: userSnap,
+              hskLevel: userSnap.preferences.targetHskLevel || 1,
+              stats: deriveUserStats(userSnap, userSnap.preferences.targetHskLevel || 1),
+              cloudVersion: newVersion,
+              syncStatus: 'synced',
+              lastSyncTime: new Date().toLocaleTimeString(),
+            });
+          } catch {
+            set({
+              authSession: { user, token },
+              snapshot: userSnap,
+              stats: deriveUserStats(userSnap, userSnap.preferences.targetHskLevel || 1),
+            });
           }
-        };
-      }),
-    }),
-    {
-      name: 'hanpath-progress-v3',
-      version: 3,
-      migrate: (persistedState: unknown) => {
-        const defaultState = {
-          stats: loadStats(),
-          hskLevel: 1,
-          chatHistory: [
-            { id: 'init-msg-1', role: 'model' as const, content: "你好(nǐ hǎo)！I'm your AI Language Buddy. What would you like to practice today?" }
-          ],
-        };
-
-        if (!persistedState || typeof persistedState !== 'object') {
-          return defaultState;
+        } else if (event === 'SIGNED_OUT') {
+          const guestSnap = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
+          set({
+            authSession: { user: null, token: null },
+            snapshot: guestSnap,
+            hskLevel: guestSnap.preferences.targetHskLevel || 1,
+            stats: deriveUserStats(guestSnap, guestSnap.preferences.targetHskLevel || 1),
+            syncStatus: 'idle',
+            cloudVersion: 0,
+          });
         }
-
-        const raw = persistedState as Record<string, unknown>;
-        const rawStats = (raw.stats && typeof raw.stats === 'object' ? raw.stats : {}) as Record<string, unknown>;
-
-        // Cleanly backfill any missing fields across v1/v2 schema evolutions
-        const migratedStats: UserStats = {
-          totalXP: typeof rawStats.totalXP === 'number' ? rawStats.totalXP : 0,
-          level: typeof rawStats.level === 'number' ? rawStats.level : 1,
-          streak: typeof rawStats.streak === 'number' ? rawStats.streak : 0,
-          longestStreak: typeof rawStats.longestStreak === 'number' ? rawStats.longestStreak : 0,
-          completedLessons: Array.isArray(rawStats.completedLessons) ? rawStats.completedLessons.map(String) : [],
-          wordsLearned: typeof rawStats.wordsLearned === 'number' ? rawStats.wordsLearned : 0,
-          totalCorrect: typeof rawStats.totalCorrect === 'number' ? rawStats.totalCorrect : 0,
-          totalAttempted: typeof rawStats.totalAttempted === 'number' ? rawStats.totalAttempted : 0,
-          lessonsCompletedToday: typeof rawStats.lessonsCompletedToday === 'number' ? rawStats.lessonsCompletedToday : 0,
-          dailyGoalMinutes: typeof rawStats.dailyGoalMinutes === 'number' ? rawStats.dailyGoalMinutes : 10,
-          minutesStudiedToday: typeof rawStats.minutesStudiedToday === 'number' ? rawStats.minutesStudiedToday : 0,
-          lastStudyDate: typeof rawStats.lastStudyDate === 'string' ? rawStats.lastStudyDate : null,
-          lastSessionStart: typeof rawStats.lastSessionStart === 'number' ? rawStats.lastSessionStart : null,
-          unlockedAchievements: Array.isArray(rawStats.unlockedAchievements) ? rawStats.unlockedAchievements.map(String) : [],
-          revealPinyin: rawStats.revealPinyin === 'peek' ? 'peek' : 'always',
-          wordAccuracy: (rawStats.wordAccuracy && typeof rawStats.wordAccuracy === 'object' ? rawStats.wordAccuracy : {}) as Record<string, { correct: number; total: number; lastSeen: number }>,
-          wordSRS: (rawStats.wordSRS && typeof rawStats.wordSRS === 'object' ? rawStats.wordSRS : {}) as Record<string, { wordId: string; interval: number; easeFactor: number; nextReviewDate: string; repetitions: number }>,
-          xpToday: typeof rawStats.xpToday === 'number' ? rawStats.xpToday : 0,
-          perfectLessonsToday: typeof rawStats.perfectLessonsToday === 'number' ? rawStats.perfectLessonsToday : 0,
-          streakExtendedToday: Boolean(rawStats.streakExtendedToday),
-          readStories: Array.isArray(rawStats.readStories) ? rawStats.readStories.map(String) : [],
-        };
-
-        const validated = UserStatsSchema.safeParse(migratedStats);
-        const finalStats = validated.success ? validated.data : defaultState.stats;
-
-        return {
-          stats: finalStats,
-          hskLevel: typeof raw.hskLevel === 'number' && raw.hskLevel >= 1 && raw.hskLevel <= 6 ? raw.hskLevel : 1,
-          chatHistory: Array.isArray(raw.chatHistory) && raw.chatHistory.length > 0 ? (raw.chatHistory as typeof defaultState.chatHistory) : defaultState.chatHistory,
-        };
-      },
-      partialize: (state) => ({ 
-        stats: state.stats, 
-        hskLevel: state.hskLevel,
-        chatHistory: state.chatHistory 
-      }),
+      });
+    } catch (err) {
+      console.warn('initAuthSession error:', err);
     }
-  )
-);
+  },
+
+  signInWithOtp: async (email: string) => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  },
+
+  signInWithGoogle: async () => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  },
+
+  signOut: async () => {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    const guestSnap = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
+    set({
+      authSession: { user: null, token: null },
+      snapshot: guestSnap,
+      hskLevel: guestSnap.preferences.targetHskLevel || 1,
+      stats: deriveUserStats(guestSnap, guestSnap.preferences.targetHskLevel || 1),
+      syncStatus: 'idle',
+      cloudVersion: 0,
+    });
+  },
+
+  deleteAccount: async () => {
+    const state = get();
+    const token = state.authSession.token;
+    const userId = state.authSession.user?.id;
+
+    if (!token || !userId) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    const res = await deleteCloudAccount(token);
+    if (!res.success) {
+      return { success: false, error: res.error };
+    }
+
+    try {
+      localStorage.removeItem(getUserStorageKey(userId));
+    } catch {
+      // Ignored
+    }
+
+    const guestSnap = createDefaultProgressSnapshotV4();
+    saveSnapshotToStorage(GUEST_STORAGE_KEY, guestSnap);
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      await supabase.auth.signOut().catch(() => {});
+    }
+
+    set({
+      authSession: { user: null, token: null },
+      snapshot: guestSnap,
+      hskLevel: 1,
+      stats: deriveUserStats(guestSnap, 1),
+      syncStatus: 'idle',
+      cloudVersion: 0,
+      toast: 'Account and associated data deleted.',
+    });
+
+    return { success: true };
+  },
+
+  performSync: async () => {
+    const state = get();
+    if (!navigator.onLine) {
+      set({ syncStatus: 'offline' });
+      return;
+    }
+
+    const token = state.authSession.token;
+    if (!token) {
+      set({ syncStatus: 'idle' });
+      return;
+    }
+
+    set({ syncStatus: 'syncing' });
+    const result = await syncCloudProgress(token, state.snapshot, state.cloudVersion);
+
+    if (result.success && result.envelope) {
+      const updatedSnap = result.mergedSnapshot || result.envelope.snapshot;
+      const userKey = getUserStorageKey(state.authSession.user!.id);
+      saveSnapshotToStorage(userKey, updatedSnap);
+
+      set({
+        snapshot: updatedSnap,
+        stats: deriveUserStats(updatedSnap, state.hskLevel),
+        cloudVersion: result.envelope.version,
+        syncStatus: 'synced',
+        lastSyncTime: new Date().toLocaleTimeString(),
+        isDirty: false,
+      });
+    } else {
+      set({ syncStatus: 'error' });
+    }
+  },
+
+  exportProgressJSON: () => {
+    const state = get();
+    return JSON.stringify(state.snapshot, null, 2);
+  },
+
+  importProgressJSON: (jsonStr: string) => {
+    try {
+      const parsed = JSON.parse(jsonStr);
+      const val = validateProgressSnapshotV4(parsed);
+      if (!val.success || !val.data) {
+        return { success: false, error: val.error || 'Invalid JSON progress schema' };
+      }
+
+      const imported = val.data;
+      const state = get();
+      const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
+      saveSnapshotToStorage(activeKey, imported);
+
+      set({
+        snapshot: imported,
+        hskLevel: imported.preferences.targetHskLevel || 1,
+        stats: deriveUserStats(imported, imported.preferences.targetHskLevel || 1),
+        isDirty: true,
+      });
+
+      get().performSync();
+      return { success: true };
+    } catch {
+      return { success: false, error: 'Failed to parse JSON file' };
+    }
+  },
+}));

@@ -1,138 +1,151 @@
 import { useState } from 'react';
+import { Play, CheckCircle2, Lock, Sparkles, Trophy, ArrowRight } from 'lucide-react';
 import type { Unit, Lesson } from '../types';
-import { isLessonUnlocked, findLesson, nextLessonId, allLessonsFlat } from '../utils/curriculum';
-import { bumpStreak } from '../utils/gamification';
+import { isLessonUnlocked, findLesson, allLessonsFlat } from '../utils/curriculum';
 import ExerciseRunner from '../components/exercises/ExerciseRunner';
-import { speak } from '../utils/tts';
 import Confetti from '../components/ui/Confetti';
 import { useStore } from '../store/useStore';
 
-import { saveCloudProgress } from '../utils/cloudProgress';
-
-/* ---- Intro Screen ---- */
-function LessonIntro({ 
-  unit, lesson, 
-  onStart, onExit 
+/* ---- Intro Modal ---- */
+function LessonIntro({
+  unit,
+  lesson,
+  onStart,
+  onExit,
 }: {
-  unit: Unit; lesson: Lesson;
-  onStart: () => void; onExit: () => void;
+  unit: Unit;
+  lesson: Lesson;
+  onStart: () => void;
+  onExit: () => void;
 }) {
+  const isCheckpoint = lesson.id.includes('checkpoint');
+
   return (
-    <div className="shell lesson-intro">
-      <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
-        <button type="button" className="back-btn" aria-label="Exit lesson" onClick={onExit}>✕</button>
-        <h2 style={{ margin: 0, marginLeft: 12 }}>{unit.title}</h2>
+    <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-xl mx-auto w-full text-center space-y-6">
+      <div className="w-20 h-20 rounded-3xl bg-primary-light text-primary flex items-center justify-center shadow-inner mx-auto">
+        {isCheckpoint ? <Trophy className="w-10 h-10" /> : <Sparkles className="w-10 h-10" />}
       </div>
 
-      <div className="lesson-intro-header">
-        <p className="eyebrow">New Words</p>
-        <h2>{lesson.title}</h2>
-        <p className="subtitle">{lesson.summary}</p>
+      <div className="space-y-2">
+        <span className="text-xs font-bold uppercase tracking-wider text-primary">
+          {unit.title} • {lesson.title}
+        </span>
+        <h2 className="text-3xl font-bold font-display text-on-surface">{lesson.title}</h2>
+        <p className="text-on-surface-variant text-sm max-w-md mx-auto">
+          {isCheckpoint
+            ? 'Review and master all vocabulary words learned in this unit through interactive exercises.'
+            : `Learn and practice ${lesson.vocab.length} essential new vocabulary words.`}
+        </p>
       </div>
 
-      <div className="vocab-grid">
-        {lesson.vocab.map((card, i) => (
-          <div key={card.id} className="vocab-card" style={{ animationDelay: `${i * 0.06}s` }}>
-            <div className="hanzi-big">{card.hanzi}</div>
-            <div className="details">
-              <div className="pinyin">{card.pinyin}</div>
-              <div className="meaning">{card.meaning}</div>
-            </div>
-            <button type="button" className="speak-btn" aria-label={`Listen pronunciation for ${card.hanzi}`} onClick={(e) => { e.stopPropagation(); speak(card.hanzi); }}>🔊</button>
+      {/* Vocab preview chips */}
+      {!isCheckpoint && lesson.vocab.length > 0 && (
+        <div className="bg-surface-card border border-border rounded-2xl p-4 w-full shadow-xs">
+          <div className="text-xs font-bold text-on-surface-variant mb-3 uppercase tracking-wider">
+            Lesson Vocabulary
           </div>
-        ))}
-      </div>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {lesson.vocab.slice(0, 8).map((v) => (
+              <span
+                key={v.id}
+                className="px-3 py-1 bg-surface-container rounded-xl text-xs font-bold font-chinese text-on-surface"
+              >
+                {v.hanzi} ({v.pinyin})
+              </span>
+            ))}
+            {lesson.vocab.length > 8 && (
+              <span className="px-2 py-1 text-xs font-bold text-outline">+{lesson.vocab.length - 8} more</span>
+            )}
+          </div>
+        </div>
+      )}
 
-      <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={onStart}>Start Practice</button>
+      <div className="flex flex-col sm:flex-row gap-3 w-full pt-4">
+        <button
+          type="button"
+          onClick={onExit}
+          className="touch-target flex-1 px-6 py-3.5 rounded-2xl border border-border font-bold text-sm text-on-surface-variant hover:bg-surface-container"
+        >
+          Back to Path
+        </button>
+        <button
+          type="button"
+          onClick={onStart}
+          className="touch-target flex-1 px-6 py-3.5 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark transition-all flex items-center justify-center gap-2"
+        >
+          <span>Start Lesson</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
 
-/* ---- Complete Screen ---- */
-function LessonComplete({ lesson, onNext, onHome }: {
-  lesson: Lesson; onNext: () => void; onHome: () => void;
-}) {
+/* ---- Completion Celebration Screen ---- */
+function LessonCompleteScreen({ onContinue }: { onContinue: () => void }) {
   return (
-    <div className="complete-screen">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-md mx-auto w-full text-center space-y-6">
       <Confetti />
-      <div className="complete-card">
-        <div className="celebrate">🎉</div>
-        <h2>Lesson Complete!</h2>
-        <p className="complete-subtitle">{lesson.title}</p>
-        <div className="stat-grid">
-          <div className="stat-box">
-            <div className="stat-val">{lesson.vocab.length}</div>
-            <div className="stat-label">Words</div>
-          </div>
-          <div className="stat-box">
-            <div className="stat-val">{lesson.exercises.length}</div>
-            <div className="stat-label">Exercises</div>
-          </div>
-          <div className="stat-box">
-            <div className="stat-val">+{lesson.vocab.length * 10 + 25}</div>
-            <div className="stat-label">XP Earned</div>
-          </div>
-          <div className="stat-box">
-            <div className="stat-val">🔥</div>
-            <div className="stat-label">Streak!</div>
-          </div>
-        </div>
-        <div className="complete-actions">
-          <button type="button" className="btn-primary" onClick={onNext}>Next Lesson</button>
-          <button type="button" className="btn-ghost" onClick={onHome}>Back to Home</button>
-        </div>
+      <div className="w-24 h-24 rounded-full bg-primary-light text-primary flex items-center justify-center shadow-lg animate-bounce mx-auto">
+        <Trophy className="w-12 h-12" />
       </div>
+
+      <div className="space-y-2">
+        <h2 className="text-3xl font-bold font-display text-primary">Lesson Completed!</h2>
+        <p className="text-on-surface-variant text-sm">
+          Fantastic effort! Your progress and spaced repetition cards have been updated.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={onContinue}
+        className="touch-target w-full px-6 py-4 rounded-2xl bg-primary text-on-primary font-bold text-base shadow-lg hover:bg-primary-dark transition-all"
+      >
+        Continue Learning
+      </button>
     </div>
   );
 }
 
-/* ---- Main Path Screen ---- */
 export default function LearnPage() {
-  const { stats, setStats, units, updateWordResult, completeLesson, setFullScreen } = useStore();
-  
-  const [screen, setScreen] = useState<'home' | 'intro' | 'practice' | 'complete'>('home');
+  const { units, stats, hskLevel, completeLesson, updateWordResult } = useStore();
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [screen, setScreen] = useState<'path' | 'intro' | 'practice' | 'complete'>('path');
 
-  if (!units) return null;
-
-  const flat = allLessonsFlat(units);
-  
-  // Active flow helpers
-  const found = activeLessonId ? findLesson(units, activeLessonId) : null;
-
-  const openLesson = (id: string) => {
-    setActiveLessonId(id);
-    setScreen('practice');
-    setStats(s => bumpStreak(s));
-    setFullScreen(true);
-  };
-
-  const handleHome = () => {
-    setScreen('home');
-    setFullScreen(false);
-  };
-
-  // Views inside LearnPage:
-  if (screen === 'intro' && found) {
+  if (!units || units.length === 0) {
     return (
-      <LessonIntro
-        unit={found.unit} lesson={found.lesson}
-        onStart={() => setScreen('practice')}
-        onExit={handleHome}
-      />
+      <div className="flex-1 flex items-center justify-center p-8 text-center text-on-surface-variant">
+        No curriculum units available.
+      </div>
     );
   }
 
-  if (screen === 'complete' && found) {
+  const flat = allLessonsFlat(units);
+  const completedSet = new Set(stats.completedLessons || []);
+  const found = activeLessonId ? findLesson(units, activeLessonId) : null;
+
+  const handleStartIntro = (lessonId: string) => {
+    setActiveLessonId(lessonId);
+    setScreen('intro');
+  };
+
+  const handleHome = () => {
+    setScreen('path');
+    setActiveLessonId(null);
+  };
+
+  // Find next uncompleted lesson for the quick resume banner
+  const nextLesson = flat.find((l) => !completedSet.has(l.id)) || flat[0];
+  const nextUnit = units.find((u) => u.lessons.some((l) => l.id === nextLesson.id));
+
+  if (screen === 'intro' && found) {
     return (
-      <LessonComplete
+      <LessonIntro
+        unit={found.unit}
         lesson={found.lesson}
-        onNext={() => {
-          const nxt = nextLessonId(units, found.lesson.id);
-          if (nxt) openLesson(nxt);
-          else handleHome();
-        }}
-        onHome={handleHome}
+        onStart={() => setScreen('practice')}
+        onExit={handleHome}
       />
     );
   }
@@ -145,118 +158,141 @@ export default function LearnPage() {
         onExit={handleHome}
         onComplete={(correct, total) => {
           completeLesson(found.lesson.id, correct, total, flat);
-
-          const { stats: updatedStats, cloudUserId, leaderboard, setLeaderboard } = useStore.getState();
-          if (cloudUserId && updatedStats) {
-            void saveCloudProgress(cloudUserId, updatedStats).catch(console.error);
-            
-            const userInLB = leaderboard.find(e => e.userId === cloudUserId);
-            if (userInLB) {
-              const newLB = leaderboard.map(entry => 
-                entry.userId === cloudUserId 
-                  ? { ...entry, totalXP: updatedStats.totalXP, level: updatedStats.level }
-                  : entry
-              ).sort((a, b) => b.totalXP - a.totalXP);
-              setLeaderboard(newLB);
-            }
-          }
-
           setScreen('complete');
         }}
       />
     );
   }
 
-  /* ---- Default Path View ---- */
-  const completedSet = new Set(stats.completedLessons);
-
-  const getUnitProgress = (unit: Unit) => {
-    const total = unit.lessons.length;
-    const done = unit.lessons.filter(l => completedSet.has(l.id)).length;
-    return Math.round((done / total) * 100);
-  };
+  if (screen === 'complete') {
+    return <LessonCompleteScreen onContinue={handleHome} />;
+  }
 
   return (
-    <div className="shell">
-      {/* TopAppBar */}
-      <header className="topbar">
-        <span className="topbar-brand">HànPath</span>
-        <div className="topbar-stats">
-          <div className="stat-chip streak">
-            <span className="material-symbols-outlined" style={{ color: 'var(--tertiary-container)', fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-            <span className="val">{stats.streak}</span>
+    <div className="flex-1 flex flex-col overflow-y-auto pb-24">
+      {/* Resume Card */}
+      {nextLesson && nextUnit && (
+        <section className="bg-surface-card border-b border-border px-6 py-6 shadow-xs">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                Up Next • HSK {hskLevel}
+              </span>
+              <h2 className="text-xl font-bold font-display text-on-surface">
+                {nextUnit.title}: {nextLesson.title}
+              </h2>
+              <p className="text-xs text-on-surface-variant">{nextLesson.summary}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleStartIntro(nextLesson.id)}
+              className="touch-target px-6 py-3 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark transition-all flex items-center gap-2"
+              aria-label={`Start next lesson: ${nextLesson.title}`}
+            >
+              <Play className="w-4 h-4 fill-on-primary" />
+              <span>Start Learning</span>
+            </button>
           </div>
-          <div className="stat-chip xp">
-            <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontVariationSettings: "'FILL' 1" }}>military_tech</span>
-            <span className="val">{stats.totalXP}</span>
-          </div>
-          <div className="stat-chip level">
-            <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontVariationSettings: "'FILL' 1" }}>hotel_class</span>
-            <span className="val">{stats.level}</span>
-          </div>
-        </div>
-      </header>
+        </section>
+      )}
 
-      {/* Main Content */}
-      <main>
-        {units.map((unit, ui) => {
-          const progress = getUnitProgress(unit);
+      {/* Units & Lessons Timeline */}
+      <main className="max-w-4xl mx-auto px-6 py-8 space-y-10 w-full">
+        {units.map((unit) => {
+          const totalInUnit = unit.lessons.length;
+          const completedInUnit = unit.lessons.filter((l) => completedSet.has(l.id)).length;
+          const unitProgressPercent = Math.round((completedInUnit / totalInUnit) * 100);
+
           return (
-            <div key={unit.id} style={{ marginBottom: 80 }}>
+            <section
+              key={unit.id}
+              className="bg-surface-card rounded-3xl p-6 border border-border shadow-xs space-y-6"
+            >
               {/* Unit Header */}
-              <section className="unit-header">
-                <div className="unit-header-bg">{ui + 1}</div>
-                <p className="eyebrow">Unit {ui + 1}: {unit.description}</p>
-                <h3>{unit.title}</h3>
-                <div className="unit-progress-wrap">
-                  <div className="unit-progress-bar">
-                    <div className="unit-progress-fill" style={{ width: `${progress}%` }} />
-                  </div>
-                  <span className="unit-progress-text">{progress}%</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4">
+                <div>
+                  <h3 className="text-xl font-bold font-display text-primary">{unit.title}</h3>
+                  <p className="text-xs text-on-surface-variant mt-0.5">{unit.description}</p>
                 </div>
-              </section>
+                <div className="flex items-center gap-3">
+                  <div className="w-32 bg-surface-container rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="bg-primary h-full rounded-full transition-all duration-500"
+                      style={{ width: `${unitProgressPercent}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-on-surface-variant">
+                    {completedInUnit}/{totalInUnit}
+                  </span>
+                </div>
+              </div>
 
-              {/* Path Container */}
-              <div className="path-container">
-                <div className="path-line" />
-                {unit.lessons.map((lesson, li) => {
-                  const done = completedSet.has(lesson.id);
-                  const unlocked = isLessonUnlocked(lesson.id, units, stats.completedLessons);
-                  const isCurrent = unlocked && !done;
-                  const stagger = STAGGER_CLASSES[li % STAGGER_CLASSES.length];
+              {/* Lessons Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {unit.lessons.map((lesson) => {
+                  const isDone = completedSet.has(lesson.id);
+                  const isUnlocked = isLessonUnlocked(lesson.id, stats.completedLessons || [], units);
+                  const isCheckpoint = lesson.id.includes('checkpoint');
 
                   return (
-                    <div key={lesson.id} className={`lesson-node-wrap ${stagger}`}>
-                      {isCurrent && (
-                        <div className="next-step-tooltip">
-                          <span className="text">Next Step!</span>
+                    <button
+                      type="button"
+                      key={lesson.id}
+                      disabled={!isUnlocked}
+                      onClick={() => handleStartIntro(lesson.id)}
+                      className={`touch-target p-4 rounded-2xl border text-left transition-all flex items-center justify-between gap-3 ${
+                        isDone
+                          ? 'bg-primary-light/50 border-primary/30 text-on-surface hover:bg-primary-light'
+                          : isUnlocked
+                          ? 'bg-surface-card border-border hover:border-primary hover:shadow-sm text-on-surface'
+                          : 'bg-surface-container/50 border-transparent text-outline opacity-60 cursor-not-allowed'
+                      }`}
+                      aria-label={`${lesson.title}: ${isDone ? 'Completed' : isUnlocked ? 'Available' : 'Locked'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold ${
+                            isDone
+                              ? 'bg-primary text-on-primary'
+                              : isUnlocked
+                              ? 'bg-surface-container text-primary font-display'
+                              : 'bg-surface-container text-outline'
+                          }`}
+                        >
+                          {isDone ? (
+                            <CheckCircle2 className="w-5 h-5" />
+                          ) : isUnlocked ? (
+                            isCheckpoint ? (
+                              <Trophy className="w-5 h-5" />
+                            ) : (
+                              lesson.index + 1
+                            )
+                          ) : (
+                            <Lock className="w-4 h-4" />
+                          )}
+                        </div>
+
+                        <div>
+                          <div className="text-sm font-bold">{lesson.title}</div>
+                          <div className="text-xs text-on-surface-variant line-clamp-1">
+                            {isCheckpoint ? 'Checkpoint Test' : `${lesson.vocab.length} Words`}
+                          </div>
+                        </div>
+                      </div>
+
+                      {isUnlocked && !isDone && (
+                        <div className="text-primary font-bold text-xs bg-primary-light px-2 py-1 rounded-lg">
+                          Start
                         </div>
                       )}
-                      <button
-                        type="button"
-                        className={`node-btn ${done ? 'done' : isCurrent ? 'current' : 'locked'}`}
-                        onClick={() => unlocked ? openLesson(lesson.id) : undefined}
-                        disabled={!unlocked}
-                      >
-                        {done ? (
-                          <span className="material-symbols-outlined" style={{ fontSize: 40, color: '#fff', fontVariationSettings: "'FILL' 1" }}>check</span>
-                        ) : isCurrent ? (
-                          <span className="material-symbols-outlined" style={{ fontSize: 48, color: 'var(--tertiary)', fontVariationSettings: "'FILL' 1" }}>fitness_center</span>
-                        ) : (
-                          <span className="material-symbols-outlined" style={{ fontSize: 36, color: 'var(--outline)', fontVariationSettings: "'FILL' 1" }}>lock</span>
-                        )}
-                      </button>
-                      <div className="node-label">{lesson.title}</div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
-            </div>
+            </section>
           );
         })}
       </main>
     </div>
   );
 }
-
-const STAGGER_CLASSES = ['left', 'right'];

@@ -1,4 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Trophy,
+  ChevronRight,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 import { speak } from '../utils/tts';
 import { useStore } from '../store/useStore';
 import FloatingTooltip from '../components/ui/FloatingTooltip';
@@ -10,185 +18,271 @@ export default function StoriesPage() {
   const [activeToken, setActiveToken] = useState<{ token: Token; el: HTMLElement } | null>(null);
   const [showPinyin, setShowPinyin] = useState(true);
   const [loading, setLoading] = useState(true);
-  
-  const { stats, hskLevel, markStoryRead } = useStore();
+  const [hasCompleted, setHasCompleted] = useState(false);
+
+  const { stats, hskLevel, markStoryRead, addXP } = useStore();
 
   useEffect(() => {
     let isMounted = true;
-    void fetchAllStories().then(data => {
+    void fetchAllStories().then((data) => {
       if (isMounted) {
         setStories(data);
         setLoading(false);
       }
     });
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const storiesByLevel = useMemo(() => {
-    const groups: Record<number, Story[]> = {};
-    stories.forEach(s => {
-      if (!groups[s.hsk_level]) groups[s.hsk_level] = [];
-      groups[s.hsk_level].push(s);
+    const groups: Record<number, Story[]> = { 1: [], 2: [] };
+    stories.forEach((s) => {
+      if (groups[s.hsk_level]) {
+        groups[s.hsk_level].push(s);
+      }
     });
     return groups;
   }, [stories]);
 
+  const handleOpenStory = (story: Story) => {
+    setActiveStory(story);
+    setHasCompleted(false);
+    setActiveToken(null);
+  };
+
+  const handleCompleteStory = () => {
+    if (activeStory) {
+      markStoryRead(activeStory.id);
+      addXP(50); // Award 50 XP for completing a story
+      setHasCompleted(true);
+    }
+  };
+
+  const handleExitStory = () => {
+    setActiveStory(null);
+    setHasCompleted(false);
+  };
+
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-surface">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex-1 flex items-center justify-center p-12">
+        <div className="w-10 h-10 border-4 border-primary-light border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
+  // Active Story Reader Screen
   if (activeStory) {
+    const isAlreadyRead = stats.readStories.includes(activeStory.id) || hasCompleted;
+
     return (
-      <div className="bg-surface text-on-surface font-body-md flex-1 flex flex-col overflow-y-auto pb-32" onClick={() => setActiveToken(null)} role="region" aria-label="Story reader">
-        <header className="w-full top-0 sticky z-40 bg-surface shadow-md">
-          <div className="flex justify-between items-center px-6 py-4 w-full max-w-5xl mx-auto">
-            <div className="flex items-center gap-4">
-              <button 
-                type="button"
-                onClick={() => {
-                  setActiveStory(null);
-                  markStoryRead(activeStory.id);
-                }} 
-                className="active:translate-y-0.5 transition-transform text-primary border-0 p-0 m-0 bg-transparent flex items-center"
-              >
-                <span className="material-symbols-outlined text-2xl mr-1">arrow_back</span>
-                <span className="font-bold">Finish</span>
-              </button>
-              <div className="flex flex-col">
-                <h1 className="font-headline-md text-2xl leading-none text-primary m-0 p-0">{activeStory.title}</h1>
-                <span className="text-[12px] font-bold text-outline uppercase tracking-wider">HSK {activeStory.hsk_level} • Story</span>
-              </div>
+      <div
+        className="flex-1 flex flex-col overflow-y-auto pb-32"
+        onClick={() => setActiveToken(null)}
+        role="region"
+        aria-label="Story reader"
+      >
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-border px-6 py-4">
+          <div className="max-w-3xl mx-auto flex items-center justify-between">
+            <button
+              type="button"
+              onClick={handleExitStory}
+              className="touch-target flex items-center gap-2 text-primary font-bold hover:underline"
+              aria-label="Exit story reader"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Back</span>
+            </button>
+
+            <div className="text-center">
+              <h1 className="text-lg font-bold font-display text-primary line-clamp-1">{activeStory.title}</h1>
+              <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
+                HSK {activeStory.hsk_level} • Graded Story
+              </span>
             </div>
+
+            {/* Pinyin Toggle */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPinyin(!showPinyin);
+              }}
+              className="touch-target p-2 rounded-xl bg-surface-container text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1.5 text-xs font-bold"
+              aria-label={showPinyin ? 'Hide Pinyin' : 'Show Pinyin'}
+            >
+              {showPinyin ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              <span className="hidden sm:inline">Pinyin</span>
+            </button>
           </div>
         </header>
 
-        <main className="max-w-3xl mx-auto px-6 pt-8 space-y-8">
-          <div className="flex items-center justify-between bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">translate</span>
-              <span className="text-[12px] font-bold text-on-surface-variant tracking-wider uppercase">PINYIN DISPLAY</span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" aria-label="Toggle Pinyin display" checked={showPinyin} onChange={(e) => setShowPinyin(e.target.checked)} className="sr-only peer" />
-              <div className="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:bg-primary-container"></div>
-            </label>
+        {/* Reader Content */}
+        <main className="max-w-3xl mx-auto px-6 py-8 space-y-10 w-full">
+          <div className="space-y-2 text-center pb-4 border-b border-border">
+            <h2 className="text-3xl font-bold font-chinese text-on-surface">{activeStory.title_zh}</h2>
+            <p className="text-sm font-bold text-on-surface-variant">{activeStory.title}</p>
+            <p className="text-xs text-outline">Tap any word to view Pinyin, definition, and hear pronunciation.</p>
           </div>
 
-          <section className="space-y-12 pb-12">
-            <div className="relative group">
-              <div className="flex flex-wrap items-end gap-x-2 gap-y-6 leading-[3.5rem] line-break-strict">
-                {activeStory.tokens.map((token, i) => {
-                  const isActive = activeToken?.token === token;
-                  
-                  if (!token.is_word) {
-                    return (
-                      <span key={`sym-${token.token}-${token.hsk_level}-${i}`} className="text-3xl text-on-surface/60 inline-block align-bottom pb-1">
-                        {token.token}
-                      </span>
-                    );
-                  }
+          <article className="bg-surface-card rounded-3xl p-8 border border-border shadow-xs space-y-8">
+            <div className="flex flex-wrap items-end gap-x-2.5 gap-y-7 leading-[3.5rem]">
+              {activeStory.tokens.map((token, i) => {
+                const isActive = activeToken?.token === token;
 
+                if (!token.is_word) {
                   return (
-                    <FloatingTooltip
-                      key={`tok-${token.token}-${token.meaning.replace(/\s+/g, '-')}`}
-                      showAlways={isActive}
-                      content={
-                        <div className="text-base">
-                          <span className="font-bold text-primary mr-2">{token.pinyin_hint}</span>
-                          <span className="text-on-surface">{token.meaning}</span>
-                        </div>
-                      }
+                    <span
+                      key={`sym-${token.token}-${token.hsk_level}-${i}`}
+                      className="text-3xl text-on-surface/60 inline-block align-bottom pb-1 font-chinese"
                     >
-                      <button 
-                        type="button"
-                        className={`inline-flex flex-col items-center justify-end cursor-pointer rounded-lg px-1 pt-1 pb-1 transition-colors border-0 bg-transparent text-left font-normal m-0
-                          ${isActive ? 'bg-primary-container text-on-primary-container ring-2 ring-primary' : 'hover:bg-surface-variant/50'}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isActive) {
-                            setActiveToken(null);
-                          } else {
-                            setActiveToken({ token, el: e.currentTarget });
-                            speak(token.token);
-                          }
-                        }}
-                      >
-                        <div className={`text-sm text-outline font-medium transition-opacity duration-300 ${showPinyin || isActive ? 'opacity-100' : 'opacity-0'} tracking-wider mb-[-8px]`}>
-                          {token.pinyin_hint}
-                        </div>
-                        <div className="text-4xl font-chinese font-medium text-on-surface">
-                          {token.token}
-                        </div>
-                      </button>
-                    </FloatingTooltip>
+                      {token.token}
+                    </span>
                   );
-                })}
-              </div>
+                }
+
+                return (
+                  <FloatingTooltip
+                    key={`tok-${token.token}-${token.meaning.replace(/\s+/g, '-')}-${i}`}
+                    showAlways={isActive}
+                    content={
+                      <div className="text-xs p-1">
+                        <div className="font-bold text-primary text-sm">{token.pinyin_hint}</div>
+                        <div className="text-on-surface text-xs mt-0.5">{token.meaning}</div>
+                      </div>
+                    }
+                  >
+                    <button
+                      type="button"
+                      className={`inline-flex flex-col items-center justify-end cursor-pointer rounded-xl px-1.5 py-1 transition-all border-0 bg-transparent text-left m-0 ${
+                        isActive
+                          ? 'bg-primary-light text-primary ring-2 ring-primary'
+                          : 'hover:bg-surface-container'
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isActive) {
+                          setActiveToken(null);
+                        } else {
+                          setActiveToken({ token, el: e.currentTarget });
+                          speak(token.token);
+                        }
+                      }}
+                      aria-label={`${token.token}, ${token.pinyin_hint}: ${token.meaning}`}
+                    >
+                      <div
+                        className={`text-xs text-outline font-medium transition-opacity duration-200 tracking-wider mb-[-6px] ${
+                          showPinyin || isActive ? 'opacity-100' : 'opacity-0'
+                        }`}
+                      >
+                        {token.pinyin_hint}
+                      </div>
+                      <div className="text-4xl font-chinese font-medium text-on-surface leading-tight">
+                        {token.token}
+                      </div>
+                    </button>
+                  </FloatingTooltip>
+                );
+              })}
             </div>
-          </section>
+          </article>
+
+          {/* End of Story & Completion Action */}
+          <div className="pt-6 text-center space-y-4">
+            {isAlreadyRead ? (
+              <div className="inline-flex items-center gap-2 px-6 py-3 bg-primary-light text-primary rounded-2xl font-bold text-sm">
+                <CheckCircle2 className="w-5 h-5" />
+                <span>Story Completed (+50 XP Earned)</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleCompleteStory}
+                className="touch-target px-8 py-4 rounded-2xl bg-primary text-on-primary font-bold text-base shadow-md hover:bg-primary-dark transition-all flex items-center justify-center gap-2 mx-auto"
+              >
+                <Trophy className="w-5 h-5" />
+                <span>Complete Story</span>
+              </button>
+            )}
+          </div>
         </main>
       </div>
     );
   }
 
+  // Story Directory Screen
   return (
-    <div className="bg-surface text-on-surface font-body-md flex-1 flex flex-col overflow-y-auto pb-32">
-      <header className="px-6 pt-12 pb-6">
-        <h1 className="font-headline-lg text-4xl mb-2 text-primary">HSK Stories</h1>
-        <p className="text-on-surface-variant text-lg">Improve your reading comprehension through context.</p>
-      </header>
+    <div className="flex-1 flex flex-col overflow-y-auto pb-24">
+      <main className="max-w-4xl mx-auto px-6 py-8 space-y-8 w-full">
+        <div className="space-y-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">Comprehensible Input</span>
+          <h1 className="text-3xl font-bold font-display text-on-surface">Graded Stories</h1>
+          <p className="text-sm text-on-surface-variant">
+            Immerse yourself in authentic Chinese stories calibrated specifically for HSK 1 and 2 vocabulary.
+          </p>
+        </div>
 
-      <main className="px-6 space-y-10">
-        {[1, 2, 3, 4].map(level => {
+        {[1, 2].map((level) => {
           const levelStories = storiesByLevel[level] || [];
-          if (levelStories.length === 0 && level > 1) return null;
-          
-          const isLocked = level > hskLevel;
-          const readSet = new Set(stats.readStories);
+          const readSet = new Set(stats.readStories || []);
+          const isTargetLevel = level === hskLevel;
 
           return (
-            <section key={level} className={`space-y-4 ${isLocked ? 'opacity-60 grayscale' : ''}`}>
-              <div className="flex items-center justify-between">
-                <h2 className="font-headline-md text-2xl text-on-surface flex items-center gap-2">
-                  HSK {level} {isLocked && <span className="material-symbols-outlined text-lg">lock</span>}
-                </h2>
-                {isLocked && <span className="text-sm text-outline">Switch to HSK {level} to unlock</span>}
+            <section key={level} className="space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-bold font-display text-primary">HSK {level} Stories</h2>
+                  {isTargetLevel && (
+                    <span className="px-2.5 py-0.5 bg-primary-light text-primary text-[11px] font-bold rounded-full">
+                      Current Target
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs font-bold text-on-surface-variant">
+                  {levelStories.filter((s) => readSet.has(s.id)).length} / {levelStories.length} Read
+                </span>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {levelStories.length === 0 ? (
-                  <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/30 italic text-outline">
-                    Coming soon...
-                  </div>
-                ) : (
-                  levelStories.map(story => {
-                    const isCompleted = readSet.has(story.id);
-                    return (
-                      <button 
-                        type="button"
-                        key={story.id} 
-                        onClick={() => !isLocked && setActiveStory(story)}
-                        className={`bg-surface-container p-5 rounded-2xl border border-outline-variant/50 transition-transform text-left m-0 font-normal ${isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-surface-container-high hover:-translate-y-1 hover:shadow-lg active:translate-y-0 active:shadow-md'} flex flex-col relative overflow-hidden`}
-                      >
-                        {isCompleted && (
-                          <div className="absolute top-0 right-0 bg-secondary text-on-secondary px-3 py-1 text-xs font-bold rounded-bl-lg">
-                            READ
-                          </div>
-                        )}
-                        <h3 className="font-headline-sm text-xl mb-1 mt-2 text-on-surface font-bold">{story.title}</h3>
-                        <p className="text-on-surface-variant mb-4 font-chinese text-lg">{story.title_zh}</p>
-                        <div className="mt-auto flex justify-between items-center text-sm font-bold text-outline w-full">
-                          <span>{story.tokens.filter(t => t.is_word).length} words</span>
-                          {!isLocked && <span className="text-primary flex items-center gap-1">Read <span className="material-symbols-outlined text-sm">arrow_forward</span></span>}
+                {levelStories.map((story) => {
+                  const isRead = readSet.has(story.id);
+
+                  return (
+                    <button
+                      type="button"
+                      key={story.id}
+                      onClick={() => handleOpenStory(story)}
+                      className="touch-target bg-surface-card p-6 rounded-3xl border border-border hover:border-primary hover:shadow-md transition-all text-left flex flex-col justify-between group"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-bold text-lg text-on-surface group-hover:text-primary transition-colors">
+                            {story.title}
+                          </h3>
+                          {isRead && (
+                            <span className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-full shrink-0 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>Read</span>
+                            </span>
+                          )}
                         </div>
-                      </button>
-                    );
-                  })
-                )}
+                        <p className="font-chinese text-xl font-medium text-on-surface-variant">
+                          {story.title_zh}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 mt-4 border-t border-border text-xs font-bold text-on-surface-variant w-full">
+                        <span>{story.tokens.filter((t) => t.is_word).length} words</span>
+                        <span className="text-primary flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                          <span>Read Story</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </section>
           );

@@ -1,174 +1,154 @@
-import type { UserStats } from '../types';
-import { getSupabaseClient } from './supabase';
+import type { ProgressSnapshotV4, SyncEnvelope } from '../types';
+import { mergeGuestWithCloud } from './progressMerge';
+import { validateProgressSnapshotV4 } from './progressSchema';
 
-const k = (a: string, b: string) => `${a}_${b}`;
-const TABLE = k('user', 'progress');
-const COL_USER_ID = k('user', 'id');
-const COL_STATS = 'stats';
-const COL_UPDATED_AT = k('updated', 'at');
-const LOCAL_PROGRESS_UPDATED_AT_KEY = 'hanpath-progress-updated-at-v1';
-
-export interface CloudProgress {
-  stats: UserStats;
-  updatedAt: string;
+export interface SyncResult {
+  success: boolean;
+  envelope?: SyncEnvelope;
+  mergedSnapshot?: ProgressSnapshotV4;
+  error?: string;
+  isConflictResolved?: boolean;
 }
 
-export type ProgressSource = 'local' | 'cloud' | 'none';
+/**
+ * Fetches current cloud progress envelope via authenticated GET /api/progress
+ */
+export async function fetchCloudProgress(authToken: string): Promise<SyncEnvelope | null> {
+  if (!authToken) return null;
 
-export function getLocalProgressUpdatedAt(): string | null {
   try {
-    return localStorage.getItem(LOCAL_PROGRESS_UPDATED_AT_KEY);
-  } catch {
-    return null;
-  }
-}
+    const response = await fetch('/api/progress', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
 
-export function setLocalProgressUpdatedAt(value: string): void {
-  try {
-    localStorage.setItem(LOCAL_PROGRESS_UPDATED_AT_KEY, value);
-  } catch {
-    // Local storage is optional; cloud sync still remains available.
-  }
-}
-
-function timestampMs(value: string | null | undefined): number {
-  if (!value) return 0;
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-export function reconcileProgress(
-  localStats: UserStats,
-  localUpdatedAt: string | null,
-  cloudProgress: CloudProgress | null,
-): { stats: UserStats; updatedAt: string; source: ProgressSource } {
-  if (!cloudProgress) {
-    const updatedAt = localUpdatedAt && timestampMs(localUpdatedAt) > 0
-      ? localUpdatedAt
-      : new Date().toISOString();
-    return { stats: localStats, updatedAt, source: 'local' };
-  }
-
-  // A strictly newer local snapshot wins. Ties deliberately prefer cloud so two
-  // devices converge instead of repeatedly overwriting each other.
-  if (timestampMs(localUpdatedAt) > timestampMs(cloudProgress.updatedAt)) {
-    return {
-      stats: localStats,
-      updatedAt: localUpdatedAt as string,
-      source: 'local',
-    };
-  }
-
-  return {
-    stats: cloudProgress.stats,
-    updatedAt: cloudProgress.updatedAt,
-    source: 'cloud',
-  };
-}
-
-export async function initCloudProgress(): Promise<string | null> {
-  const supabase = getSupabaseClient();
-  if (!supabase) return null;
-
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
-
-  if (sessionError) throw sessionError;
-  if (session?.user?.id) return session.user.id;
-
-  const { data, error } = await supabase.auth.signInAnonymously();
-  if (error) {
-    if (error.message.toLowerCase().includes('captcha')) {
-      console.error('Supabase Auth Error: Captcha verification failed.');
+    if (response.status === 404) {
+      return null;
     }
-    throw error;
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch cloud progress (HTTP ${response.status})`);
+    }
+
+    const data = (await response.json()) as SyncEnvelope;
+    const validated = validateProgressSnapshotV4(data.snapshot);
+    if (!validated.success || !validated.data) {
+      throw new Error('Cloud snapshot validation failed');
+    }
+
+    return {
+      snapshot: validated.data,
+      version: Number(data.version) || 1,
+      updatedAt: data.updatedAt || new Date().toISOString(),
+    };
+  } catch (err: unknown) {
+    console.warn('fetchCloudProgress error:', err);
+    throw err;
+  }
+}
+
+/**
+ * Pushes local snapshot to PUT /api/progress with optimistic concurrency control.
+ * On 409 Conflict, automatically executes mergeGuestWithCloud and retries once.
+ */
+export async function syncCloudProgress(
+  authToken: string,
+  localSnapshot: ProgressSnapshotV4,
+  expectedVersion: number,
+  isRetry = false
+): Promise<SyncResult> {
+  if (!authToken) {
+    return { success: false, error: 'Authentication token required' };
   }
 
-  return data.user?.id ?? null;
-}
+  try {
+    const response = await fetch('/api/progress', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        snapshot: localSnapshot,
+        expectedVersion,
+      }),
+    });
 
-export async function loadCloudProgress(userId: string): Promise<CloudProgress | null> {
-  const supabase = getSupabaseClient();
-  if (!supabase) return null;
+    if (response.status === 409) {
+      const conflictData = (await response.json()) as {
+        currentEnvelope?: SyncEnvelope;
+      };
 
-  const { data: rawData, error, status } = await supabase
-    .from(TABLE)
-    .select('stats, updated_at')
-    .eq(COL_USER_ID, userId)
-    .maybeSingle();
+      if (conflictData.currentEnvelope && !isRetry) {
+        // Re-merge local dirty state with latest cloud state
+        const resolved = mergeGuestWithCloud(
+          localSnapshot,
+          conflictData.currentEnvelope.snapshot,
+          true // Local preferences win on conflict
+        );
 
-  const data = rawData as { stats?: unknown; updated_at?: unknown } | null;
-  if (error && status !== 406) throw error;
-  if (!data?.stats || typeof data.updated_at !== 'string') return null;
+        // Retry sync once with the latest version
+        const retryResult = await syncCloudProgress(
+          authToken,
+          resolved,
+          conflictData.currentEnvelope.version,
+          true
+        );
 
-  return { stats: data.stats as UserStats, updatedAt: data.updated_at };
-}
+        return {
+          ...retryResult,
+          mergedSnapshot: resolved,
+          isConflictResolved: true,
+        };
+      }
 
-export async function saveCloudProgress(
-  userId: string,
-  stats: UserStats,
-  updatedAt = new Date().toISOString(),
-): Promise<void> {
-  const supabase = getSupabaseClient();
-  if (!supabase) return;
+      return { success: false, error: 'Cloud sync conflict could not be resolved automatically.' };
+    }
 
-  const payload: Record<string, unknown> = {
-    [COL_STATS]: stats,
-    [COL_UPDATED_AT]: updatedAt,
-    [COL_USER_ID]: userId,
-  };
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      return { success: false, error: `Cloud sync failed (HTTP ${response.status}): ${errorText}` };
+    }
 
-  const { error } = await supabase.from(TABLE).upsert(
-    payload,
-    { onConflict: COL_USER_ID }
-  );
-
-  if (error) throw error;
-}
-
-export async function clearCloudProgress(userId: string): Promise<void> {
-  const supabase = getSupabaseClient();
-  if (!supabase) return;
-
-  const { error } = await supabase.from(TABLE).delete().eq(COL_USER_ID, userId);
-  if (error) throw error;
-}
-
-export interface LeaderboardEntry {
-  userId: string;
-  totalXP: number;
-  level: number;
-}
-
-export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
-  const supabase = getSupabaseClient();
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from('leaderboard')
-    .select('public_id, total_xp, level, updated_at')
-    .order('updated_at', { ascending: false })
-    .limit(100);
-
-  if (error || !data) return [];
-
-  const rows = data as unknown as Array<{
-    public_id?: string;
-    user_id?: string;
-    total_xp?: number;
-    level?: number;
-  }>;
-  const entries: LeaderboardEntry[] = rows.map((row) => {
-    const safeId = row.public_id || (row.user_id ? `Scholar-${row.user_id.slice(0, 6)}` : 'Scholar');
+    const envelope = (await response.json()) as SyncEnvelope;
     return {
-      userId: safeId,
-      publicId: safeId,
-      totalXP: Number.isFinite(row.total_xp) ? Number(row.total_xp) : 0,
-      level: Number.isFinite(row.level) ? Number(row.level) : 1,
+      success: true,
+      envelope,
+      mergedSnapshot: envelope.snapshot,
     };
-  });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Network error during cloud sync';
+    return { success: false, error: msg };
+  }
+}
 
-  return entries.sort((a, b) => b.totalXP - a.totalXP).slice(0, 20);
+/**
+ * Permanently deletes user cloud progress and auth account via DELETE /api/account
+ */
+export async function deleteCloudAccount(authToken: string): Promise<{ success: boolean; error?: string }> {
+  if (!authToken) {
+    return { success: false, error: 'Authentication token required' };
+  }
+
+  try {
+    const response = await fetch('/api/account', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ confirm: true }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+      return { success: false, error: err.error || 'Failed to delete account' };
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'Network error during deletion' };
+  }
 }

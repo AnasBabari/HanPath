@@ -1,9 +1,20 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Dumbbell,
+  Layers,
+  Shuffle,
+  Puzzle,
+  Volume2,
+  ChevronRight,
+  Sparkles,
+  ArrowRight,
+  BookOpen,
+} from 'lucide-react';
 import type { Exercise } from '../types';
-import { allLessonsFlat, genExercisesForVocab, genSentenceBuildExercises, genToneDrillExercises } from '../utils/curriculum';
+import { allLessonsFlat } from '../utils/curriculum';
 import ExerciseRunner from '../components/exercises/ExerciseRunner';
-import { fetchSentences } from '../utils/api';
+import { fetchSentencesForLevel } from '../utils/api';
 import { useStore } from '../store/useStore';
 
 export default function PracticePage() {
@@ -19,33 +30,36 @@ export default function PracticePage() {
     };
   }, [setFullScreen]);
 
-  const dueCount = useStore(state => {
+  const dueCount = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
-    return Object.values(state.stats.wordSRS).filter((w) => w.nextReviewDate <= today).length;
-  });
+    return Object.values(stats.wordSRS || {}).filter((w) => w.nextReviewDate <= today).length;
+  }, [stats.wordSRS]);
 
   const allDone = useMemo(() => {
     if (!units) return [];
-    const setCompleted = new Set(stats.completedLessons);
-    return allLessonsFlat(units).filter(l => setCompleted.has(l.id));
+    const setCompleted = new Set(stats.completedLessons || []);
+    return allLessonsFlat(units).filter((l) => setCompleted.has(l.id));
   }, [units, stats.completedLessons]);
 
-  const flatVocab = useMemo(() => units ? allLessonsFlat(units).flatMap(l => l.vocab) : [], [units]);
+  const flatVocab = useMemo(
+    () => (units ? allLessonsFlat(units).flatMap((l) => l.vocab) : []),
+    [units]
+  );
 
   const weakWords = useMemo(() => {
-    const list = Object.entries(stats.wordAccuracy)
+    const list = Object.entries(stats.wordAccuracy || {})
       .reduce<{ wordId: string; correct: number; total: number }[]>((acc, [wordId, data]) => {
-        if (data.total >= 3 && (data.correct / data.total) < 0.70) {
+        if (data.total >= 3 && data.correct / data.total < 0.7) {
           acc.push({ wordId, ...data });
         }
         return acc;
       }, [])
-      .toSorted((a, b) => (a.correct / a.total) - (b.correct / b.total))
+      .sort((a, b) => a.correct / a.total - b.correct / b.total)
       .slice(0, 10);
 
-    const vocabMap = new Map(flatVocab.map(v => [v.id, v]));
+    const vocabMap = new Map(flatVocab.map((v) => [v.id, v]));
 
-    return list.flatMap(d => {
+    return list.flatMap((d) => {
       const v = vocabMap.get(d.wordId);
       return v ? [{ ...v, accuracy: Math.round((d.correct / d.total) * 100) }] : [];
     });
@@ -54,18 +68,22 @@ export default function PracticePage() {
   const startDrill = async (mode: 'weak' | 'random' | 'sentence' | 'tone') => {
     setLoadingDrill(true);
     try {
-      if (mode === 'weak') {
-        const allVocab = flatVocab.length >= 4 ? flatVocab : weakWords;
-        setDrillExercises(genExercisesForVocab(weakWords, allVocab));
-      } else if (mode === 'sentence') {
-        const sentences = await fetchSentences(hskLevel);
-        setDrillExercises(genSentenceBuildExercises(sentences));
-      } else if (mode === 'tone') {
-        setDrillExercises(genToneDrillExercises(flatVocab));
+      if (mode === 'sentence') {
+        const sentences = await fetchSentencesForLevel(hskLevel);
+        const sentenceExercises: Exercise[] = sentences.map((s, i) => ({
+          id: `drill-sent-${i}`,
+          type: 'sentence-build',
+          prompt: s.en,
+          hint: s.py,
+          answer: s.zh,
+          options: [],
+          bank: s.tiles.sort(() => Math.random() - 0.5),
+        }));
+        setDrillExercises(sentenceExercises);
       } else {
-        const all = allDone.flatMap(l => l.exercises);
-        const shuffled = all.toSorted(() => Math.random() - 0.5);
-        setDrillExercises(shuffled.slice(0, 20)); // Random 20
+        const allExercises = allDone.flatMap((l) => l.exercises);
+        const shuffled = allExercises.sort(() => Math.random() - 0.5);
+        setDrillExercises(shuffled.slice(0, 15));
       }
       setDrillMode(mode);
       setFullScreen(true);
@@ -79,20 +97,27 @@ export default function PracticePage() {
     setFullScreen(false);
   };
 
-  // If we are in a drill session, render the runner
+  // If in active drill session
   if (drillMode !== 'menu') {
     if (drillExercises.length === 0) {
       return (
-        <div className="shell">
-          <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
-            <button type="button" className="back-btn" onClick={handleExitDrill}>← Back</button>
-            <h2 style={{ margin: 0, marginLeft: 12 }}>Drill Complete!</h2>
+        <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-md mx-auto w-full text-center space-y-6">
+          <div className="w-20 h-20 rounded-full bg-primary-light text-primary flex items-center justify-center shadow-sm">
+            <Sparkles className="w-10 h-10" />
           </div>
-          <div className="practice-empty">
-            <div className="empty-icon">💪</div>
-            <p>Great session! Keep it up.</p>
-            <button type="button" className="btn-primary" style={{ marginTop: 16 }} onClick={handleExitDrill}>Back to Menu</button>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold font-display text-primary">Drill Complete!</h2>
+            <p className="text-on-surface-variant text-sm">
+              Great practice session! Keep strengthening your retention.
+            </p>
           </div>
+          <button
+            type="button"
+            onClick={handleExitDrill}
+            className="touch-target w-full px-6 py-3.5 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark"
+          >
+            Back to Practice Hub
+          </button>
         </div>
       );
     }
@@ -100,13 +125,18 @@ export default function PracticePage() {
     return (
       <ExerciseRunner
         lesson={{
-          id: 'drill', unitId: 'none', index: 0, title: 'Practice Drill',
-          summary: '', vocab: [], exercises: drillExercises
+          id: 'drill',
+          unitId: 'none',
+          index: 0,
+          title: 'Practice Drill',
+          summary: '',
+          vocab: [],
+          exercises: drillExercises,
         }}
         onWordResult={updateWordResult}
         onExit={handleExitDrill}
         onComplete={(correct) => {
-          addXP(correct * 5); // 5 XP per correct in drill
+          addXP(correct * 5);
           setDrillExercises([]);
           setFullScreen(false);
         }}
@@ -114,138 +144,174 @@ export default function PracticePage() {
     );
   }
 
-  // Otherwise, render the main menu
+  // Empty state if 0 lessons completed
   if (allDone.length === 0) {
     return (
-      <div className="shell">
-        <div className="sub-header" style={{ display: 'flex', alignItems: 'center' }}>
-          <h2 style={{ margin: 0 }}>Practice</h2>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-md mx-auto w-full text-center space-y-6">
+        <div className="w-20 h-20 rounded-3xl bg-primary-light text-primary flex items-center justify-center shadow-inner">
+          <Dumbbell className="w-10 h-10" />
         </div>
-        <div className="practice-empty">
-          <div className="empty-icon">📚</div>
-          <p>Complete at least one lesson to unlock practice mode!</p>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold font-display text-on-surface">Practice Hub Locked</h2>
+          <p className="text-on-surface-variant text-sm">
+            Complete your very first lesson on the Learn Path to unlock spaced repetition flashcards, weak word drills, and sentence builders!
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="touch-target w-full px-6 py-4 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark transition-all flex items-center justify-center gap-2"
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>Start Lesson 1</span>
+          <ArrowRight className="w-4 h-4 ml-1" />
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="shell" style={{ paddingBottom: 80 }}>
-      {/* Topbar */}
-      <div className="topbar">
-        <div className="topbar-left">
-          <span className="topbar-brand">Hàn Practice</span>
-        </div>
-      </div>
-
+    <div className="flex-1 flex flex-col overflow-y-auto pb-24 relative">
       {loadingDrill && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, border: '4px solid var(--primary-light)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-          <span className="font-display" style={{ fontWeight: 800, color: 'var(--primary)' }}>Loading Drill...</span>
+        <div className="absolute inset-0 z-40 bg-surface/80 backdrop-blur-xs flex items-center justify-center">
+          <div className="w-8 h-8 border-3 border-primary-light border-t-primary rounded-full animate-spin" />
         </div>
       )}
-
-      {weakWords.length >= 3 && (
-        <div className="path-section" style={{ borderTop: 'none', paddingTop: 8 }}>
-          <h3 className="font-display" style={{ marginBottom: 4, fontSize: 16, color: 'var(--error)' }}>⚡ Needs Practice</h3>
-          <p style={{ color: 'var(--text-dim)', fontSize: 13, marginBottom: 16 }}>Review your weak words</p>
-          
-          <div style={{ display: 'flex', overflowX: 'auto', gap: 12, paddingBottom: 16, margin: '0 -16px', paddingInline: 16 }}>
-            {weakWords.map(w => (
-              <div key={w.id} style={{
-                background: `color-mix(in srgb, #ff4b4b ${100 - w.accuracy}%, var(--bg-card))`,
-                padding: '16px 20px',
-                borderRadius: 16,
-                minWidth: 80,
-                textAlign: 'center',
-                border: '1px solid rgba(255,255,255,0.05)'
-              }}>
-                <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 4 }}>{w.hanzi}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-dim)', fontWeight: 700 }}>{w.accuracy}%</div>
-              </div>
-            ))}
-          </div>
-          <button type="button" className="btn-primary btn-error" onClick={() => startDrill('weak')}>
-            Drill Weaknesses
-          </button>
+      <main className="max-w-4xl mx-auto px-6 py-8 space-y-8 w-full">
+        {/* Header */}
+        <div className="space-y-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">Daily Mastery</span>
+          <h1 className="text-3xl font-bold font-display text-on-surface">Practice Hub</h1>
+          <p className="text-sm text-on-surface-variant">
+            Target weak areas, train your memory with spaced repetition, and master sentence grammar.
+          </p>
         </div>
-      )}
 
-      <div className="path-section">
-        <h3 style={{ marginBottom: 12, fontSize: 16 }}>General Drills</h3>
-        
-        <button 
-          type="button"
-          onClick={() => {
-            navigate('/review');
-            setFullScreen(true);
-          }}
-          style={{
-            width: '100%', textTransform: 'none', textAlign: 'left', fontStyle: 'normal',
-            background: 'var(--bg-card)', padding: 16, borderRadius: 16, marginBottom: 12,
-            border: dueCount > 0 ? '2px solid var(--accent)' : '1px solid var(--border)', 
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-          }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ fontSize: 32 }}>📇</div>
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-main)' }}>
-                Spaced Review
-                {dueCount > 0 && <span className="due-badge-inline">{dueCount}</span>}
+        {/* Weak Words Alert */}
+        {weakWords.length >= 3 && (
+          <section className="bg-red-50 border border-red-200 rounded-3xl p-6 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold font-display text-red-accessible">Needs Practice</h2>
+                <p className="text-xs text-red-800">Words with lower accuracy across your sessions</p>
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 400 }}>Classic SM-2 flashcards for long-term memory</div>
+              <button
+                type="button"
+                onClick={() => startDrill('weak')}
+                className="touch-target px-4 py-2 bg-red-accessible text-white rounded-xl text-xs font-bold shadow-xs hover:bg-red-800"
+              >
+                Drill Now
+              </button>
             </div>
-          </div>
-          <div style={{ fontSize: 20, color: 'var(--text-dim)' }}>→</div>
-        </button>
 
-        <button 
-          type="button"
-          onClick={() => startDrill('random')}
-          style={{
-            width: '100%', textTransform: 'none', textAlign: 'left', fontStyle: 'normal',
-            background: 'var(--bg-card)', padding: 16, borderRadius: 16, marginBottom: 12,
-            border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-          }}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)' }}>Random Review</div>
-            <div style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 400 }}>20 mixed exercises from all completed lessons</div>
-          </div>
-          <div style={{ fontSize: 24 }}>🎲</div>
-        </button>
+            <div className="flex flex-wrap gap-2">
+              {weakWords.map((w) => (
+                <div
+                  key={w.id}
+                  className="bg-white border border-red-200 rounded-xl px-3 py-1.5 text-center shadow-xs"
+                >
+                  <div className="font-chinese text-base font-bold text-on-surface">{w.hanzi}</div>
+                  <div className="text-[10px] font-bold text-red-accessible">{w.accuracy}%</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
-        <button 
-          type="button"
-          onClick={() => startDrill('sentence')}
-          style={{
-            width: '100%', textTransform: 'none', textAlign: 'left', fontStyle: 'normal',
-            background: 'var(--bg-card)', padding: 16, borderRadius: 16, marginBottom: 12,
-            border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-          }}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)' }}>Sentence Builder</div>
-            <div style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 400 }}>Practice HSK 1 & 2 grammar structures</div>
-          </div>
-          <div style={{ fontSize: 24 }}>🧩</div>
-        </button>
+        {/* Practice Options Grid */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Spaced Repetition Review */}
+          <button
+            type="button"
+            onClick={() => {
+              navigate('/review');
+              setFullScreen(true);
+            }}
+            className="touch-target bg-surface-card p-6 rounded-3xl border border-border hover:border-primary hover:shadow-md transition-all text-left flex items-start justify-between gap-4 group"
+            aria-label={`Spaced Repetition Review: ${dueCount} cards due`}
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary-light text-primary flex items-center justify-center shrink-0">
+                <Layers className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-base text-on-surface">Spaced Review (SM-2)</h3>
+                  {dueCount > 0 && (
+                    <span className="px-2 py-0.5 bg-amber-accessible text-white text-[10px] font-bold rounded-full">
+                      {dueCount} due
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                  Classic SuperMemo SM-2 flashcard intervals for long-term vocabulary retention.
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-outline group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+          </button>
 
-        <button 
-          type="button"
-          onClick={() => startDrill('tone')}
-          style={{
-            width: '100%', textTransform: 'none', textAlign: 'left', fontStyle: 'normal',
-            background: 'var(--bg-card)', padding: 16, borderRadius: 16, marginBottom: 12,
-            border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-          }}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)' }}>Tone Practice</div>
-            <div style={{ fontSize: 13, color: 'var(--text-dim)', fontWeight: 400 }}>Train your ear to identify the 4 tones</div>
-          </div>
-          <div style={{ fontSize: 24 }}>🎵</div>
-        </button>
+          {/* Random Review Drill */}
+          <button
+            type="button"
+            onClick={() => startDrill('random')}
+            className="touch-target bg-surface-card p-6 rounded-3xl border border-border hover:border-primary hover:shadow-md transition-all text-left flex items-start justify-between gap-4 group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-surface-container text-primary flex items-center justify-center shrink-0">
+                <Shuffle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-on-surface">Random Mix Drill</h3>
+                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                  15 mixed reading and listening exercises sampled from completed lessons.
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-outline group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+          </button>
 
-      </div>
+          {/* Sentence Builder */}
+          <button
+            type="button"
+            onClick={() => startDrill('sentence')}
+            className="touch-target bg-surface-card p-6 rounded-3xl border border-border hover:border-primary hover:shadow-md transition-all text-left flex items-start justify-between gap-4 group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-surface-container text-primary flex items-center justify-center shrink-0">
+                <Puzzle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-on-surface">Sentence Builder</h3>
+                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                  Assemble essential Mandarin sentences with interactive tile banks.
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-outline group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+          </button>
 
+          {/* Tone Practice */}
+          <button
+            type="button"
+            onClick={() => startDrill('tone')}
+            className="touch-target bg-surface-card p-6 rounded-3xl border border-border hover:border-primary hover:shadow-md transition-all text-left flex items-start justify-between gap-4 group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-surface-container text-primary flex items-center justify-center shrink-0">
+                <Volume2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-on-surface">Tone Trainer</h3>
+                <p className="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                  Sharpen your ear by identifying the 4 Mandarin Chinese pitch contours.
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-outline group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+          </button>
+        </section>
+      </main>
     </div>
   );
 }

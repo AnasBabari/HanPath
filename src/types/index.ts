@@ -67,8 +67,9 @@ export interface WordSRSData {
   wordId: string;
   interval: number;
   easeFactor: number;
-  nextReviewDate: string;
+  nextReviewDate: string; // YYYY-MM-DD
   repetitions: number;
+  updatedAt: string;      // ISO 8601 timestamp
 }
 
 export interface Quest {
@@ -83,20 +84,22 @@ export interface UserStats {
   level: number;
   streak: number;
   longestStreak: number;
-  completedLessons: string[];
-  wordsLearned: number;
+  completedLessons: string[]; // Current level completed lessons (for backwards-compat/convenience)
+  wordsLearned: number;       // Derived from unique completed vocab and active SRS records
   totalCorrect: number;
   totalAttempted: number;
   lessonsCompletedToday: number;
   dailyGoalMinutes: number;
   minutesStudiedToday: number;
+  dailyDate: string | null;
   lastStudyDate: string | null;
   lastSessionStart: number | null;
   unlockedAchievements: string[];
   revealPinyin: 'always' | 'peek';
+  targetHskLevel: 1 | 2;
   wordAccuracy: Record<string, WordAccuracy>;
   wordSRS: Record<string, WordSRSData>;
-  // Intentionally preserving for quests logic later
+  studyDays: string[];
   xpToday: number;
   perfectLessonsToday: number;
   streakExtendedToday: boolean;
@@ -121,14 +124,47 @@ export interface Story {
   xpReward: number;
 }
 
-export interface LeaderboardEntry {
-  userId: string;
-  publicId?: string;
-  totalXP: number;
-  level: number;
-}
-
 export interface ChatMessage {
   role: 'user' | 'model';
-  content: string; // Raw text (can be JSON if parsed by UI)
+  content: string;
+}
+
+/**
+ * Pure client-side learning snapshot schema (v4)
+ * Contains zero server metadata (no version or updatedAt)
+ */
+export interface ProgressSnapshotV4 {
+  schemaVersion: 4;
+  hskLevelProgress: {
+    1: { completedLessons: string[] };
+    2: { completedLessons: string[] };
+  };
+  studyDays: string[]; // ISO YYYY-MM-DD array, bounded to last 365 days
+  wordAccuracy: Record<string, WordAccuracy>;
+  wordSRS: Record<string, WordSRSData>;
+  readStories: string[];
+  unlockedAchievements: string[];
+  stats: {
+    totalXP: number;
+    longestStreak: number;
+    totalCorrect: number;
+    totalAttempted: number;
+    minutesStudiedToday: number;
+    dailyDate: string | null;
+    lastStudyDate: string | null;
+  };
+  preferences: {
+    revealPinyin: 'always' | 'peek';
+    targetHskLevel: 1 | 2;
+    dailyGoalMinutes: number;
+  };
+}
+
+/**
+ * Server-managed synchronization envelope
+ */
+export interface SyncEnvelope {
+  snapshot: ProgressSnapshotV4;
+  version: number;   // Monotonic integer (1, 2, 3...)
+  updatedAt: string; // Server timestamp (ISO 8601)
 }

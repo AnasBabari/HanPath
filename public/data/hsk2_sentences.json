@@ -1,0 +1,110 @@
+[
+  {
+    "id": 201,
+    "hsk": 2,
+    "zh": "我想去跑步",
+    "en": "I want to go running",
+    "py": "wǒ xiǎng qù pǎobù",
+    "tiles": ["我", "想", "去", "跑步"],
+    "required_words": ["我", "想", "去", "跑步"]
+  },
+  {
+    "id": 202,
+    "hsk": 2,
+    "zh": "他帮我准备早饭",
+    "en": "He helps me prepare breakfast",
+    "py": "tā bāng wǒ zhǔnbèi zǎofàn",
+    "tiles": ["他", "帮", "我", "准备", "早饭"],
+    "required_words": ["他", "帮", "我", "准备", "早饭"]
+  },
+  {
+    "id": 203,
+    "hsk": 2,
+    "zh": "我们坐公共汽车去机场",
+    "en": "We take the bus to the airport",
+    "py": "wǒmen zuò gōnggòng qìchē qù jīchǎng",
+    "tiles": ["我们", "坐", "公共汽车", "去", "机场"],
+    "required_words": ["我们", "坐", "公共汽车", "去", "机场"]
+  },
+  {
+    "id": 204,
+    "hsk": 2,
+    "zh": "这件衣服很便宜",
+    "en": "This piece of clothing is very cheap",
+    "py": "zhè jiàn yīfu hěn piányi",
+    "tiles": ["这件", "衣服", "很", "便宜"],
+    "required_words": ["这件", "衣服", "很", "便宜"]
+  },
+  {
+    "id": 205,
+    "hsk": 2,
+    "zh": "你觉得怎么样",
+    "en": "What do you think?",
+    "py": "nǐ juéde zěnmeyàng",
+    "tiles": ["你", "觉得", "怎么样"],
+    "required_words": ["你", "觉得", "怎么样"]
+  },
+  {
+    "id": 206,
+    "hsk": 2,
+    "zh": "他喜欢游泳和跳舞",
+    "en": "He likes swimming and dancing",
+    "py": "tā xǐhuan yóuyǒng hé tiàowǔ",
+    "tiles": ["他", "喜欢", "游泳", "和", "跳舞"],
+    "required_words": ["他", "喜欢", "游泳", "和", "跳舞"]
+  },
+  {
+    "id": 207,
+    "hsk": 2,
+    "zh": "我骑自行车去学校",
+    "en": "I ride a bicycle to school",
+    "py": "wǒ qí zìxíngchē qù xuéxiào",
+    "tiles": ["我", "骑", "自行车", "去", "学校"],
+    "required_words": ["我", "骑", "自行车", "去", "学校"]
+  },
+  {
+    "id": 208,
+    "hsk": 2,
+    "zh": "今天我很高兴认识你",
+    "en": "I am very happy to meet you today",
+    "py": "jīntiān wǒ hěn gāoxìng rènshi nǐ",
+    "tiles": ["今天", "我", "很", "高兴", "认识", "你"],
+    "required_words": ["今天", "我", "很", "高兴", "认识", "你"]
+  },
+  {
+    "id": 209,
+    "hsk": 2,
+    "zh": "你什么时候有时间",
+    "en": "When do you have time?",
+    "py": "nǐ shénme shíhou yǒu shíjiān",
+    "tiles": ["你", "什么时候", "有", "时间"],
+    "required_words": ["你", "什么时候", "有", "时间"]
+  },
+  {
+    "id": 210,
+    "hsk": 2,
+    "zh": "他生病了要吃药",
+    "en": "He is sick and needs to take medicine",
+    "py": "tā shēngbìng le yào chī yào",
+    "tiles": ["他", "生病了", "要", "吃药"],
+    "required_words": ["他", "生病了", "要", "吃药"]
+  },
+  {
+    "id": 211,
+    "hsk": 2,
+    "zh": "她穿了一件红色的新衣服",
+    "en": "She wore a new red dress",
+    "py": "tā chuān le yí jiàn hóngsè de xīn yīfu",
+    "tiles": ["她", "穿了", "一件", "红色的", "新衣服"],
+    "required_words": ["她", "穿了", "一件", "红色的", "新衣服"]
+  },
+  {
+    "id": 212,
+    "hsk": 2,
+    "zh": "我们希望明天天气晴朗",
+    "en": "We hope the weather will be sunny tomorrow",
+    "py": "wǒmen xīwàng míngtiān tiānqì qínglǎng",
+    "tiles": ["我们", "希望", "明天", "天气", "晴朗"],
+    "required_words": ["我们", "希望", "明天", "天气", "晴朗"]
+  }
+]

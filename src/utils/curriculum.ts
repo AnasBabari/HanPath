@@ -1,28 +1,37 @@
 /**
- * Dynamic Curriculum Builder
- * Converts HSK API vocabulary and Hugging Face sentence dataset into structured units → lessons → exercises.
- * Phased progression:
- * - Units 1-2: Pure vocabulary & stroke order foundation
- * - Units 3-5: Vocab lessons + Unit Boss sentence assembly
- * - Units 6+: Comprehensive immersion with integrated sentence building
+ * Deterministic HSK 3.0 Curriculum Engine
+ * Constructs 5 vocabulary lessons (10 words each) + 1 checkpoint lesson per unit.
+ * Offline-first and pure.
  */
 
 import type { HSKWord, VocabCard, Exercise, Lesson, Unit } from '../types';
 import type { HSKSentence } from './api';
 
-/* ---- Config ---- */
-
-const WORDS_PER_LESSON = 4;
-const LESSONS_PER_UNIT = 5;
+const WORDS_PER_LESSON = 10;
+const VOCAB_LESSONS_PER_UNIT = 5;
 
 const UNIT_NAMES = [
-  'Foundation', 'Core Basics', 'First Words', 'Building Blocks', 'Growing',
-  'Expanding', 'Connecting', 'Deepening', 'Broadening', 'Exploring',
-  'Discovering', 'Understanding', 'Progressing', 'Advancing', 'Developing',
-  'Strengthening', 'Mastering', 'Perfecting', 'Reaching', 'Shining',
+  'Foundation',
+  'Core Basics',
+  'First Words',
+  'Building Blocks',
+  'Growing',
+  'Expanding',
+  'Connecting',
+  'Deepening',
+  'Broadening',
+  'Exploring',
+  'Discovering',
+  'Understanding',
+  'Progressing',
+  'Advancing',
+  'Developing',
+  'Strengthening',
+  'Mastering',
+  'Perfecting',
+  'Reaching',
+  'Shining',
 ];
-
-/* ---- Helpers ---- */
 
 function shuffle<T>(a: T[]): T[] {
   const b = [...a];
@@ -34,7 +43,7 @@ function shuffle<T>(a: T[]): T[] {
 }
 
 function pick<T>(arr: T[], n: number, exclude?: T): T[] {
-  const pool = exclude !== undefined ? arr.filter(x => x !== exclude) : [...arr];
+  const pool = exclude !== undefined ? arr.filter((x) => x !== exclude) : [...arr];
   return shuffle(pool).slice(0, n);
 }
 
@@ -50,7 +59,7 @@ function cleanMeaning(raw: string[]): string {
   }
 
   if (!candidates.length) return raw[0] || '';
-  const short = candidates.find(c => c.length <= 20);
+  const short = candidates.find((c) => c.length <= 25);
   return short || candidates[0];
 }
 
@@ -64,194 +73,87 @@ function toCard(w: HSKWord): VocabCard {
   };
 }
 
-/* ---- Sentence Filtering (i+1 Hybrid Mode) ---- */
-
-function filterSentencesForLesson(
-  sentences: HSKSentence[],
-  knownWordsSet: Set<string>,
-  currentLessonWords: string[]
-): HSKSentence[] {
-  const activePool = new Set([...knownWordsSet, ...currentLessonWords]);
-
-  const matches = sentences.filter(s => {
-    let unknownCount = 0;
-    for (const req of s.required_words) {
-      if (!activePool.has(req)) {
-        unknownCount++;
-        if (unknownCount > 1) return false; // Allow at most 1 unknown word (+1 hypothesis)
-      }
-    }
-    return true;
-  });
-
-  return matches;
-}
-
-/* ---- Exercise generation ---- */
-
 function genExercises(
-  words: VocabCard[],
-  allCards: VocabCard[],
+  vocab: VocabCard[],
+  allPool: VocabCard[],
   lessonId: string,
   extraSentenceBuilds: Exercise[] = []
 ): Exercise[] {
-  const allM = allCards.map(c => c.meaning);
-  const allH = allCards.map(c => c.hanzi);
-  const ex: Exercise[] = [];
-  let n = 0;
+  const exercises: Exercise[] = [];
 
-  const pinyinMap = new Map(allCards.map(c => [c.hanzi, c.pinyin]));
+  for (let i = 0; i < vocab.length; i++) {
+    const v = vocab[i];
+    const eid = `${lessonId}-e${i}`;
 
-  for (const w of words) {
-    ex.push({
-      id: `${lessonId}-e${n++}`, wordId: w.id, type: 'reading-meaning',
-      prompt: w.hanzi, promptPinyin: w.pinyin,
-      hint: 'What does this mean?',
-      options: shuffle([w.meaning, ...pick(allM, 3, w.meaning)]),
-      answer: w.meaning,
+    // Exercise 1: Reading Meaning (Multiple choice: English meaning)
+    const distractorMeanings = pick(
+      allPool.map((w) => w.meaning),
+      3,
+      v.meaning
+    );
+    const meaningOptions = shuffle([v.meaning, ...distractorMeanings]);
+
+    exercises.push({
+      id: `${eid}-meaning`,
+      wordId: v.id,
+      type: 'reading-meaning',
+      prompt: v.hanzi,
+      promptPinyin: v.pinyin,
+      hint: `Pinyin: ${v.pinyin}`,
+      options: meaningOptions,
+      answer: v.meaning,
     });
 
-    const listenHanziOpts = shuffle([w.hanzi, ...pick(allH, 3, w.hanzi)]);
-    ex.push({
-      id: `${lessonId}-e${n++}`, wordId: w.id, type: 'listening-select',
-      prompt: 'Listen and select',
-      promptAudio: w.hanzi,
-      options: listenHanziOpts,
-      optionsPinyin: listenHanziOpts.map(h => pinyinMap.get(h) || ''),
-      answer: w.hanzi,
-    });
-  }
+    // Exercise 2: Reading Hanzi (Given English, choose Hanzi)
+    const distractorHanzi = pick(
+      allPool.map((w) => w.hanzi),
+      3,
+      v.hanzi
+    );
+    const hanziOptions = shuffle([v.hanzi, ...distractorHanzi]);
+    const hanziOptionsPinyin = hanziOptions.map((h) => allPool.find((x) => x.hanzi === h)?.pinyin || '');
 
-  for (const w of shuffle(words).slice(0, Math.ceil(words.length / 2))) {
-    const opts = shuffle([w.hanzi, ...pick(allH, 3, w.hanzi)]);
-    ex.push({
-      id: `${lessonId}-e${n++}`, wordId: w.id, type: 'reading-hanzi',
-      prompt: w.meaning, hint: 'Choose the correct characters',
-      options: opts,
-      optionsPinyin: opts.map(h => pinyinMap.get(h) || ''),
-      answer: w.hanzi,
+    exercises.push({
+      id: `${eid}-hanzi`,
+      wordId: v.id,
+      type: 'reading-hanzi',
+      prompt: `Select the character for "${v.meaning}"`,
+      promptPinyin: v.pinyin,
+      hint: `Pronunciation: ${v.pinyin}`,
+      options: hanziOptions,
+      optionsPinyin: hanziOptionsPinyin,
+      answer: v.hanzi,
     });
-  }
 
-  const pWord = shuffle(words)[0];
-  if (pWord) {
-    ex.push({
-      id: `${lessonId}-e${n++}`, wordId: pWord.id, type: 'pinyin-type',
-      prompt: pWord.hanzi, hint: 'Type the pinyin',
-      options: [], answer: pWord.pinyin,
-    });
-  }
-
-  const composeWord = words.find(w => w.hanzi.length >= 2);
-  if (composeWord) {
-    const chars = composeWord.hanzi.split('');
-    const charSet = new Set(chars);
-    const extras = shuffle(
-      allCards.flatMap(c => c.hanzi !== composeWord.hanzi ? c.hanzi.split('').filter(ch => !charSet.has(ch)) : [])
-    ).slice(0, 2);
-    ex.push({
-      id: `${lessonId}-e${n++}`, wordId: composeWord.id, type: 'compose',
-      prompt: composeWord.meaning, hint: composeWord.pinyin,
-      options: [], answer: composeWord.hanzi, bank: shuffle([...chars, ...extras]),
+    // Exercise 3: Listening Meaning (Audio prompt, select English meaning)
+    exercises.push({
+      id: `${eid}-listen`,
+      wordId: v.id,
+      type: 'listening-meaning',
+      prompt: 'Listen and select the correct meaning',
+      promptAudio: v.hanzi,
+      options: meaningOptions,
+      answer: v.meaning,
     });
   }
 
-  const strokeWord = shuffle(words.filter(w => w.hanzi.length === 1))[0];
-  if (strokeWord) {
-    ex.push({
-      id: `${lessonId}-e${n++}`, wordId: strokeWord.id, type: 'stroke-order',
-      prompt: strokeWord.meaning, hint: strokeWord.pinyin,
-      options: [], answer: strokeWord.hanzi,
-    });
+  // Interleave extra sentence builds
+  if (extraSentenceBuilds.length > 0) {
+    exercises.push(...extraSentenceBuilds);
   }
 
-  const first = ex.filter(e => e.type === 'reading-meaning');
-  const rest = shuffle(ex.filter(e => e.type !== 'reading-meaning'));
-
-  return [...first, ...rest, ...extraSentenceBuilds];
+  return shuffle(exercises);
 }
 
-/* ---- Build curriculum from API words & sentences ---- */
-
-export function buildCurriculum(words: HSKWord[], rawSentences: HSKSentence[] = []): Unit[] {
-  const cards = words.map(toCard);
-  const units: Unit[] = [];
-
-  const PRACTICAL = ['你好', '再见', '谢谢', '不客气', '对不起', '没关系', '是', '不', '我', '你', '他', '她', '们', '喝', '吃', '水', '饭', '茶', '咖啡', '学生', '老师', '家', '学校', '去', '在', '什么', '哪', '谁', '多', '少'];
-
-  const prioritizedCards = [
-    ...cards.filter(c => PRACTICAL.includes(c.hanzi)),
-    ...cards.filter(c => !PRACTICAL.includes(c.hanzi))
-  ];
-
-  const lessonGroups: VocabCard[][] = [];
-  for (let i = 0; i < prioritizedCards.length; i += WORDS_PER_LESSON) {
-    lessonGroups.push(prioritizedCards.slice(i, i + WORDS_PER_LESSON));
-  }
-
-  const knownWordsSet = new Set<string>();
-  let ui = 0;
-
-  for (let i = 0; i < lessonGroups.length; i += LESSONS_PER_UNIT) {
-    const groups = lessonGroups.slice(i, i + LESSONS_PER_UNIT);
-    const hsk = cards[0]?.hskLevel || 1;
-    const uid = `hsk${hsk}-u${ui}`;
-
-    const lessons: Lesson[] = groups.map((lw, li) => {
-      const lid = `${uid}-l${li}`;
-      const lessonWordHanzi = lw.map(w => w.hanzi);
-
-      let extraSentenceBuilds: Exercise[] = [];
-
-      if (rawSentences.length > 0) {
-        const suitableSentences = filterSentencesForLesson(rawSentences, knownWordsSet, lessonWordHanzi);
-        
-        // Stage 1 (Units 1-2: Index 0-1): Introduce 1 simple sentence build per lesson
-        if (ui <= 1 && suitableSentences.length >= 1) {
-          const earlySentences = pick(suitableSentences, 1);
-          extraSentenceBuilds = createSentenceBuildExercises(earlySentences, `${lid}-early-sent`, lessonWordHanzi);
-        }
-        // Stage 2 (Units 3-5: Index 2-4): Introduce 2 sentence builds per lesson
-        else if (ui >= 2 && ui <= 4 && suitableSentences.length >= 2) {
-          const midSentences = pick(suitableSentences, 2);
-          extraSentenceBuilds = createSentenceBuildExercises(midSentences, `${lid}-sent`, lessonWordHanzi);
-        }
-        // Stage 3 (Units 6+: Index 5+): Introduce 3-4 sentence builds per lesson
-        else if (ui >= 5 && suitableSentences.length >= 3) {
-          const complexSentences = pick(suitableSentences, 3);
-          extraSentenceBuilds = createSentenceBuildExercises(complexSentences, `${lid}-complex`, lessonWordHanzi);
-        }
-      }
-
-      // Add words to cumulative known set
-      lessonWordHanzi.forEach(w => knownWordsSet.add(w));
-
-      return {
-        id: lid, unitId: uid, index: li,
-        title: `Lesson ${i + li + 1}`,
-        summary: '???',
-        vocab: lw,
-        exercises: genExercises(lw, prioritizedCards, lid, extraSentenceBuilds),
-      };
-    });
-
-    units.push({
-      id: uid, hskLevel: hsk, index: ui,
-      title: `Unit ${ui + 1}: ${UNIT_NAMES[ui % UNIT_NAMES.length]}`,
-      description: `${lessons.reduce((s, l) => s + l.vocab.length, 0)} words · ${lessons.length} lessons`,
-      lessons,
-    });
-    ui++;
-  }
-
-  return units;
-}
-
-function createSentenceBuildExercises(sentences: HSKSentence[], prefix: string, distractorPool: string[] = []): Exercise[] {
-  const allTiles = Array.from(new Set([...sentences.flatMap(s => s.tiles), ...distractorPool]));
+function createSentenceBuildExercises(
+  sentences: HSKSentence[],
+  prefix: string,
+  distractorPool: string[] = []
+): Exercise[] {
+  const allTiles = Array.from(new Set([...sentences.flatMap((s) => s.tiles), ...distractorPool]));
 
   return sentences.map((s, i) => {
-    const distractors = shuffle(allTiles.filter(t => !s.tiles.includes(t))).slice(0, 3);
+    const distractors = shuffle(allTiles.filter((t) => !s.tiles.includes(t))).slice(0, 3);
     return {
       id: `${prefix}-${i}`,
       type: 'sentence-build',
@@ -264,98 +166,135 @@ function createSentenceBuildExercises(sentences: HSKSentence[], prefix: string, 
   });
 }
 
-/* ---- Utilities ---- */
+/**
+ * Builds deterministic structured curriculum units for target HSK level
+ */
+export function buildCurriculum(
+  words: HSKWord[],
+  rawSentences: HSKSentence[] = []
+): Unit[] {
+  const cards = words.map(toCard);
+  const units: Unit[] = [];
+  if (cards.length === 0) return units;
+
+  const hsk = cards[0]?.hskLevel || 1;
+
+  // Group cards into 10-word lesson chunks
+  const vocabChunks: VocabCard[][] = [];
+  for (let i = 0; i < cards.length; i += WORDS_PER_LESSON) {
+    vocabChunks.push(cards.slice(i, i + WORDS_PER_LESSON));
+  }
+
+  let unitIndex = 0;
+  for (let i = 0; i < vocabChunks.length; i += VOCAB_LESSONS_PER_UNIT) {
+    const unitVocabGroups = vocabChunks.slice(i, i + VOCAB_LESSONS_PER_UNIT);
+    const uid = `hsk${hsk}-u${unitIndex}`;
+    const allUnitWords = unitVocabGroups.flat();
+
+    // 5 Vocabulary Lessons
+    const lessons: Lesson[] = unitVocabGroups.map((lw, li) => {
+      const lid = `${uid}-l${li}`;
+      const lessonWordHanzi = lw.map((w) => w.hanzi);
+
+      let extraSentences: Exercise[] = [];
+      if (rawSentences.length > 0) {
+        const matchingSentences = rawSentences.filter((s) =>
+          s.required_words.some((rw) => lessonWordHanzi.includes(rw))
+        );
+        if (matchingSentences.length > 0) {
+          extraSentences = createSentenceBuildExercises(
+            pick(matchingSentences, 1),
+            `${lid}-sent`,
+            lessonWordHanzi
+          );
+        }
+      }
+
+      return {
+        id: lid,
+        unitId: uid,
+        index: li,
+        title: `Lesson ${li + 1}`,
+        summary: lw.map((w) => w.hanzi).slice(0, 4).join(', ') + '...',
+        vocab: lw,
+        exercises: genExercises(lw, cards, lid, extraSentences),
+      };
+    });
+
+    // 1 Checkpoint Review Lesson per Unit
+    const checkpointId = `${uid}-checkpoint`;
+    const checkpointExercises = shuffle([
+      ...allUnitWords.slice(0, 10).map((v, idx) => ({
+        id: `${checkpointId}-c${idx}`,
+        wordId: v.id,
+        type: 'reading-meaning' as const,
+        prompt: v.hanzi,
+        promptPinyin: v.pinyin,
+        hint: v.pinyin,
+        options: shuffle([v.meaning, ...pick(cards.map((c) => c.meaning), 3, v.meaning)]),
+        answer: v.meaning,
+      })),
+      ...createSentenceBuildExercises(
+        pick(rawSentences.length > 0 ? rawSentences : [], 2),
+        `${checkpointId}-boss`,
+        allUnitWords.map((w) => w.hanzi)
+      ),
+    ]);
+
+    lessons.push({
+      id: checkpointId,
+      unitId: uid,
+      index: VOCAB_LESSONS_PER_UNIT,
+      title: 'Unit Checkpoint',
+      summary: 'Cumulative unit review & challenge',
+      vocab: allUnitWords,
+      exercises: checkpointExercises,
+    });
+
+    units.push({
+      id: uid,
+      hskLevel: hsk,
+      index: unitIndex,
+      title: `Unit ${unitIndex + 1}: ${UNIT_NAMES[unitIndex % UNIT_NAMES.length]}`,
+      description: `${allUnitWords.length} words · 5 lessons + 1 checkpoint`,
+      lessons,
+    });
+
+    unitIndex++;
+  }
+
+  return units;
+}
 
 export function allLessonsFlat(units: Unit[]): Lesson[] {
-  return units.flatMap(u => u.lessons);
+  return units.flatMap((u) => u.lessons);
 }
 
 export function findLesson(units: Unit[], id: string): { unit: Unit; lesson: Lesson } | null {
   for (const u of units) {
-    const l = u.lessons.find(l => l.id === id);
+    const l = u.lessons.find((l) => l.id === id);
     if (l) return { unit: u, lesson: l };
   }
   return null;
 }
 
-export function nextLessonId(units: Unit[], after: string): string | null {
+export function nextLessonId(units: Unit[], currentId: string): string | null {
   const flat = allLessonsFlat(units);
-  const i = flat.findIndex(l => l.id === after);
-  return i >= 0 && i + 1 < flat.length ? flat[i + 1].id : null;
+  const idx = flat.findIndex((l) => l.id === currentId);
+  if (idx >= 0 && idx < flat.length - 1) {
+    return flat[idx + 1].id;
+  }
+  return null;
 }
 
-export function isLessonUnlocked(id: string, units: Unit[], done: string[]): boolean {
+export function isLessonUnlocked(
+  lessonId: string,
+  completedLessons: string[],
+  units: Unit[]
+): boolean {
   const flat = allLessonsFlat(units);
-  const i = flat.findIndex(l => l.id === id);
-  if (i <= 0) return true;
-  return done.includes(flat[i - 1].id);
-}
-
-export function genExercisesForVocab(words: VocabCard[], allCards: VocabCard[]): Exercise[] {
-  const padded = allCards.length < 4 ? [...allCards, ...words, ...words] : allCards;
-  return genExercises(words, padded, 'drill-session');
-}
-
-export function genSentenceBuildExercises(sentences: HSKSentence[] = []): Exercise[] {
-  const pool = sentences.length > 0 ? pick(sentences, 10) : [];
-  if (pool.length === 0) return [];
-  return createSentenceBuildExercises(pool, 'sent-drill');
-}
-
-const TONES = [
-  ['ā','á','ǎ','à','a'],
-  ['ē','é','ě','è','e'],
-  ['ī','í','ǐ','ì','i'],
-  ['ō','ó','ǒ','ò','o'],
-  ['ū','ú','ǔ','ù','u'],
-  ['ǖ','ǘ','ǚ','ǜ','ü']
-];
-
-const TONES_SETS = TONES.map(group => ({
-  group,
-  set: new Set(group),
-}));
-
-function generateToneDistractors(correctPinyin: string): string[] {
-  const distractors = new Set<string>();
-  distractors.add(correctPinyin);
-
-  let attempts = 0;
-  while (distractors.size < 4 && attempts < 100) {
-    attempts++;
-    let fakePinyin = correctPinyin;
-    for (const { group, set } of TONES_SETS) {
-      for (let i = 0; i < fakePinyin.length; i++) {
-        const char = fakePinyin[i];
-        if (set.has(char)) {
-          const fakeChar = group[Math.floor(Math.random() * group.length)];
-          fakePinyin = fakePinyin.replace(char, fakeChar);
-        }
-      }
-    }
-    distractors.add(fakePinyin);
-  }
-
-  const fallback = ['mā ma', 'bà ba', 'hěn hǎo', 'bù shì'];
-  while(distractors.size < 4) {
-    distractors.add(fallback[Math.floor(Math.random() * fallback.length)]);
-  }
-
-  return shuffle(Array.from(distractors)).slice(0, 4);
-}
-
-export function genToneDrillExercises(vocab: VocabCard[]): Exercise[] {
-  if (vocab.length === 0) return [];
-  const pool = pick(vocab, 15);
-  return pool.map((w, i) => {
-    return {
-      id: `tone-${i}`,
-      wordId: w.id,
-      type: 'listening-select',
-      prompt: 'Listen and pick the correct tones',
-      promptAudio: w.hanzi,
-      answer: w.pinyin,
-      options: generateToneDistractors(w.pinyin),
-    };
-  });
+  const idx = flat.findIndex((l) => l.id === lessonId);
+  if (idx <= 0) return true; // First lesson is always unlocked
+  const prevLesson = flat[idx - 1];
+  return completedLessons.includes(prevLesson.id);
 }

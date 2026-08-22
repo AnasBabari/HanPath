@@ -1,133 +1,69 @@
-import { useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import { useEffect, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import './App.css';
-import { fetchHSKLevel, fetchSentences } from './utils/api';
+import { fetchHSKLevel, fetchSentencesForLevel } from './utils/api';
 import { buildCurriculum } from './utils/curriculum';
 import { checkNewAchievements } from './utils/gamification';
 import { playLevelUp } from './utils/sounds';
-import {
-  getLocalProgressUpdatedAt,
-  initCloudProgress,
-  loadCloudProgress,
-  reconcileProgress,
-  saveCloudProgress,
-  setLocalProgressUpdatedAt,
-} from './utils/cloudProgress';
 import { useStore } from './store/useStore';
 
 // Components
 import AchievementToast from './components/ui/AchievementToast';
 import BottomNav from './components/ui/BottomNav';
+import SidebarNav from './components/ui/SidebarNav';
+import AppHeader from './components/ui/AppHeader';
 import LearnPage from './pages/LearnPage';
 
-// Lazy-loaded secondary routes for performance and bundle splitting
+// Lazy-loaded secondary routes for bundle splitting
 const PracticePage = lazy(() => import('./pages/PracticePage'));
 const StoriesPage = lazy(() => import('./pages/StoriesPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
 const ReviewPage = lazy(() => import('./pages/ReviewPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const LicensesPage = lazy(() => import('./pages/LicensesPage'));
 
 import logo from './assets/logo.png';
 
 function PageFallback() {
   return (
-    <div className="shell" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="loading-spinner" />
+    <div className="flex-1 flex items-center justify-center p-12 min-h-[50vh]">
+      <div className="w-10 h-10 border-4 border-primary-light border-t-primary rounded-full animate-spin" />
     </div>
   );
 }
 
-/* ---- App Wrapper for Navigation ---- */
-
 function AppContent() {
-  const { 
-    stats, setStats, 
-    cloudUserId, setCloudUserId, 
-    units, setUnits, 
+  const {
+    units,
+    setUnits,
     hskLevel,
-    loading, setLoading, 
-    error, setError, 
-    toast, setToast,
-    isFullScreen
+    loading,
+    setLoading,
+    error,
+    setError,
+    toast,
+    setToast,
+    isFullScreen,
+    stats,
+    unlockAchievement,
+    initAuthSession,
   } = useStore();
 
   const location = useLocation();
-  const cloudSyncReady = useRef(false);
-  const statsFingerprint = useRef<string | null>(null);
 
-  /* Track progress changes for cloud reconciliation */
+  /* Initialize Authentication session on mount */
   useEffect(() => {
-    const fingerprint = JSON.stringify(stats);
-    if (cloudSyncReady.current && statsFingerprint.current !== null && fingerprint !== statsFingerprint.current) {
-      setLocalProgressUpdatedAt(new Date().toISOString());
-    }
-    statsFingerprint.current = fingerprint;
-  }, [stats]);
+    void initAuthSession();
+  }, [initAuthSession]);
 
-  /* Hydrate cloud profile and migrate local stats on first run */
-  useEffect(() => {
-    let active = true;
-
-    const bootstrapCloud = async () => {
-      try {
-        const userId = await initCloudProgress();
-        if (!active || !userId) return;
-
-        setCloudUserId(userId);
-
-        const currentStats = useStore.getState().stats;
-        const cloudProgress = await loadCloudProgress(userId);
-        if (!active) return;
-
-        const reconciliation = reconcileProgress(
-          currentStats,
-          getLocalProgressUpdatedAt(),
-          cloudProgress,
-        );
-        setLocalProgressUpdatedAt(reconciliation.updatedAt);
-        statsFingerprint.current = JSON.stringify(reconciliation.stats);
-
-        if (reconciliation.source === 'cloud') {
-          setStats(reconciliation.stats);
-        } else {
-          await saveCloudProgress(userId, reconciliation.stats, reconciliation.updatedAt);
-        }
-
-        cloudSyncReady.current = true;
-      } catch (e) {
-        console.error('Cloud sync init failed:', e);
-      }
-    };
-
-    void bootstrapCloud();
-    return () => {
-      active = false;
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /* Debounced cloud save */
-  useEffect(() => {
-    if (!cloudUserId) return;
-
-    const timer = window.setTimeout(() => {
-      const updatedAt = getLocalProgressUpdatedAt() ?? new Date().toISOString();
-      void saveCloudProgress(cloudUserId, stats, updatedAt).catch((e) => {
-        console.error('Cloud save failed:', e);
-      });
-    }, 800);
-
-    return () => window.clearTimeout(timer);
-  }, [cloudUserId, stats]);
-
-  /* Fetch HSK vocab & sentences on mount or level change */
-  const doFetch = useCallback(async () => {
-    setLoading(true); setError(null);
+  /* Fetch HSK vocab & sentences whenever target level changes */
+  const loadCurriculum = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const [words, sentences] = await Promise.all([
         fetchHSKLevel(hskLevel),
-        fetchSentences(hskLevel)
+        fetchSentencesForLevel(hskLevel),
       ]);
       setUnits(buildCurriculum(words, sentences));
     } catch (e) {
@@ -138,71 +74,84 @@ function AppContent() {
   }, [hskLevel, setLoading, setError, setUnits]);
 
   useEffect(() => {
-    void doFetch();
-  }, [doFetch]);
+    void loadCurriculum();
+  }, [loadCurriculum]);
 
-  /* Check achievements */
+  /* Check Achievements */
   useEffect(() => {
     const newAch = checkNewAchievements(stats);
     if (newAch.length > 0) {
-      setStats(s => ({ ...s, unlockedAchievements: [...s.unlockedAchievements, ...newAch] }));
+      newAch.forEach((id) => unlockAchievement(id));
       setToast(newAch[0]);
       playLevelUp();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stats.completedLessons.length, stats.totalXP, stats.streak, stats.wordsLearned, stats.level]);
+  }, [stats, setToast, unlockAchievement]);
 
   /* Loading State */
-  if (loading) {
+  if (loading && !units) {
     return (
-      <div className="loading-screen">
-        <div className="loading-logo-glow" />
-        <img src={logo} alt="HànPath" className="loading-logo" />
-        <h1>HànPath</h1>
-        <div className="loading-spinner" />
-        <p style={{ color: 'var(--text-dim)', fontWeight: 800, fontSize: 14 }}>Connecting to curriculum...</p>
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <img src={logo} alt="HànPath" className="w-16 h-16 object-contain rounded-2xl animate-pulse" />
+        <h1 className="text-3xl font-bold font-display text-primary">HànPath</h1>
+        <div className="w-8 h-8 border-3 border-primary-light border-t-primary rounded-full animate-spin" />
+        <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+          Loading HSK {hskLevel} Curriculum...
+        </p>
       </div>
     );
   }
 
   if (error || !units) {
     return (
-      <div className="loading-screen">
-        <div className="loading-error-card">
-          <img src={logo} alt="HànPath" className="loading-logo error" />
-          <h1>Oops!</h1>
-          <p style={{ color: 'var(--text-dim)', marginBottom: 24, fontWeight: 700 }}>
-            {error || 'We couldn\'t load the curriculum. Please check your internet connection.'}
-          </p>
-          <button type="button" className="btn-primary" onClick={() => void doFetch()}>
-            Try again
-          </button>
-        </div>
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <img src={logo} alt="HànPath" className="w-16 h-16 object-contain rounded-2xl grayscale" />
+        <h1 className="text-2xl font-bold font-display text-red-accessible">Curriculum Error</h1>
+        <p className="text-sm text-on-surface-variant max-w-sm">
+          {error || 'Failed to load HSK curriculum.'}
+        </p>
+        <button
+          type="button"
+          onClick={() => void loadCurriculum()}
+          className="touch-target px-6 py-3 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
-  const showNav = ['/', '/practice', '/stories', '/chat', '/review', '/profile'].includes(location.pathname) && !isFullScreen;
+  const isFocusedExerciseOrStory = isFullScreen;
+  const isLicensesPage = location.pathname === '/licenses';
 
   return (
-    <div className="app-root">
+    <div className="min-h-screen flex flex-col md:flex-row bg-surface text-on-surface">
       {toast && <AchievementToast id={toast} onDone={() => setToast(null)} />}
 
-      <Suspense fallback={<PageFallback />}>
-        <Routes>
-          <Route path="/" element={<LearnPage />} />
-          <Route path="/practice" element={<PracticePage />} />
-          <Route path="/stories" element={<StoriesPage />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/review" element={<ReviewPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+      {/* Desktop Sidebar Navigation */}
+      {!isFocusedExerciseOrStory && !isLicensesPage && <SidebarNav />}
 
-      {showNav && (
-        <BottomNav />
-      )}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        {!isFocusedExerciseOrStory && !isLicensesPage && <AppHeader />}
+
+        <main id="main-content" className="flex-1 flex flex-col min-w-0">
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
+              <Route path="/" element={<LearnPage />} />
+              <Route path="/practice" element={<PracticePage />} />
+              <Route path="/stories" element={<StoriesPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/review" element={<ReviewPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/licenses" element={<LicensesPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
+
+        {/* Mobile Bottom Navigation */}
+        {!isFocusedExerciseOrStory && !isLicensesPage && <BottomNav />}
+      </div>
     </div>
   );
 }
@@ -215,4 +164,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-

@@ -1,96 +1,104 @@
-import { describe, expect, it } from 'vitest';
-import type { UserStats } from '../types';
-import { reconcileProgress } from './cloudProgress';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { fetchCloudProgress, syncCloudProgress, deleteCloudAccount } from './cloudProgress';
+import { createDefaultProgressSnapshotV4 } from './progressSchema';
+import type { SyncEnvelope } from '../types';
 
-const stats = (totalXP: number, streak = 0, completedLessons: string[] = []): UserStats => ({
-  totalXP,
-  level: Math.floor(totalXP / 100) + 1,
-  streak,
-  longestStreak: streak,
-  completedLessons,
-  wordsLearned: completedLessons.length * 4,
-  totalCorrect: totalXP / 10,
-  totalAttempted: totalXP / 10,
-  lessonsCompletedToday: completedLessons.length,
-  dailyGoalMinutes: 10,
-  minutesStudiedToday: 5,
-  lastStudyDate: '2026-08-14',
-  lastSessionStart: null,
-  unlockedAchievements: [],
-  revealPinyin: 'always',
-  wordAccuracy: {},
-  wordSRS: {},
-  xpToday: totalXP,
-  perfectLessonsToday: 0,
-  streakExtendedToday: false,
-  readStories: [],
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
-describe('Cloud Progress Reconciliation & Conflict Engine', () => {
-  it('handles local data present when cloud is completely absent (first sync)', () => {
-    const local = stats(50, 1, ['u1-l1']);
-    const result = reconcileProgress(local, '2026-08-14T10:00:00.000Z', null);
-    expect(result.source).toBe('local');
-    expect(result.stats.totalXP).toBe(50);
-    expect(result.updatedAt).toBe('2026-08-14T10:00:00.000Z');
-  });
-
-  it('keeps a strictly newer local snapshot when local timestamp > cloud timestamp', () => {
-    const local = stats(120, 2, ['u1-l1', 'u1-l2']);
-    const cloud = {
-      stats: stats(70, 1, ['u1-l1']),
-      updatedAt: '2026-08-14T10:00:00.000Z',
+describe('Cloud Progress Client Sync', () => {
+  it('fetches cloud progress and validates schema successfully', async () => {
+    const mockEnvelope: SyncEnvelope = {
+      snapshot: createDefaultProgressSnapshotV4(),
+      version: 3,
+      updatedAt: '2026-08-22T10:00:00Z',
     };
 
-    const result = reconcileProgress(local, '2026-08-14T10:05:00.000Z', cloud);
-    expect(result.source).toBe('local');
-    expect(result.stats.totalXP).toBe(120);
-    expect(result.stats.completedLessons).toHaveLength(2);
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => mockEnvelope,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await fetchCloudProgress('mock-auth-token');
+    expect(result).toBeDefined();
+    expect(result?.version).toBe(3);
+    expect(fetchMock).toHaveBeenCalledWith('/api/progress', expect.objectContaining({
+      headers: { Authorization: 'Bearer mock-auth-token' },
+    }));
   });
 
-  it('hydrates a strictly newer cloud snapshot when cloud timestamp > local timestamp', () => {
-    const local = stats(50, 1, ['u1-l1']);
-    const cloud = {
-      stats: stats(250, 5, ['u1-l1', 'u1-l2', 'u1-l3']),
-      updatedAt: '2026-08-14T11:00:00.000Z',
+  it('returns null when 404 is received (no existing cloud progress)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await fetchCloudProgress('mock-auth-token');
+    expect(result).toBeNull();
+  });
+
+  it('handles 409 conflict by re-merging local and cloud state and retrying once', async () => {
+    const local = createDefaultProgressSnapshotV4();
+    local.hskLevelProgress[1].completedLessons = ['lesson-1'];
+
+    const cloudSnapshot = createDefaultProgressSnapshotV4();
+    cloudSnapshot.hskLevelProgress[1].completedLessons = ['lesson-2'];
+
+    const conflictEnvelope: SyncEnvelope = {
+      snapshot: cloudSnapshot,
+      version: 2,
+      updatedAt: '2026-08-22T09:00:00Z',
     };
 
-    const result = reconcileProgress(local, '2026-08-14T09:00:00.000Z', cloud);
-    expect(result.source).toBe('cloud');
-    expect(result.stats.totalXP).toBe(250);
-    expect(result.stats.completedLessons).toHaveLength(3);
+    let callCount = 0;
+    const fetchMock = vi.fn().mockImplementation((_url, init) => {
+      callCount++;
+      if (callCount === 1) {
+        // First call returns 409 Conflict
+        return Promise.resolve({
+          ok: false,
+          status: 409,
+          json: async () => ({ currentEnvelope: conflictEnvelope }),
+        });
+      }
+      // Retry call returns 200 OK
+      const sentBody = JSON.parse(init.body);
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          snapshot: sentBody.snapshot,
+          version: 3,
+          updatedAt: '2026-08-22T10:00:00Z',
+        }),
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await syncCloudProgress('token', local, 1);
+    expect(result.success).toBe(true);
+    expect(result.isConflictResolved).toBe(true);
+    expect(callCount).toBe(2);
+    expect(result.mergedSnapshot?.hskLevelProgress[1].completedLessons).toContain('lesson-1');
+    expect(result.mergedSnapshot?.hskLevelProgress[1].completedLessons).toContain('lesson-2');
   });
 
-  it('uses cloud on equal timestamps for deterministic multi-device convergence', () => {
-    const timestamp = '2026-08-14T12:00:00.000Z';
-    const local = stats(100);
-    const cloud = {
-      stats: stats(150),
-      updatedAt: timestamp,
-    };
+  it('deletes cloud account successfully', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
 
-    const result = reconcileProgress(local, timestamp, cloud);
-    expect(result.source).toBe('cloud');
-    expect(result.stats.totalXP).toBe(150);
-  });
-
-  it('handles invalid or corrupt local timestamps safely by defaulting to cloud or fallback', () => {
-    const local = stats(30);
-    const cloud = {
-      stats: stats(80),
-      updatedAt: '2026-08-14T10:00:00.000Z',
-    };
-
-    const result = reconcileProgress(local, 'not-a-valid-date', cloud);
-    expect(result.source).toBe('cloud');
-    expect(result.stats.totalXP).toBe(80);
-  });
-
-  it('generates a fallback timestamp if local is missing and cloud is null', () => {
-    const local = stats(10);
-    const result = reconcileProgress(local, null, null);
-    expect(result.source).toBe('local');
-    expect(typeof result.updatedAt).toBe('string');
-    expect(Date.parse(result.updatedAt)).toBeGreaterThan(0);
+    const result = await deleteCloudAccount('token');
+    expect(result.success).toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith('/api/account', expect.objectContaining({
+      method: 'DELETE',
+    }));
   });
 });
