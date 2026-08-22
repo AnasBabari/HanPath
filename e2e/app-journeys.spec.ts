@@ -165,7 +165,13 @@ test.describe('HànPath Core User Journeys (E2E)', () => {
           run: (
             context: Document,
             options: { runOnly: { type: string; values: string[] } }
-          ) => Promise<{ violations: Array<{ id: string; impact: string | null; nodes: unknown[] }> }>;
+          ) => Promise<{
+            violations: Array<{
+              id: string;
+              impact: string | null;
+              nodes: Array<{ target: unknown; html: string; failureSummary?: string }>;
+            }>;
+          }>;
         };
       }).axe;
       const results = await axe.run(document, {
@@ -176,7 +182,15 @@ test.describe('HànPath Core User Journeys (E2E)', () => {
       });
       return results.violations
         .filter(violation => violation.impact === 'serious' || violation.impact === 'critical')
-        .map(violation => ({ id: violation.id, impact: violation.impact, nodes: violation.nodes.length }));
+        .map(violation => ({
+          id: violation.id,
+          impact: violation.impact,
+          nodes: violation.nodes.map(node => ({
+            target: node.target,
+            html: node.html,
+            failureSummary: node.failureSummary,
+          })),
+        }));
     });
 
     expect(violations).toEqual([]);
