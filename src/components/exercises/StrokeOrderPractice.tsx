@@ -6,9 +6,15 @@ interface StrokeOrderPracticeProps {
   onMistake?: () => void;
 }
 
+interface HanziWriterInstance {
+  animateCharacter?: () => void;
+  cancelQuiz?: () => void;
+  quiz: (options?: { onMistake?: () => void; onComplete?: () => void }) => void;
+}
+
 export default function StrokeOrderPractice({ character, onComplete, onMistake }: StrokeOrderPracticeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const writerRef = useRef<{ create: Function; cancelQuiz?: Function; animateCharacter?: Function } | any>(null);
+  const writerRef = useRef<HanziWriterInstance | null>(null);
   const [completed, setCompleted] = useState(false);
   const callbacks = useRef({ onComplete, onMistake });
   
@@ -88,7 +94,7 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
       {!completed && (
         <button 
           type="button"
-          onClick={() => writerRef.current?.animateCharacter()}
+          onClick={() => writerRef.current?.animateCharacter?.()}
           style={{
             background: 'none',
             border: 'none',

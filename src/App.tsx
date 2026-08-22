@@ -12,8 +12,9 @@ import AchievementToast from './components/ui/AchievementToast';
 import BottomNav from './components/ui/BottomNav';
 import SidebarNav from './components/ui/SidebarNav';
 import AppHeader from './components/ui/AppHeader';
-// Lazy-loaded routes for optimal initial page-load performance
-const LearnPage = lazy(() => import('./pages/LearnPage'));
+import LearnPage from './pages/LearnPage';
+
+// Lazy-loaded secondary routes for optimal code-splitting
 const PracticePage = lazy(() => import('./pages/PracticePage'));
 const StoriesPage = lazy(() => import('./pages/StoriesPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));

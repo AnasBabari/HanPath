@@ -49,7 +49,10 @@ export default function AuthCallbackPage() {
           return;
         }
 
+        let isResolved = false;
+
         if (session) {
+          isResolved = true;
           await initAuthSession();
           if (isMounted) {
             setStatus('success');
@@ -63,6 +66,7 @@ export default function AuthCallbackPage() {
         // If no session found yet, wait for onAuthStateChange
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event, newSession) => {
           if (newSession && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+            isResolved = true;
             await initAuthSession();
             if (isMounted) {
               setStatus('success');
@@ -76,7 +80,7 @@ export default function AuthCallbackPage() {
 
         // Timeout fallback after 8 seconds
         setTimeout(() => {
-          if (isMounted && status === 'loading') {
+          if (isMounted && !isResolved) {
             authListener.subscription.unsubscribe();
             setStatus('error');
             setErrorMessage('Authentication timed out. Please return to profile and try again.');

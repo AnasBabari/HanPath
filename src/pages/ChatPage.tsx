@@ -26,7 +26,7 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
   }, [chatHistory, loading]);
 
   const handleSend = async (textToSend?: string) => {

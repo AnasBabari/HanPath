@@ -431,7 +431,7 @@ export default async function handler(
       modelId: result.modelUsed,
     });
     res.end(JSON.stringify(responseBody));
-  } catch (err: unknown) {
+  } catch {
     res.statusCode = 500;
     const errObj: ChatErrorResponse = {
       error: {

@@ -52,6 +52,7 @@ export default function AppHeader() {
           <div
             className="flex items-center gap-1.5 px-3 py-1 bg-surface-container rounded-full border border-border text-xs font-bold text-amber-accessible"
             title={`${stats.streak} Day Study Streak`}
+            role="status"
             aria-label={`${stats.streak} day study streak`}
           >
             <Flame className="w-4 h-4 text-gold-badge fill-gold-badge" />
@@ -62,6 +63,7 @@ export default function AppHeader() {
           <div
             className="flex items-center gap-1.5 px-3 py-1 bg-primary-light rounded-full border border-primary/20 text-xs font-bold text-primary"
             title={`${stats.totalXP} Total Experience Points`}
+            role="status"
             aria-label={`${stats.totalXP} total experience points`}
           >
             <Star className="w-4 h-4 fill-primary" />
@@ -72,6 +74,7 @@ export default function AppHeader() {
           <div
             className="hidden sm:flex items-center justify-center p-1.5 text-on-surface-variant"
             title={authSession.user ? (syncStatus === 'syncing' ? 'Syncing...' : 'Cloud Synced') : 'Guest Mode (Local)'}
+            role="status"
             aria-label={authSession.user ? (syncStatus === 'syncing' ? 'Syncing progress' : 'Cloud progress synced') : 'Guest mode local storage'}
           >
             {syncStatus === 'synced' ? (

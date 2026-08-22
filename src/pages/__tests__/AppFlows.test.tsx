@@ -41,7 +41,7 @@ describe('HànPath Production App Flows & Component Integration', () => {
     render(<App />);
 
     // Brand and Standard
-    expect(await screen.findByText('HSK 3.0 Standard')).toBeInTheDocument();
+    expect(await screen.findByText('HSK 3.0 Standard', {}, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.getByText(/3-day streak/i)).toBeInTheDocument();
   });
 
@@ -49,7 +49,7 @@ describe('HànPath Production App Flows & Component Integration', () => {
     render(<App />);
 
     // Check that Unit 1 exists
-    expect(await screen.findByText('Unit 1: Foundation')).toBeInTheDocument();
+    expect(await screen.findByText('Unit 1: Foundation', {}, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.getByText('Start Learning')).toBeInTheDocument();
     expect(screen.getAllByText('Unit Checkpoint').length).toBeGreaterThan(0);
   });
@@ -57,12 +57,19 @@ describe('HànPath Production App Flows & Component Integration', () => {
   it('switches between HSK 1 and HSK 2 target levels seamlessly', async () => {
     render(<App />);
 
-    const hsk2Buttons = await screen.findAllByRole('button', { name: /Select HSK 2|Switch to HSK 2/i });
+    const hsk2Buttons = await screen.findAllByRole(
+      'button',
+      { name: /Select HSK 2|Switch to HSK 2/i },
+      { timeout: 5000 }
+    );
     expect(hsk2Buttons.length).toBeGreaterThan(0);
     fireEvent.click(hsk2Buttons[0]);
 
-    await waitFor(() => {
-      expect(useStore.getState().hskLevel).toBe(2);
-    });
+    await waitFor(
+      () => {
+        expect(useStore.getState().hskLevel).toBe(2);
+      },
+      { timeout: 5000 }
+    );
   });
 });

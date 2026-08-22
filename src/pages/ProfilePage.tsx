@@ -536,15 +536,16 @@ export default function ProfilePage() {
                 <div className="text-sm font-bold text-on-surface">Restore Progress (JSON)</div>
                 <div className="text-xs text-on-surface-variant">Import validated backup snapshot</div>
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleImportFile}
-                className="hidden"
-                aria-hidden="true"
-              />
             </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImportFile}
+              className="hidden"
+              aria-hidden="true"
+              tabIndex={-1}
+            />
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
