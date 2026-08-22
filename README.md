@@ -83,7 +83,7 @@ Browser Client (React 19 + Vite 8 + Zustand)
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js `20.x`
+- Node.js `24.x`
 - npm `10.x` or later
 
 ### 1. Installation & Local Development

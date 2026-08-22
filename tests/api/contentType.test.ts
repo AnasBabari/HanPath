@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isJsonContentType } from './_lib/contentType.js';
+import { isJsonContentType } from '../../api/_lib/contentType.js';
 
 describe('isJsonContentType', () => {
   it.each([

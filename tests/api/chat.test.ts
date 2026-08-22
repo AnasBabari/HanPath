@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import handler, { validateChatPayload, isAllowedOrigin } from './chat.js';
-import { signGuestId } from './_lib/guest.js';
+import handler, { validateChatPayload, isAllowedOrigin } from '../../api/chat.js';
+import { signGuestId } from '../../api/_lib/guest.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
 

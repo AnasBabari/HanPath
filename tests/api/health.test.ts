@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import handler from './health.js';
+import handler from '../../api/health.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 afterEach(() => {

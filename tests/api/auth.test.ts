@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { resolveIdentity } from './_lib/auth';
-import { signGuestId, verifyGuestId } from './_lib/guest';
+import { resolveIdentity } from '../../api/_lib/auth.js';
+import { signGuestId, verifyGuestId } from '../../api/_lib/guest.js';
 
-vi.mock('./_lib/supabaseAdmin', () => ({
+vi.mock('../../api/_lib/supabaseAdmin.js', () => ({
   getSupabaseAdmin: vi.fn(),
 }));
 
-import { getSupabaseAdmin } from './_lib/supabaseAdmin';
+import { getSupabaseAdmin } from '../../api/_lib/supabaseAdmin.js';
 
 describe('Authentication & Guest Identity Boundary', () => {
   const originalEnv = { ...process.env };

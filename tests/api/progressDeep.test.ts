@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import handler from './progress.js';
-import * as authLib from './_lib/auth.js';
-import * as dbLib from './_lib/supabaseAdmin.js';
-import { createDefaultProgressSnapshotV4 } from '../src/utils/progressSchema.js';
+import handler from '../../api/progress.js';
+import * as authLib from '../../api/_lib/auth.js';
+import * as dbLib from '../../api/_lib/supabaseAdmin.js';
+import { createDefaultProgressSnapshotV4 } from '../../src/utils/progressSchema.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
 

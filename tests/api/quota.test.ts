@@ -1,11 +1,11 @@
 ﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { checkAndRecordQuota, QuotaStoreUnavailableError, QUOTA_LIMITS } from './_lib/quota';
+import { checkAndRecordQuota, QuotaStoreUnavailableError, QUOTA_LIMITS } from '../../api/_lib/quota.js';
 
-vi.mock('./_lib/supabaseAdmin', () => ({
+vi.mock('../../api/_lib/supabaseAdmin.js', () => ({
   getSupabaseAdmin: vi.fn(),
 }));
 
-import { getSupabaseAdmin } from './_lib/supabaseAdmin';
+import { getSupabaseAdmin } from '../../api/_lib/supabaseAdmin.js';
 
 describe('Quota Rate-Limiting & Production Fail-Closed Boundary', () => {
   const originalEnv = { ...process.env };

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { callOpenRouterWithFallback, RELIABLE_FREE_MODELS } from './_lib/openRouter.js';
+import { callOpenRouterWithFallback, RELIABLE_FREE_MODELS } from '../../api/_lib/openRouter.js';
 
 afterEach(() => {
   vi.restoreAllMocks();

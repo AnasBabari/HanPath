@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import handler from './account.js';
-import * as authLib from './_lib/auth.js';
-import * as dbLib from './_lib/supabaseAdmin.js';
+import handler from '../../api/account.js';
+import * as authLib from '../../api/_lib/auth.js';
+import * as dbLib from '../../api/_lib/supabaseAdmin.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
 
