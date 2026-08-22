@@ -23,7 +23,17 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
-      - run: npm test -- --run
+      - name: Print Node and npm version
+        run: |
+          node -v
+          npm -v
+      - name: Install dependencies (clean lockfile)
+        run: npm ci
+      - name: Run verification checks (lint, typecheck, unit tests, build)
+        run: npm run check
+      - name: Verify production bundle size budget
+        run: npm run check:bundle
+      - name: Run coverage analysis
+        run: npm run test:coverage
+      - name: Security audit
+        run: npm audit --audit-level=high
