@@ -2,7 +2,7 @@ name: HànPath CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'codex/*']
   pull_request:
     branches: [main, master]
 
@@ -16,14 +16,86 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
-      - run: npm test -- --run
+
+      - name: Print Node and npm version
+        run: |
+          node -v
+          npm -v
+
+      - name: Install dependencies (clean lockfile)
+        run: npm ci
+
+      - name: Trailing whitespace check
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git diff --check "${{ github.event.pull_request.base.sha }}...HEAD"
+          else
+            git show --check --format= HEAD
+          fi
+
+      - name: Run verification checks (lint, typecheck, unit tests, build)
+        run: npm run check
+
+      - name: Apply Supabase migrations and verify account cascade
+        env:
+          PGPASSWORD: postgres
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+          psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE anon NOLOGIN;
+          CREATE ROLE authenticated NOLOGIN;
+          CREATE ROLE service_role NOLOGIN;
+          CREATE SCHEMA auth;
+          CREATE TABLE auth.users (id UUID PRIMARY KEY);
+          SQL
+          for migration in supabase/migrations/*.sql; do
+            psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f "$migration"
+          done
+          psql -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f supabase/tests/account_deletion_cascade.sql
+
+      - name: Verify production bundle size budget (<130 KB gzip initial)
+        run: npm run check:bundle
+
+      - name: "Run coverage analysis (enforce thresholds: >=80% lines, >=75% fn, >=70% branches)"
+        run: npm run test:coverage
+
+      - name: Security audit
+        run: npm audit --audit-level=high
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E browser tests
+        run: npx playwright test
+
+      - name: Upload Playwright test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

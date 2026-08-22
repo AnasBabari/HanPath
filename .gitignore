@@ -43,4 +43,5 @@ implementation_plan.md
 # Temporary data exports and profiles
 temp*.json
 .tmp*
+coverage/
 

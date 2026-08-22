@@ -14,6 +14,7 @@ describe('SM-2 Spaced Repetition System (SRS)', () => {
     expect(result.interval).toBe(1);
     expect(result.easeFactor).toBe(2.5);
     expect(result.nextReviewDate).toBe('2026-08-15');
+    expect(result.updatedAt).toBeDefined();
   });
 
   it('follows SM-2 standard progression: 1 day -> 6 days -> round(6 * EF)', () => {
@@ -60,6 +61,7 @@ describe('SM-2 Spaced Repetition System (SRS)', () => {
       easeFactor: 2.6,
       repetitions: 6,
       nextReviewDate: '2026-08-14',
+      updatedAt: '2026-08-14T00:00:00.000Z',
     };
 
     const failed = updateSRS(masteredWord, 'mastered', 1, baseDate);
@@ -70,9 +72,9 @@ describe('SM-2 Spaced Repetition System (SRS)', () => {
 
   it('correctly filters due words based on reference date', () => {
     const records: Record<string, WordSRSData> = {
-      w1: { wordId: 'w1', interval: 1, easeFactor: 2.5, repetitions: 1, nextReviewDate: '2026-08-13' }, // Overdue
-      w2: { wordId: 'w2', interval: 1, easeFactor: 2.5, repetitions: 1, nextReviewDate: '2026-08-14' }, // Due today
-      w3: { wordId: 'w3', interval: 5, easeFactor: 2.5, repetitions: 2, nextReviewDate: '2026-08-19' }, // Future
+      w1: { wordId: 'w1', interval: 1, easeFactor: 2.5, repetitions: 1, nextReviewDate: '2026-08-13', updatedAt: '2026-08-13T00:00:00.000Z' }, // Overdue
+      w2: { wordId: 'w2', interval: 1, easeFactor: 2.5, repetitions: 1, nextReviewDate: '2026-08-14', updatedAt: '2026-08-14T00:00:00.000Z' }, // Due today
+      w3: { wordId: 'w3', interval: 5, easeFactor: 2.5, repetitions: 2, nextReviewDate: '2026-08-19', updatedAt: '2026-08-14T00:00:00.000Z' }, // Future
     };
 
     const dueToday = getDueWords(records, '2026-08-14');

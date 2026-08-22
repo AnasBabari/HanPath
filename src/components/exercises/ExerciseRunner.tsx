@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useReducer } from 'react';
+import { Volume2, X } from 'lucide-react';
 import { callOpenRouter } from '../../utils/ai';
 import type { Lesson, Exercise } from '../../types';
 import { playCorrect, playWrong } from '../../utils/sounds';
@@ -50,7 +51,12 @@ function runnerReducer(state: RunnerState, action: RunnerAction): RunnerState {
   }
 }
 
-export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplete }: {
+export default function ExerciseRunner({
+  lesson,
+  onWordResult,
+  onExit,
+  onComplete,
+}: {
   lesson: Lesson;
   onWordResult?: (wordId: string, correct: boolean) => void;
   onExit: () => void;
@@ -68,13 +74,19 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
   const { idx, feedback, showXP, shake, explanationText, explanationLoading } = state;
   const correctCountRef = useRef(0);
   const lastWrongAnswerRef = useRef<string | undefined>(undefined);
+  const xpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
 
   const total = lesson.exercises.length;
   const ex = lesson.exercises[idx];
 
   const advance = () => {
     lastWrongAnswerRef.current = undefined;
-    if (idx + 1 >= total) { onComplete(correctCountRef.current, total); return; }
+    if (idx + 1 >= total) {
+      onComplete(correctCountRef.current, total);
+      return;
+    }
     dispatch({ type: 'ADVANCE' });
   };
 
@@ -82,6 +94,15 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
   useEffect(() => {
     advanceRef.current = advance;
   });
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (xpTimerRef.current) clearTimeout(xpTimerRef.current);
+      if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -105,15 +126,17 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
         {
           context: {
             mode: 'explain-mistake',
-            hskLevel: lesson.vocab[0]?.hskLevel || 1,
+            hskLevel: lesson.vocab[0]?.hskLevel === 2 ? 2 : 1,
             userAnswer: lastWrongAnswerRef.current,
             correctAnswer: ex.answer,
             exercisePrompt: ex.prompt,
           },
         }
       );
+      if (!isMountedRef.current) return;
       dispatch({ type: 'SET_EXPLANATION', text: response, loading: false });
     } catch (err: unknown) {
+      if (!isMountedRef.current) return;
       const msg = err instanceof Error ? err.message : 'Could not load explanation.';
       dispatch({
         type: 'SET_EXPLANATION',
@@ -124,81 +147,147 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
   };
 
   return (
-    <div className="shell" style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'var(--bg-elevated)', overflowY: 'auto' }}>
-      {showXP && <div className="xp-float">+10 XP</div>}
-
-      <div className="exercise-topbar">
-        <button
-          type="button"
-          className="exit-btn"
-          onClick={onExit}
-          aria-label="Exit exercise"
-          style={{ background: 'transparent', color: 'var(--text-muted)', fontSize: '28px', border: 'none', cursor: 'pointer', padding: '0 12px 0 0' }}
-        >
-          ×
-        </button>
-        <div className="progress-track" style={{ flex: 1, height: '16px', background: 'var(--surface-border)', borderRadius: '99px', overflow: 'hidden' }}>
-          <div className="progress-fill" style={{ width: `${progress}%`, height: '100%', background: 'var(--primary)', borderRadius: '99px', transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }} />
-        </div>
-        <span className="step-count" style={{ marginLeft: '16px', fontWeight: 800, color: 'var(--text-muted)' }}>{idx + 1}/{total}</span>
-      </div>
-
-      <ExerciseCard
-        key={`${lesson.id}-${idx}`}
-        exercise={ex}
-        locked={feedback !== 'idle'}
-        shake={shake}
-        onCorrect={() => {
-          dispatch({ type: 'SET_FEEDBACK', feedback: 'ok' });
-          correctCountRef.current += 1;
-          if (ex.wordId) onWordResult?.(ex.wordId, true);
-          playCorrect();
-          dispatch({ type: 'SET_SHOW_XP', showXP: true });
-          setTimeout(() => dispatch({ type: 'SET_SHOW_XP', showXP: false }), 1000);
-          const shouldSpeakAnswer =
-            ex.type !== 'listening-select' &&
-            ex.type !== 'listening-meaning' &&
-            /[\u4e00-\u9fff]/.test(ex.answer);
-          if (shouldSpeakAnswer) speak(ex.answer);
-        }}
-        onWrong={(wrongAns) => {
-          dispatch({ type: 'SET_FEEDBACK', feedback: 'no', shake: true });
-          lastWrongAnswerRef.current = wrongAns;
-          if (ex.wordId) onWordResult?.(ex.wordId, false);
-          playWrong();
-          setTimeout(() => dispatch({ type: 'SET_SHAKE', shake: false }), 400);
-        }}
-      />
-
-      {feedback === 'ok' && (
-        <div className="feedback-strip ok" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px 24px 40px', background: 'var(--correct-bg)', borderTop: '2px solid rgba(0,0,0,0.05)', color: 'var(--correct)', zIndex: 1100, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <p className="font-display" style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--correct)' }}>Excellent! 🎉</p>
-          <button type="button" className="btn-primary" style={{ width: '100%' }} onClick={advance}>CONTINUE (Enter)</button>
+    <div className="fixed inset-0 z-50 bg-surface text-on-surface flex flex-col overflow-y-auto">
+      {showXP && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-amber-accessible text-white px-4 py-2 rounded-full font-bold shadow-lg animate-bounce z-50">
+          +10 XP
         </div>
       )}
-      {feedback === 'no' && (
-        <div className="feedback-strip no" style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px 24px 40px', background: 'var(--error-bg)', borderTop: '2px solid rgba(0,0,0,0.05)', color: 'var(--error)', zIndex: 1100, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <p className="font-display" style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--error)' }}>Correct Solution:</p>
-              <div style={{ fontSize: '1.125rem', fontWeight: 800, color: 'var(--error)', marginTop: '4px' }}>{ex.answer}</div>
-            </div>
-            <button type="button" className="btn-primary" style={{ width: 'auto', background: 'var(--error)', borderBottomColor: 'var(--rose-shadow)' }} onClick={advance}>Continue</button>
+
+      {/* Top Bar */}
+      <header className="sticky top-0 z-30 bg-surface/90 backdrop-blur border-b border-border px-6 py-4">
+        <div className="max-w-2xl mx-auto flex items-center gap-4 w-full">
+          <button
+            type="button"
+            onClick={onExit}
+            aria-label="Exit exercise"
+            className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg transition-colors cursor-pointer"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div className="flex-1 h-3 bg-border rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
           </div>
-          {!explanationText && !explanationLoading && (
-            <button type="button" onClick={handleExplain} style={{ background: 'none', color: 'var(--error)', fontWeight: 800, fontSize: '14px', textDecoration: 'underline', border: 'none', cursor: 'pointer', textAlign: 'left' }}>Wait, why?</button>
-          )}
-          {explanationLoading && <p style={{ fontSize: '14px' }}>Thinking...</p>}
-          {explanationText && <p style={{ fontSize: '14px', lineHeight: 1.4 }}>{explanationText}</p>}
+          <span className="font-bold text-sm text-on-surface-variant">
+            {idx + 1}/{total}
+          </span>
         </div>
-      )}
+      </header>
+
+      {/* Exercise Content */}
+      <main className="flex-1 max-w-2xl mx-auto px-6 py-8 w-full flex flex-col justify-center">
+        <ExerciseCard
+          key={`${lesson.id}-${idx}`}
+          exercise={ex}
+          locked={feedback !== 'idle'}
+          shake={shake}
+          onCorrect={() => {
+            dispatch({ type: 'SET_FEEDBACK', feedback: 'ok' });
+            correctCountRef.current += 1;
+            if (ex.wordId) onWordResult?.(ex.wordId, true);
+            playCorrect();
+            dispatch({ type: 'SET_SHOW_XP', showXP: true });
+            if (xpTimerRef.current) clearTimeout(xpTimerRef.current);
+            xpTimerRef.current = setTimeout(() => {
+              xpTimerRef.current = null;
+              dispatch({ type: 'SET_SHOW_XP', showXP: false });
+            }, 1000);
+            const shouldSpeakAnswer =
+              ex.type !== 'listening-select' &&
+              ex.type !== 'listening-meaning' &&
+              /[\u4e00-\u9fff]/.test(ex.answer);
+            if (shouldSpeakAnswer) speak(ex.answer);
+          }}
+          onWrong={(wrongAns) => {
+            dispatch({ type: 'SET_FEEDBACK', feedback: 'no', shake: true });
+            lastWrongAnswerRef.current = wrongAns;
+            if (ex.wordId) onWordResult?.(ex.wordId, false);
+            playWrong();
+            if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+            shakeTimerRef.current = setTimeout(() => {
+              shakeTimerRef.current = null;
+              dispatch({ type: 'SET_SHAKE', shake: false });
+            }, 400);
+          }}
+        />
+      </main>
+
+      {/* Live Feedback Strip */}
+      <div aria-live="polite">
+        {feedback === 'ok' && (
+          <div className="fixed bottom-0 inset-x-0 bg-mint-badge border-t-2 border-emerald-300 p-6 z-40">
+            <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <p className="text-xl font-bold font-display text-emerald-accessible">
+                  Excellent! 🎉
+                </p>
+                <p className="text-xs text-emerald-accessible/80">Press Enter or Space to continue</p>
+              </div>
+              <button
+                type="button"
+                className="w-full sm:w-auto px-8 py-3.5 bg-primary text-white font-bold rounded-xl shadow-sm hover:bg-primary-hover transition-colors cursor-pointer"
+                onClick={advance}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {feedback === 'no' && (
+          <div className="fixed bottom-0 inset-x-0 bg-red-50 border-t-2 border-red-200 p-6 z-40">
+            <div className="max-w-2xl mx-auto space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <p className="text-xl font-bold font-display text-red-700">Correct Solution:</p>
+                  <p className="text-lg font-bold text-red-900 mt-1">{ex.answer}</p>
+                </div>
+                <button
+                  type="button"
+                  className="w-full sm:w-auto px-8 py-3.5 bg-red-700 text-white font-bold rounded-xl shadow-sm hover:bg-red-800 transition-colors cursor-pointer"
+                  onClick={advance}
+                >
+                  Continue
+                </button>
+              </div>
+              {!explanationText && !explanationLoading && (
+                <button
+                  type="button"
+                  onClick={handleExplain}
+                  className="text-red-700 font-bold text-sm underline cursor-pointer"
+                >
+                  Explain this mistake with AI Tutor
+                </button>
+              )}
+              {explanationLoading && <p className="text-sm text-red-700 italic">Thinking...</p>}
+              {explanationText && (
+                <div className="text-sm text-red-900 bg-white/80 p-3 rounded-lg border border-red-200 leading-relaxed">
+                  {explanationText}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
-  exercise: Exercise; locked: boolean; shake: boolean;
-  onCorrect: () => void; onWrong: (guessed?: string) => void;
+function ExerciseCard({
+  exercise: ex,
+  locked,
+  shake,
+  onCorrect,
+  onWrong,
+}: {
+  exercise: Exercise;
+  locked: boolean;
+  shake: boolean;
+  onCorrect: () => void;
+  onWrong: (guessed?: string) => void;
 }) {
   const [choice, setChoice] = useState<number | null>(null);
   const [typed, setTyped] = useState('');
@@ -217,7 +306,11 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
     };
   }, [ex.id, ex.type, ex.promptAudio]);
 
-  const isMCQ = ex.type === 'reading-meaning' || ex.type === 'reading-hanzi' || ex.type === 'listening-select' || ex.type === 'listening-meaning';
+  const isMCQ =
+    ex.type === 'reading-meaning' ||
+    ex.type === 'reading-hanzi' ||
+    ex.type === 'listening-select' ||
+    ex.type === 'listening-meaning';
   const isTileBuilder = ex.type === 'compose' || ex.type === 'sentence-build';
   const isAudioType = ex.type === 'listening-select' || ex.type === 'listening-meaning';
 
@@ -237,24 +330,26 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
     }
   };
 
-  const canCheck = isMCQ ? choice !== null
-    : ex.type === 'pinyin-type' ? typed.trim() !== ''
-    : isTileBuilder ? bankPick.length > 0
-    : false;
+  const canCheck = isMCQ
+    ? choice !== null
+    : ex.type === 'pinyin-type'
+      ? typed.trim() !== ''
+      : isTileBuilder
+        ? bankPick.length > 0
+        : false;
 
   const checkRef = useRef(check);
   useEffect(() => {
     checkRef.current = check;
   });
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (locked || submitted.current) return;
 
       if (isMCQ && ['1', '2', '3', '4'].includes(e.key)) {
         const optIndex = parseInt(e.key, 10) - 1;
-        if (optIndex >= 0 && optIndex < ex.options.length) {
+        if (optIndex >= 0 && optIndex < (ex.options?.length || 0)) {
           setChoice(optIndex);
         }
       }
@@ -270,43 +365,39 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [locked, isMCQ, isTileBuilder, canCheck, ex.options.length, ex.type]);
+  }, [locked, isMCQ, isTileBuilder, canCheck, ex.options?.length, ex.type]);
 
   return (
-    <div className={`exercise-card ${shake ? 'shake' : ''}`} style={{ marginTop: '20px', paddingBottom: '160px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-        <h2 className="font-display" style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '8px' }}>
+    <div className={`space-y-6 ${shake ? 'animate-shake' : ''}`}>
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold font-display text-on-surface">
           {ex.type === 'listening-select' ? 'What did you hear?' : ex.prompt}
         </h2>
         {ex.promptPinyin && (
-          <div style={{ fontSize: '1.125rem', color: 'var(--primary)', fontWeight: 800 }}>
-            {ex.promptPinyin}
-          </div>
+          <p className="text-lg font-bold text-primary">{ex.promptPinyin}</p>
         )}
 
-        {/* Audio Exercise Controls & Accessibility Fallback */}
         {isAudioType && ex.promptAudio && (
-          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+          <div className="flex items-center justify-center gap-3 pt-2">
             <button
               type="button"
               onClick={() => speak(ex.promptAudio!)}
               aria-label="Replay audio prompt"
-              className="btn-secondary"
-              style={{ padding: '8px 16px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 700 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-container border border-border text-on-surface font-bold text-sm hover:bg-border/60 transition-colors cursor-pointer"
             >
-              <span className="material-symbols-outlined text-lg">volume_up</span>
+              <Volume2 className="w-4 h-4 text-primary" />
               Replay Audio
             </button>
             <button
               type="button"
               onClick={() => setShowAudioHint((prev) => !prev)}
               aria-label="Toggle visual transcript hint"
-              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer' }}
+              className="text-xs font-bold text-on-surface-variant underline hover:text-on-surface cursor-pointer"
             >
               {showAudioHint ? 'Hide Transcript' : 'Audio Hint'}
             </button>
             {showAudioHint && (
-              <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 800, background: 'var(--surface-container)', padding: '4px 10px', borderRadius: '8px' }}>
+              <span className="text-sm font-bold bg-surface-container px-3 py-1 rounded-lg text-primary">
                 {ex.promptAudio}
               </span>
             )}
@@ -315,37 +406,46 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
       </div>
 
       {isMCQ && (
-        <div style={{ display: 'grid', gap: '12px' }}>
-          {ex.options.map((opt, i) => (
-            <button
-              type="button"
-              key={opt}
-              className={`option-btn ${choice === i ? 'selected' : ''}`}
-              style={{
-                padding: '16px', borderRadius: '16px', border: '2px solid var(--surface-border)', borderBottom: '4px solid var(--surface-border)',
-                background: choice === i ? 'var(--blue-bg)' : 'var(--bg-card)', borderColor: choice === i ? 'var(--blue-shadow)' : 'var(--surface-border)', color: choice === i ? 'var(--blue)' : 'var(--text-main)',
-                fontSize: '1.125rem', fontWeight: 800, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '16px', transition: 'all 0.2s',
-                transform: choice === i ? 'translateY(2px)' : 'none', borderBottomWidth: choice === i ? '2px' : '4px'
-              }}
-              disabled={locked}
-              onClick={() => setChoice(i)}
-            >
-              <span style={{ width: '32px', height: '32px', borderRadius: '8px', border: `2px solid ${choice === i ? 'var(--blue)' : 'var(--surface-border)'}`, display: 'grid', placeItems: 'center', fontSize: '14px', color: choice === i ? 'var(--blue)' : 'var(--text-muted)' }}>{i + 1}</span>
-              {opt}
-            </button>
-          ))}
+        <div className="grid gap-3">
+          {ex.options.map((opt, i) => {
+            const selected = choice === i;
+            return (
+              <button
+                type="button"
+                key={opt}
+                disabled={locked}
+                onClick={() => setChoice(i)}
+                className={`w-full p-4 rounded-2xl border-2 text-left font-bold text-lg flex items-center gap-4 transition-all cursor-pointer ${
+                  selected
+                    ? 'bg-primary/10 border-primary text-primary shadow-sm ring-2 ring-primary/20'
+                    : 'bg-surface-card border-border text-on-surface hover:border-primary/50'
+                }`}
+              >
+                <span
+                  className={`w-8 h-8 rounded-xl border flex items-center justify-center text-sm font-bold shrink-0 ${
+                    selected
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-surface-container border-border text-on-surface-variant'
+                  }`}
+                >
+                  {i + 1}
+                </span>
+                <span>{opt}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 
       {ex.type === 'pinyin-type' && (
         <input
-          style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid var(--surface-border)', fontSize: '1.25rem', outline: 'none', background: 'var(--bg-card)', color: 'var(--text-main)', fontWeight: 800 }}
+          className="w-full p-4 rounded-2xl border-2 border-border bg-surface-card text-on-surface font-bold text-xl outline-none focus:border-primary transition-colors"
           value={typed}
           disabled={locked}
-          placeholder="Type Pinyin (e.g. ni hao)..."
+          placeholder="Type Pinyin (e.g. nǐ hǎo or ni hao)..."
           aria-label="Type Pinyin..."
-          onChange={e => setTyped(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && canCheck && !locked && check()}
+          onChange={(e) => setTyped(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && canCheck && !locked && check()}
           autoFocus
         />
       )}
@@ -361,27 +461,44 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
       )}
 
       {isTileBuilder && ex.bank && (
-        <div>
-          <div style={{ minHeight: '64px', padding: '12px', borderBottom: '2px solid var(--surface-border)', marginBottom: '32px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+        <div className="space-y-6">
+          <div className="min-h-16 p-3 border-b-2 border-dashed border-border flex flex-wrap gap-2 items-center justify-center">
             {bankPick.map((ti, order) => {
               const pickItem = { id: `picked-${ti}-${order}`, char: ex.bank![ti] };
               return (
-                <button type="button" key={pickItem.id} style={{ padding: '12px 16px', borderRadius: '16px', border: '2px solid var(--surface-border)', borderBottom: '4px solid var(--surface-border)', background: 'var(--bg-card)', fontWeight: 800, color: 'var(--text-main)', fontSize: '1.125rem' }}
-                  onClick={() => setBankPick(p => p.filter((_, j) => j !== order))}>
+                <button
+                  type="button"
+                  key={pickItem.id}
+                  onClick={() => setBankPick((p) => p.filter((_, j) => j !== order))}
+                  className="px-4 py-2.5 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-lg shadow-sm cursor-pointer"
+                >
                   {pickItem.char}
                 </button>
               );
             })}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
+          <div className="flex flex-wrap gap-3 justify-center">
             {(() => {
               const bankPickSet = new Set(bankPick);
-              const tiles = ex.bank.map((ch, idx) => ({ id: `tile-${ex.id}-${ch}-${idx * 13}`, char: ch, index: idx }));
+              const tiles = ex.bank.map((ch, idx) => ({
+                id: `tile-${ex.id}-${ch}-${idx * 13}`,
+                char: ch,
+                index: idx,
+              }));
               return tiles.map((tile) => {
                 const used = bankPickSet.has(tile.index);
                 return (
-                  <button type="button" key={tile.id} style={{ padding: '12px 20px', borderRadius: '16px', border: '2px solid var(--surface-border)', borderBottom: '4px solid var(--surface-border)', background: used ? 'var(--surface-border)' : 'var(--bg-card)', color: used ? 'transparent' : 'var(--text-main)', fontWeight: 800, fontSize: '1.125rem' }}
-                    disabled={used || locked} onClick={() => setBankPick(p => [...p, tile.index])}>
+                  <button
+                    type="button"
+                    key={tile.id}
+                    disabled={used || locked}
+                    onClick={() => setBankPick((p) => [...p, tile.index])}
+                    className={`px-5 py-3 rounded-xl border-2 font-bold text-lg transition-all ${
+                      used
+                        ? 'opacity-20 border-transparent bg-border cursor-not-allowed'
+                        : 'border-border bg-surface-card text-on-surface hover:border-primary/50 shadow-sm cursor-pointer'
+                    }`}
+                  >
                     {tile.char}
                   </button>
                 );
@@ -392,8 +509,19 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
       )}
 
       {!locked && ex.type !== 'stroke-order' && (
-        <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '520px', padding: '24px', background: 'var(--bg-elevated)', borderTop: '2px solid var(--surface-border)' }}>
-          <button type="button" className="btn-primary" style={{ width: '100%', background: canCheck ? 'var(--primary)' : 'var(--surface-border)', borderBottomColor: canCheck ? 'var(--primary-shadow)' : 'rgba(0,0,0,0.1)', color: canCheck ? 'white' : 'var(--text-muted)' }} disabled={!canCheck} onClick={check}>CHECK</button>
+        <div className="pt-6">
+          <button
+            type="button"
+            disabled={!canCheck}
+            onClick={check}
+            className={`w-full py-4 rounded-2xl font-bold text-lg shadow-md transition-all cursor-pointer ${
+              canCheck
+                ? 'bg-primary text-white hover:bg-primary-hover shadow-primary/20'
+                : 'bg-border text-on-surface-variant cursor-not-allowed opacity-50'
+            }`}
+          >
+            Check Answer
+          </button>
         </div>
       )}
     </div>
