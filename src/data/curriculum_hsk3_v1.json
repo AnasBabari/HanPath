@@ -71,24 +71,26 @@
     {
       "id": "hsk1-6",
       "hanzi": "吧",
-      "pinyin": "bā",
+      "pinyin": "ba",
       "meanings": [
-        "bar (loanword) (serving drinks, or providing Internet access etc)",
-        "to puff (on a pipe etc)",
-        "(onom.) bang",
-        "abbr. for 贴吧"
+        "modal particle (suggestion, surmise)",
+        "...right?",
+        "...OK?"
       ],
-      "meaning": "bar (loanword)",
+      "meaning": "modal particle (suggestion, question)",
       "hskLevel": 1
     },
     {
       "id": "hsk1-7",
       "hanzi": "白",
-      "pinyin": "Bái",
+      "pinyin": "bái",
       "meanings": [
-        "surname Bai"
+        "white",
+        "clear",
+        "pure",
+        "in vain"
       ],
-      "meaning": "surname Bai",
+      "meaning": "white",
       "hskLevel": 1
     },
     {
@@ -106,21 +108,24 @@
     {
       "id": "hsk1-9",
       "hanzi": "百",
-      "pinyin": "Bǎi",
+      "pinyin": "bǎi",
       "meanings": [
-        "surname Bai"
+        "hundred",
+        "numerous",
+        "all kinds of"
       ],
-      "meaning": "surname Bai",
+      "meaning": "hundred",
       "hskLevel": 1
     },
     {
       "id": "hsk1-10",
       "hanzi": "班",
-      "pinyin": "Bān",
+      "pinyin": "bān",
       "meanings": [
-        "surname Ban"
+        "class; team; shift",
+        "work shift"
       ],
-      "meaning": "surname Ban",
+      "meaning": "class; team; shift",
       "hskLevel": 1
     },
     {
@@ -164,9 +169,21 @@
       "hanzi": "帮",
       "pinyin": "bāng",
       "meanings": [
-        "old variant of 帮"
+        "to help",
+        "to assist",
+        "to support",
+        "for sb (i.e. as a help)",
+        "hired (as worker)",
+        "side (of pail, boat etc)",
+        "outer layer",
+        "upper (of a shoe)",
+        "group",
+        "gang",
+        "clique",
+        "party",
+        "secret society"
       ],
-      "meaning": "old variant of 帮",
+      "meaning": "to help",
       "hskLevel": 1
     },
     {
@@ -185,19 +202,21 @@
     {
       "id": "hsk1-16",
       "hanzi": "包",
-      "pinyin": "Bāo",
+      "pinyin": "bāo",
       "meanings": [
-        "surname Bao"
+        "bag; package",
+        "to wrap; to cover"
       ],
-      "meaning": "surname Bao",
+      "meaning": "bag; to wrap; package",
       "hskLevel": 1
     },
     {
       "id": "hsk1-17",
       "hanzi": "包子",
-      "pinyin": "bāo zi",
+      "pinyin": "bāozi",
       "meanings": [
-        "steamed stuffed bun"
+        "steamed stuffed bun",
+        "baozi"
       ],
       "meaning": "steamed stuffed bun",
       "hskLevel": 1
@@ -294,23 +313,25 @@
     {
       "id": "hsk1-25",
       "hanzi": "比",
-      "pinyin": "Bǐ",
+      "pinyin": "bǐ",
       "meanings": [
-        "Belgium",
-        "Belgian",
-        "abbr. for 比利时"
+        "to compare",
+        "more ... than",
+        "ratio"
       ],
-      "meaning": "Belgium",
+      "meaning": "to compare; than",
       "hskLevel": 1
     },
     {
       "id": "hsk1-26",
       "hanzi": "别",
-      "pinyin": "Bié",
+      "pinyin": "bié",
       "meanings": [
-        "surname Bie"
+        "don't ...!",
+        "other; another",
+        "to leave; to part"
       ],
-      "meaning": "surname Bie",
+      "meaning": "don't; other; separate",
       "hskLevel": 1
     },
     {
@@ -461,11 +482,12 @@
     {
       "id": "hsk1-39",
       "hanzi": "常",
-      "pinyin": "Cháng",
+      "pinyin": "cháng",
       "meanings": [
-        "surname Chang"
+        "often; frequently",
+        "regular; normal"
       ],
-      "meaning": "surname Chang",
+      "meaning": "often; frequent",
       "hskLevel": 1
     },
     {
@@ -504,11 +526,12 @@
     {
       "id": "hsk1-43",
       "hanzi": "车",
-      "pinyin": "Chē",
+      "pinyin": "chē",
       "meanings": [
-        "surname Che"
+        "car; vehicle",
+        "machine"
       ],
-      "meaning": "surname Che",
+      "meaning": "car; vehicle",
       "hskLevel": 1
     },
     {
@@ -666,29 +689,34 @@
       "hanzi": "从",
       "pinyin": "cóng",
       "meanings": [
-        "variant of 从"
+        "from; since",
+        "to follow"
       ],
-      "meaning": "variant of 从",
+      "meaning": "from; since",
       "hskLevel": 1
     },
     {
       "id": "hsk1-56",
       "hanzi": "错",
-      "pinyin": "Cuò",
+      "pinyin": "cuò",
       "meanings": [
-        "surname Cuo"
+        "mistake; error",
+        "wrong; incorrect"
       ],
-      "meaning": "surname Cuo",
+      "meaning": "mistake; wrong",
       "hskLevel": 1
     },
     {
       "id": "hsk1-57",
       "hanzi": "打",
-      "pinyin": "dá",
+      "pinyin": "dǎ",
       "meanings": [
-        "dozen (loanword)"
+        "to hit; to strike",
+        "to play (ball/game)",
+        "to make (phone call)",
+        "to type"
       ],
-      "meaning": "dozen",
+      "meaning": "to hit; to play; to call",
       "hskLevel": 1
     },
     {
@@ -754,11 +782,11 @@
     {
       "id": "hsk1-63",
       "hanzi": "大学",
-      "pinyin": "Dà xué",
+      "pinyin": "dàxué",
       "meanings": [
-        "the Great Learning, one of the Four Books 四书 in Confucianism"
+        "university; college"
       ],
-      "meaning": "the Great Learning, one of the Four Books 四书 in Confucianism",
+      "meaning": "university; college",
       "hskLevel": 1
     },
     {
@@ -1047,11 +1075,11 @@
     {
       "id": "hsk1-86",
       "hanzi": "东",
-      "pinyin": "Dōng",
+      "pinyin": "dōng",
       "meanings": [
-        "surname Dong"
+        "east; eastern"
       ],
-      "meaning": "surname Dong",
+      "meaning": "east",
       "hskLevel": 1
     },
     {
@@ -1070,11 +1098,13 @@
     {
       "id": "hsk1-88",
       "hanzi": "东西",
-      "pinyin": "dōng xī",
+      "pinyin": "dōng xi",
       "meanings": [
-        "east and west"
+        "thing",
+        "stuff",
+        "person"
       ],
-      "meaning": "east and west",
+      "meaning": "thing",
       "hskLevel": 1
     },
     {
@@ -1108,11 +1138,11 @@
     {
       "id": "hsk1-91",
       "hanzi": "都",
-      "pinyin": "Dū",
+      "pinyin": "dōu",
       "meanings": [
-        "surname Du"
+        "all; both; entirely"
       ],
-      "meaning": "surname Du",
+      "meaning": "all; both",
       "hskLevel": 1
     },
     {
@@ -1383,9 +1413,10 @@
       "hanzi": "干",
       "pinyin": "gān",
       "meanings": [
-        "old variant of 干"
+        "dry",
+        "clean"
       ],
-      "meaning": "old variant of 干",
+      "meaning": "dry; clean",
       "hskLevel": 1
     },
     {
@@ -1413,11 +1444,12 @@
     {
       "id": "hsk1-116",
       "hanzi": "高",
-      "pinyin": "Gāo",
+      "pinyin": "gāo",
       "meanings": [
-        "surname Gao"
+        "tall; high",
+        "above average"
       ],
-      "meaning": "surname Gao",
+      "meaning": "tall; high",
       "hskLevel": 1
     },
     {
@@ -1477,11 +1509,12 @@
     {
       "id": "hsk1-122",
       "hanzi": "个",
-      "pinyin": "gě",
+      "pinyin": "gè",
       "meanings": [
-        "used in 自个儿"
+        "(classifier used before a noun that has no specific classifier)",
+        "(bound form) individual"
       ],
-      "meaning": "used in 自个儿",
+      "meaning": "individual",
       "hskLevel": 1
     },
     {
@@ -1547,11 +1580,13 @@
     {
       "id": "hsk1-127",
       "hanzi": "关",
-      "pinyin": "Guān",
+      "pinyin": "guān",
       "meanings": [
-        "surname Guan"
+        "to close; to shut",
+        "to turn off",
+        "to concern"
       ],
-      "meaning": "surname Guan",
+      "meaning": "to close; to shut; to turn off",
       "hskLevel": 1
     },
     {
@@ -1581,11 +1616,11 @@
     {
       "id": "hsk1-130",
       "hanzi": "国",
-      "pinyin": "Guó",
+      "pinyin": "guó",
       "meanings": [
-        "surname Guo"
+        "country; nation; state"
       ],
-      "meaning": "surname Guo",
+      "meaning": "country; nation",
       "hskLevel": 1
     },
     {
@@ -1614,21 +1649,23 @@
     {
       "id": "hsk1-133",
       "hanzi": "过",
-      "pinyin": "Guō",
+      "pinyin": "guò",
       "meanings": [
-        "surname Guo"
+        "to cross; to pass",
+        "particle indicating past experience"
       ],
-      "meaning": "surname Guo",
+      "meaning": "to cross; to pass; past particle",
       "hskLevel": 1
     },
     {
       "id": "hsk1-134",
       "hanzi": "还",
-      "pinyin": "Huán",
+      "pinyin": "hái",
       "meanings": [
-        "surname Huan"
+        "still; yet",
+        "also; in addition"
       ],
-      "meaning": "surname Huan",
+      "meaning": "still; also; yet",
       "hskLevel": 1
     },
     {
@@ -1783,9 +1820,10 @@
       "hanzi": "和",
       "pinyin": "hé",
       "meanings": [
-        "old variant of 和"
+        "and; with",
+        "peaceful; harmonious"
       ],
-      "meaning": "old variant of 和",
+      "meaning": "and; with; peaceful",
       "hskLevel": 1
     },
     {
@@ -1804,11 +1842,12 @@
     {
       "id": "hsk1-149",
       "hanzi": "后",
-      "pinyin": "Hòu",
+      "pinyin": "hòu",
       "meanings": [
-        "surname Hou"
+        "back; behind",
+        "after; later"
       ],
-      "meaning": "surname Hou",
+      "meaning": "back; behind; after",
       "hskLevel": 1
     },
     {
@@ -1839,11 +1878,12 @@
     {
       "id": "hsk1-152",
       "hanzi": "花",
-      "pinyin": "Huā",
+      "pinyin": "huā",
       "meanings": [
-        "surname Hua"
+        "flower; blossom",
+        "to spend (money/time)"
       ],
-      "meaning": "surname Hua",
+      "meaning": "flower; to spend",
       "hskLevel": 1
     },
     {
@@ -2009,11 +2049,14 @@
     {
       "id": "hsk1-166",
       "hanzi": "几",
-      "pinyin": "jī",
+      "pinyin": "jǐ",
       "meanings": [
-        "small table"
+        "how much",
+        "how many",
+        "several",
+        "a few"
       ],
-      "meaning": "small table",
+      "meaning": "how much",
       "hskLevel": 1
     },
     {
@@ -2059,10 +2102,10 @@
       "hanzi": "家",
       "pinyin": "jiā",
       "meanings": [
-        "home",
-        "family"
+        "home; family",
+        "household"
       ],
-      "meaning": "home",
+      "meaning": "home; family",
       "hskLevel": 1
     },
     {
@@ -2144,11 +2187,11 @@
     {
       "id": "hsk1-177",
       "hanzi": "教",
-      "pinyin": "Jiào",
+      "pinyin": "jiāo",
       "meanings": [
-        "surname Jiao"
+        "to teach; to instruct"
       ],
-      "meaning": "surname Jiao",
+      "meaning": "to teach",
       "hskLevel": 1
     },
     {
@@ -2612,11 +2655,11 @@
     {
       "id": "hsk1-214",
       "hanzi": "冷",
-      "pinyin": "Lěng",
+      "pinyin": "lěng",
       "meanings": [
-        "surname Leng"
+        "cold; chilly"
       ],
-      "meaning": "surname Leng",
+      "meaning": "cold",
       "hskLevel": 1
     },
     {
@@ -2624,9 +2667,10 @@
       "hanzi": "里",
       "pinyin": "lǐ",
       "meanings": [
-        "variant of 里"
+        "inside; internal",
+        "within; in"
       ],
-      "meaning": "variant of 里",
+      "meaning": "inside; within",
       "hskLevel": 1
     },
     {
@@ -2688,11 +2732,12 @@
     {
       "id": "hsk1-220",
       "hanzi": "楼",
-      "pinyin": "Lóu",
+      "pinyin": "lóu",
       "meanings": [
-        "surname Lou"
+        "building with stories",
+        "floor; level"
       ],
-      "meaning": "surname Lou",
+      "meaning": "building; floor",
       "hskLevel": 1
     },
     {
@@ -2719,11 +2764,12 @@
     {
       "id": "hsk1-223",
       "hanzi": "路",
-      "pinyin": "Lù",
+      "pinyin": "lù",
       "meanings": [
-        "surname Lu"
+        "road; path; street",
+        "route; journey"
       ],
-      "meaning": "surname Lu",
+      "meaning": "road; path; route",
       "hskLevel": 1
     },
     {
@@ -2844,21 +2890,25 @@
     {
       "id": "hsk1-234",
       "hanzi": "毛",
-      "pinyin": "Máo",
+      "pinyin": "máo",
       "meanings": [
-        "surname Mao"
+        "hair; fur; feather",
+        "dime; 10 cents"
       ],
-      "meaning": "surname Mao",
+      "meaning": "hair; fur; 10 cents",
       "hskLevel": 1
     },
     {
       "id": "hsk1-235",
       "hanzi": "没",
-      "pinyin": "méi",
+      "pinyin": "mò",
       "meanings": [
-        "(negative prefix for verbs) have not; not"
+        "drowned",
+        "to end",
+        "to die",
+        "to inundate"
       ],
-      "meaning": "have not",
+      "meaning": "drowned",
       "hskLevel": 1
     },
     {
@@ -2936,11 +2986,12 @@
     {
       "id": "hsk1-242",
       "hanzi": "门",
-      "pinyin": "Mén",
+      "pinyin": "mén",
       "meanings": [
-        "surname Men"
+        "door; gate; entrance",
+        "classifier for subjects/classes"
       ],
-      "meaning": "surname Men",
+      "meaning": "door; gate; entrance",
       "hskLevel": 1
     },
     {
@@ -3054,9 +3105,9 @@
       "hanzi": "拿",
       "pinyin": "ná",
       "meanings": [
-        "old variant of 拿"
+        "to take; to hold; to seize"
       ],
-      "meaning": "old variant of 拿",
+      "meaning": "to take; to hold",
       "hskLevel": 1
     },
     {
@@ -3113,11 +3164,12 @@
     {
       "id": "hsk1-258",
       "hanzi": "那",
-      "pinyin": "Nā",
+      "pinyin": "nà",
       "meanings": [
-        "surname Na"
+        "that; those",
+        "then; in that case"
       ],
-      "meaning": "surname Na",
+      "meaning": "that; those",
       "hskLevel": 1
     },
     {
@@ -3246,11 +3298,11 @@
     {
       "id": "hsk1-270",
       "hanzi": "南",
-      "pinyin": "Nán",
+      "pinyin": "nán",
       "meanings": [
-        "surname Nan"
+        "south; southern"
       ],
-      "meaning": "surname Nan",
+      "meaning": "south",
       "hskLevel": 1
     },
     {
@@ -3297,11 +3349,12 @@
     {
       "id": "hsk1-274",
       "hanzi": "能",
-      "pinyin": "Néng",
+      "pinyin": "néng",
       "meanings": [
-        "surname Neng"
+        "can; to be able to",
+        "ability; capability"
       ],
-      "meaning": "surname Neng",
+      "meaning": "can; to be able to",
       "hskLevel": 1
     },
     {
@@ -3327,11 +3380,12 @@
     {
       "id": "hsk1-277",
       "hanzi": "年",
-      "pinyin": "Nián",
+      "pinyin": "nián",
       "meanings": [
-        "surname Nian"
+        "year",
+        "annual"
       ],
-      "meaning": "surname Nian",
+      "meaning": "year",
       "hskLevel": 1
     },
     {
@@ -3432,11 +3486,17 @@
     {
       "id": "hsk1-287",
       "hanzi": "跑",
-      "pinyin": "páo",
+      "pinyin": "pǎo",
       "meanings": [
-        "(of an animal) to paw (the ground)"
+        "to run",
+        "to run away",
+        "to escape",
+        "to run around (on errands etc)",
+        "(of a gas or liquid) to leak or evaporate",
+        "(verb complement) away",
+        "off"
       ],
-      "meaning": "(of an animal) to paw (the ground)",
+      "meaning": "to run",
       "hskLevel": 1
     },
     {
@@ -3579,11 +3639,11 @@
     {
       "id": "hsk1-298",
       "hanzi": "钱",
-      "pinyin": "Qián",
+      "pinyin": "qián",
       "meanings": [
-        "surname Qian"
+        "money; coins; currency"
       ],
-      "meaning": "surname Qian",
+      "meaning": "money; coin",
       "hskLevel": 1
     },
     {
@@ -3756,11 +3816,12 @@
     {
       "id": "hsk1-312",
       "hanzi": "日",
-      "pinyin": "Rì",
+      "pinyin": "rì",
       "meanings": [
-        "abbr. for 本, Japan"
+        "sun",
+        "day; date"
       ],
-      "meaning": "abbr. for 本, Japan",
+      "meaning": "sun; day; date",
       "hskLevel": 1
     },
     {
@@ -3792,21 +3853,21 @@
     {
       "id": "hsk1-315",
       "hanzi": "三",
-      "pinyin": "Sān",
+      "pinyin": "sān",
       "meanings": [
-        "surname San"
+        "three"
       ],
-      "meaning": "surname San",
+      "meaning": "three",
       "hskLevel": 1
     },
     {
       "id": "hsk1-316",
       "hanzi": "山",
-      "pinyin": "Shān",
+      "pinyin": "shān",
       "meanings": [
-        "surname Shan"
+        "mountain; hill"
       ],
-      "meaning": "surname Shan",
+      "meaning": "mountain; hill",
       "hskLevel": 1
     },
     {
@@ -3836,11 +3897,16 @@
     {
       "id": "hsk1-319",
       "hanzi": "上",
-      "pinyin": "shǎng",
+      "pinyin": "shàng",
       "meanings": [
-        "used in 上声"
+        "(bound form) up; upper; above; previous",
+        "first (of multiple parts)",
+        "to climb; to get onto; to go up",
+        "to attend (class or university)",
+        "(directional complement) up",
+        "(noun suffix) on; above"
       ],
-      "meaning": "used in 上声",
+      "meaning": "up",
       "hskLevel": 1
     },
     {
@@ -4141,11 +4207,13 @@
     {
       "id": "hsk1-344",
       "hanzi": "书",
-      "pinyin": "Shū",
+      "pinyin": "shū",
       "meanings": [
-        "abbr. for 书经"
+        "book",
+        "letter; document",
+        "to write"
       ],
-      "meaning": "abbr. for 书经",
+      "meaning": "book; to write",
       "hskLevel": 1
     },
     {
@@ -4196,11 +4264,12 @@
     {
       "id": "hsk1-349",
       "hanzi": "水",
-      "pinyin": "Shuǐ",
+      "pinyin": "shuǐ",
       "meanings": [
-        "surname Shui"
+        "water",
+        "liquid; river"
       ],
-      "meaning": "surname Shui",
+      "meaning": "water; liquid",
       "hskLevel": 1
     },
     {
@@ -4238,11 +4307,14 @@
     {
       "id": "hsk1-353",
       "hanzi": "说",
-      "pinyin": "shuì",
+      "pinyin": "shuō",
       "meanings": [
-        "to persuade"
+        "to speak; to talk; to say",
+        "to explain; to comment",
+        "to scold; to tell off",
+        "(bound form) theory; doctrine"
       ],
-      "meaning": "to persuade",
+      "meaning": "to speak",
       "hskLevel": 1
     },
     {
@@ -4290,10 +4362,10 @@
       "hanzi": "岁",
       "pinyin": "suì",
       "meanings": [
-        "variant of 岁, year",
-        "years old"
+        "years of age",
+        "year"
       ],
-      "meaning": "variant of 岁, year",
+      "meaning": "years old; age",
       "hskLevel": 1
     },
     {
@@ -4379,11 +4451,12 @@
     {
       "id": "hsk1-365",
       "hanzi": "听",
-      "pinyin": "yǐn",
+      "pinyin": "tīng",
       "meanings": [
-        "smile (archaic)"
+        "to listen; to hear",
+        "to obey"
       ],
-      "meaning": "smile",
+      "meaning": "to listen; to hear",
       "hskLevel": 1
     },
     {
@@ -4669,13 +4742,11 @@
     {
       "id": "hsk1-391",
       "hanzi": "西",
-      "pinyin": "Xī",
+      "pinyin": "xī",
       "meanings": [
-        "the West",
-        "abbr. for Spain 牙",
-        "Spanish"
+        "west; western"
       ],
-      "meaning": "the West",
+      "meaning": "west",
       "hskLevel": 1
     },
     {
@@ -4927,9 +4998,9 @@
       "hanzi": "笑",
       "pinyin": "xiào",
       "meanings": [
-        "old variant of 笑"
+        "to laugh; to smile"
       ],
-      "meaning": "old variant of 笑",
+      "meaning": "to laugh; to smile",
       "hskLevel": 1
     },
     {
@@ -4957,12 +5028,12 @@
     {
       "id": "hsk1-415",
       "hanzi": "新",
-      "pinyin": "Xīn",
+      "pinyin": "xīn",
       "meanings": [
-        "abbr. for Xinjiang 疆 or Singapore 坡",
-        "surname Xin"
+        "new; fresh",
+        "novel"
       ],
-      "meaning": "surname Xin",
+      "meaning": "new; fresh",
       "hskLevel": 1
     },
     {
@@ -5097,31 +5168,37 @@
     {
       "id": "hsk1-427",
       "hanzi": "要",
-      "pinyin": "yāo",
+      "pinyin": "yào",
       "meanings": [
-        "(bound form) to demand; to coerce"
+        "to want; to need; to ask for",
+        "will; shall; about to",
+        "need to; should",
+        "if (same as 是)",
+        "(bound form) important"
       ],
-      "meaning": "to demand",
+      "meaning": "to want",
       "hskLevel": 1
     },
     {
       "id": "hsk1-428",
       "hanzi": "也",
-      "pinyin": "Yě",
+      "pinyin": "yě",
       "meanings": [
-        "surname Ye"
+        "also; too",
+        "as well"
       ],
-      "meaning": "surname Ye",
+      "meaning": "also; too",
       "hskLevel": 1
     },
     {
       "id": "hsk1-429",
       "hanzi": "页",
-      "pinyin": "xié",
+      "pinyin": "yè",
       "meanings": [
-        "head"
+        "page",
+        "leaf"
       ],
-      "meaning": "head",
+      "meaning": "page",
       "hskLevel": 1
     },
     {
@@ -5427,22 +5504,25 @@
     {
       "id": "hsk1-455",
       "hanzi": "雨",
-      "pinyin": "yǔ",
+      "pinyin": "yù",
       "meanings": [
-        "rain"
+        "(literary) to rain",
+        "(of rain, snow etc) to fall",
+        "to precipitate",
+        "to wet"
       ],
-      "meaning": "rain",
+      "meaning": "to rain",
       "hskLevel": 1
     },
     {
       "id": "hsk1-456",
       "hanzi": "元",
-      "pinyin": "Yuán",
+      "pinyin": "yuán",
       "meanings": [
-        "surname Yuan",
-        "the Yuan or Mongol dynasty (1279-1368)"
+        "Chinese currency unit (yuan)",
+        "primary; first"
       ],
-      "meaning": "surname Yuan",
+      "meaning": "yuan (currency unit)",
       "hskLevel": 1
     },
     {
@@ -5642,11 +5722,11 @@
     {
       "id": "hsk1-473",
       "hanzi": "这里",
-      "pinyin": "zhè lǐ",
+      "pinyin": "zhèlǐ",
       "meanings": [
-        "variant of 这里"
+        "here; this place"
       ],
-      "meaning": "variant of 这里",
+      "meaning": "here",
       "hskLevel": 1
     },
     {
@@ -5700,11 +5780,21 @@
     {
       "id": "hsk1-478",
       "hanzi": "正",
-      "pinyin": "zhēng",
+      "pinyin": "zhèng",
       "meanings": [
-        "first month of the lunar year"
+        "straight",
+        "upright",
+        "proper",
+        "main",
+        "principal",
+        "to correct",
+        "to rectify",
+        "exactly",
+        "just (at that time)",
+        "right (in that place)",
+        "(math.) positive"
       ],
-      "meaning": "first month of the lunar year",
+      "meaning": "straight",
       "hskLevel": 1
     },
     {
@@ -5744,13 +5834,12 @@
     {
       "id": "hsk1-482",
       "hanzi": "中",
-      "pinyin": "Zhōng",
+      "pinyin": "zhōng",
       "meanings": [
-        "China",
-        "Chinese",
-        "surname Zhong"
+        "in; among; within",
+        "middle; center"
       ],
-      "meaning": "China",
+      "meaning": "in; middle; center",
       "hskLevel": 1
     },
     {
@@ -5954,9 +6043,9 @@
       "hanzi": "最",
       "pinyin": "zuì",
       "meanings": [
-        "variant of 最"
+        "most; -est; superlative"
       ],
-      "meaning": "variant of 最",
+      "meaning": "most; -est",
       "hskLevel": 1
     },
     {
@@ -6181,9 +6270,10 @@
       "hanzi": "背",
       "pinyin": "bēi",
       "meanings": [
-        "variant of 背"
+        "to carry on the back",
+        "to bear (burden)"
       ],
-      "meaning": "variant of 背",
+      "meaning": "to carry on back; to bear",
       "hskLevel": 2
     },
     {
@@ -6303,11 +6393,14 @@
     {
       "id": "hsk2-27",
       "hanzi": "便宜",
-      "pinyin": "biàn yí",
+      "pinyin": "pián yi",
       "meanings": [
-        "convenient"
+        "cheap",
+        "inexpensive",
+        "small advantages",
+        "to let sb off lightly"
       ],
-      "meaning": "convenient",
+      "meaning": "cheap",
       "hskLevel": 2
     },
     {
@@ -6315,9 +6408,10 @@
       "hanzi": "遍",
       "pinyin": "biàn",
       "meanings": [
-        "variant of 遍"
+        "everywhere; all over",
+        "classifier for actions (times/rounds)"
       ],
-      "meaning": "variant of 遍",
+      "meaning": "everywhere; all over; time/round",
       "hskLevel": 2
     },
     {
@@ -6585,9 +6679,10 @@
       "hanzi": "草",
       "pinyin": "cǎo",
       "meanings": [
-        "variant of 草"
+        "grass; straw; herb",
+        "rough; hasty"
       ],
-      "meaning": "variant of 草",
+      "meaning": "grass; straw",
       "hskLevel": 2
     },
     {
@@ -6620,11 +6715,12 @@
     {
       "id": "hsk2-53",
       "hanzi": "查",
-      "pinyin": "Zhā",
+      "pinyin": "chá",
       "meanings": [
-        "surname Zha"
+        "to check; to look up",
+        "to investigate; to research"
       ],
-      "meaning": "surname Zha",
+      "meaning": "to check; to investigate",
       "hskLevel": 2
     },
     {
@@ -6722,11 +6818,12 @@
     {
       "id": "hsk2-62",
       "hanzi": "成",
-      "pinyin": "Chéng",
+      "pinyin": "chéng",
       "meanings": [
-        "surname Cheng"
+        "to become; to turn into",
+        "to succeed; capable"
       ],
-      "meaning": "surname Cheng",
+      "meaning": "to become; to succeed",
       "hskLevel": 2
     },
     {
@@ -6859,9 +6956,9 @@
       "hanzi": "船",
       "pinyin": "chuán",
       "meanings": [
-        "variant of 船"
+        "boat; ship; vessel"
       ],
-      "meaning": "variant of 船",
+      "meaning": "boat; ship",
       "hskLevel": 2
     },
     {
@@ -6906,9 +7003,10 @@
       "hanzi": "词",
       "pinyin": "cí",
       "meanings": [
-        "old variant of 词"
+        "word; term",
+        "expression; lyrics"
       ],
-      "meaning": "old variant of 词",
+      "meaning": "word; term; lyrics",
       "hskLevel": 2
     },
     {
@@ -7070,11 +7168,11 @@
     {
       "id": "hsk2-92",
       "hanzi": "大门",
-      "pinyin": "Dà mén",
+      "pinyin": "dàmén",
       "meanings": [
-        "the Doors, US rock band"
+        "main entrance; front door; gate"
       ],
-      "meaning": "the Doors, US rock band",
+      "meaning": "main entrance; gate",
       "hskLevel": 2
     },
     {
@@ -7212,11 +7310,12 @@
     {
       "id": "hsk2-103",
       "hanzi": "蛋",
-      "pinyin": "Dàn",
+      "pinyin": "dàn",
       "meanings": [
-        "variant of 蜑"
+        "egg",
+        "oval-shaped object"
       ],
-      "meaning": "variant of 蜑",
+      "meaning": "egg",
       "hskLevel": 2
     },
     {
@@ -7224,10 +7323,24 @@
       "hanzi": "当",
       "pinyin": "dāng",
       "meanings": [
-        "(onom.) dong",
-        "ding dong (bell)"
+        "to be",
+        "to act as",
+        "manage",
+        "withstand",
+        "when",
+        "during",
+        "ought",
+        "should",
+        "match equally",
+        "equal",
+        "same",
+        "obstruct",
+        "just at (a time or place)",
+        "on the spot",
+        "right",
+        "just at"
       ],
-      "meaning": "dong",
+      "meaning": "to be",
       "hskLevel": 2
     },
     {
@@ -7488,24 +7601,21 @@
     {
       "id": "hsk2-124",
       "hanzi": "东北",
-      "pinyin": "Dōng běi",
+      "pinyin": "dōngběi",
       "meanings": [
-        "Northeast China",
-        "Manchuria"
+        "northeast"
       ],
-      "meaning": "Northeast China",
+      "meaning": "northeast",
       "hskLevel": 2
     },
     {
       "id": "hsk2-125",
       "hanzi": "东方",
-      "pinyin": "Dōng fāng",
+      "pinyin": "dōngfāng",
       "meanings": [
-        "the East",
-        "the Orient",
-        "two-character surname Dongfang"
+        "the east; orient; eastern"
       ],
-      "meaning": "the East",
+      "meaning": "the east; eastern",
       "hskLevel": 2
     },
     {
@@ -7626,11 +7736,12 @@
     {
       "id": "hsk2-136",
       "hanzi": "段",
-      "pinyin": "Duàn",
+      "pinyin": "duàn",
       "meanings": [
-        "surname Duan"
+        "section; segment; paragraph",
+        "stage (of process)"
       ],
-      "meaning": "surname Duan",
+      "meaning": "section; paragraph; segment",
       "hskLevel": 2
     },
     {
@@ -7910,11 +8021,12 @@
     {
       "id": "hsk2-160",
       "hanzi": "封",
-      "pinyin": "Fēng",
+      "pinyin": "fēng",
       "meanings": [
-        "surname Feng"
+        "classifier for letters/mail",
+        "to seal; to envelope"
       ],
-      "meaning": "surname Feng",
+      "meaning": "classifier for letters; to seal",
       "hskLevel": 2
     },
     {
@@ -8384,11 +8496,11 @@
     {
       "id": "hsk2-201",
       "hanzi": "海",
-      "pinyin": "Hǎi",
+      "pinyin": "hǎi",
       "meanings": [
-        "surname Hai"
+        "sea; ocean"
       ],
-      "meaning": "surname Hai",
+      "meaning": "sea; ocean",
       "hskLevel": 2
     },
     {
@@ -8419,11 +8531,13 @@
     {
       "id": "hsk2-204",
       "hanzi": "好处",
-      "pinyin": "hǎo chǔ",
+      "pinyin": "hǎo chu",
       "meanings": [
-        "easy to get along with"
+        "benefit; advantage; merit",
+        "gain; profit",
+        "also pr. [hǎo chù]"
       ],
-      "meaning": "easy to get along with",
+      "meaning": "benefit",
       "hskLevel": 2
     },
     {
@@ -8509,11 +8623,11 @@
     {
       "id": "hsk2-212",
       "hanzi": "黑",
-      "pinyin": "Hēi",
+      "pinyin": "hēi",
       "meanings": [
-        "abbr. for Heilongjiang province 黑龙江"
+        "black; dark"
       ],
-      "meaning": "abbr. for Heilongjiang province 黑龙江",
+      "meaning": "black; dark",
       "hskLevel": 2
     },
     {
@@ -8539,11 +8653,12 @@
     {
       "id": "hsk2-215",
       "hanzi": "红",
-      "pinyin": "Hóng",
+      "pinyin": "hóng",
       "meanings": [
-        "surname Hong"
+        "red",
+        "popular; successful"
       ],
-      "meaning": "surname Hong",
+      "meaning": "red; popular",
       "hskLevel": 2
     },
     {
@@ -8694,11 +8809,11 @@
     {
       "id": "hsk2-229",
       "hanzi": "黄",
-      "pinyin": "Huáng",
+      "pinyin": "huáng",
       "meanings": [
-        "surname Huang or Hwang"
+        "yellow"
       ],
-      "meaning": "surname Huang or Hwang",
+      "meaning": "yellow",
       "hskLevel": 2
     },
     {
@@ -8849,12 +8964,13 @@
     {
       "id": "hsk2-241",
       "hanzi": "加",
-      "pinyin": "Jiā",
+      "pinyin": "jiā",
       "meanings": [
-        "Canada (abbr. for 大)",
-        "surname Jia"
+        "to add",
+        "plus",
+        "to increase"
       ],
-      "meaning": "Canada",
+      "meaning": "to add; plus",
       "hskLevel": 2
     },
     {
@@ -8900,11 +9016,16 @@
     {
       "id": "hsk2-245",
       "hanzi": "假",
-      "pinyin": "gēi",
+      "pinyin": "jiǎ",
       "meanings": [
-        "used in 掰"
+        "fake",
+        "false",
+        "artificial",
+        "to borrow",
+        "if",
+        "suppose"
       ],
-      "meaning": "used in 掰",
+      "meaning": "fake",
       "hskLevel": 2
     },
     {
@@ -9056,11 +9177,12 @@
     {
       "id": "hsk2-258",
       "hanzi": "角",
-      "pinyin": "Jué",
+      "pinyin": "jiǎo",
       "meanings": [
-        "surname Jue"
+        "horn; angle; corner",
+        "dime; 10 cents"
       ],
-      "meaning": "surname Jue",
+      "meaning": "horn; corner; 10 cents",
       "hskLevel": 2
     },
     {
@@ -9132,11 +9254,12 @@
     {
       "id": "hsk2-265",
       "hanzi": "教学",
-      "pinyin": "jiāo xué",
+      "pinyin": "jiào xué",
       "meanings": [
-        "to teach (as a professor)"
+        "teaching",
+        "instruction"
       ],
-      "meaning": "to teach",
+      "meaning": "teaching",
       "hskLevel": 2
     },
     {
@@ -9237,11 +9360,18 @@
     {
       "id": "hsk2-273",
       "hanzi": "节",
-      "pinyin": "jiē",
+      "pinyin": "jié",
       "meanings": [
-        "see 节骨眼"
+        "joint; node",
+        "(bound form) section; segment",
+        "solar term (one of the 24 divisions of the year in the traditional Chinese calendar)",
+        "seasonal festival",
+        "(bound form) to economize; to save",
+        "(bound form) moral integrity; chastity",
+        "classifier for segments: lessons, train wagons, biblical verses etc",
+        "knot (nautical miles per hour)"
       ],
-      "meaning": "see 节骨眼",
+      "meaning": "joint",
       "hskLevel": 2
     },
     {
@@ -9269,11 +9399,17 @@
     {
       "id": "hsk2-276",
       "hanzi": "结果",
-      "pinyin": "jiē guǒ",
+      "pinyin": "jié guǒ",
       "meanings": [
-        "to bear fruit"
+        "outcome",
+        "result",
+        "conclusion",
+        "in the end",
+        "as a result",
+        "to kill",
+        "to dispatch"
       ],
-      "meaning": "to bear fruit",
+      "meaning": "outcome",
       "hskLevel": 2
     },
     {
@@ -9435,9 +9571,11 @@
       "hanzi": "举",
       "pinyin": "jǔ",
       "meanings": [
-        "variant of 举"
+        "to lift; to raise",
+        "to cite (examples)",
+        "act; deed"
       ],
-      "meaning": "variant of 举",
+      "meaning": "to lift; to raise; to act",
       "hskLevel": 2
     },
     {
@@ -9464,11 +9602,12 @@
     {
       "id": "hsk2-292",
       "hanzi": "句",
-      "pinyin": "gōu",
+      "pinyin": "jù",
       "meanings": [
-        "variant of 勾"
+        "sentence; clause",
+        "classifier for sentences/lines"
       ],
-      "meaning": "variant of 勾",
+      "meaning": "sentence; clause",
       "hskLevel": 2
     },
     {
@@ -9694,12 +9833,12 @@
     {
       "id": "hsk2-309",
       "hanzi": "克",
-      "pinyin": "Kè",
+      "pinyin": "kè",
       "meanings": [
-        "abbr. for 克罗地亚, Croatia",
-        "(Tw) abbr. for 克罗埃西亚, Croatia"
+        "gram (unit of weight)",
+        "to overcome; to conquer"
       ],
-      "meaning": "abbr. for 克罗地亚, Croatia",
+      "meaning": "gram; to overcome",
       "hskLevel": 2
     },
     {
@@ -9845,11 +9984,11 @@
     {
       "id": "hsk2-322",
       "hanzi": "蓝",
-      "pinyin": "Lán",
+      "pinyin": "lán",
       "meanings": [
-        "surname Lan"
+        "blue"
       ],
-      "meaning": "surname Lan",
+      "meaning": "blue",
       "hskLevel": 2
     },
     {
@@ -9909,11 +10048,12 @@
     {
       "id": "hsk2-328",
       "hanzi": "离",
-      "pinyin": "chī",
+      "pinyin": "lí",
       "meanings": [
-        "mythical beast (archaic)"
+        "away from (distance/time)",
+        "to leave; to depart"
       ],
-      "meaning": "mythical beast",
+      "meaning": "away from; to leave",
       "hskLevel": 2
     },
     {
@@ -10024,11 +10164,12 @@
     {
       "id": "hsk2-338",
       "hanzi": "凉",
-      "pinyin": "Liáng",
+      "pinyin": "liáng",
       "meanings": [
-        "the five Liang of the Sixteen Kingdoms, namely: Former Liang 前凉 (314-376), Later Liang 后凉 (386-403), Northern Liang 北凉 (398-439), Southern Liang 南凉 (397-414), Western Liang 西凉 (400-421)"
+        "cool; refreshing",
+        "cold"
       ],
-      "meaning": "the five Liang of the Sixteen Kingdoms, namely: Former Liang 前凉 (314-376), Later Liang 后凉 (386-403), Northern Liang 北凉 (398-439), Southern Liang 南凉 (397-414), Western Liang 西凉",
+      "meaning": "cool; cold",
       "hskLevel": 2
     },
     {
@@ -10122,9 +10263,10 @@
       "hanzi": "留",
       "pinyin": "liú",
       "meanings": [
-        "old variant of 留"
+        "to stay; to remain",
+        "to leave (a message/record)"
       ],
-      "meaning": "old variant of 留",
+      "meaning": "to stay; to remain; to leave (message)",
       "hskLevel": 2
     },
     {
@@ -10235,11 +10377,13 @@
     {
       "id": "hsk2-356",
       "hanzi": "满",
-      "pinyin": "Mǎn",
+      "pinyin": "mǎn",
       "meanings": [
-        "Manchu ethnic group"
+        "full; filled",
+        "to fill",
+        "satisfied"
       ],
-      "meaning": "Manchu ethnic group",
+      "meaning": "full; filled",
       "hskLevel": 2
     },
     {
@@ -10269,11 +10413,12 @@
     {
       "id": "hsk2-359",
       "hanzi": "米",
-      "pinyin": "Mǐ",
+      "pinyin": "mǐ",
       "meanings": [
-        "surname Mi"
+        "rice",
+        "meter (unit of length)"
       ],
-      "meaning": "surname Mi",
+      "meaning": "rice; meter",
       "hskLevel": 2
     },
     {
@@ -10550,12 +10695,11 @@
     {
       "id": "hsk2-383",
       "hanzi": "鸟",
-      "pinyin": "diǎo",
+      "pinyin": "niǎo",
       "meanings": [
-        "variant of 屌",
-        "penis"
+        "bird"
       ],
-      "meaning": "variant of 屌",
+      "meaning": "bird",
       "hskLevel": 2
     },
     {
@@ -10608,11 +10752,12 @@
     {
       "id": "hsk2-388",
       "hanzi": "怕",
-      "pinyin": "Pà",
+      "pinyin": "pà",
       "meanings": [
-        "surname Pa"
+        "to fear; to be afraid of",
+        "perhaps"
       ],
-      "meaning": "surname Pa",
+      "meaning": "to fear; afraid of",
       "hskLevel": 2
     },
     {
@@ -10660,9 +10805,10 @@
       "hanzi": "碰",
       "pinyin": "pèng",
       "meanings": [
-        "variant of 碰"
+        "to touch; to bump against",
+        "to meet by chance"
       ],
-      "meaning": "variant of 碰",
+      "meaning": "to touch; to bump; to meet",
       "hskLevel": 2
     },
     {
@@ -10728,11 +10874,12 @@
     {
       "id": "hsk2-398",
       "hanzi": "平",
-      "pinyin": "Píng",
+      "pinyin": "píng",
       "meanings": [
-        "surname Ping"
+        "flat; level",
+        "equal; calm"
       ],
-      "meaning": "surname Ping",
+      "meaning": "flat; level; equal",
       "hskLevel": 2
     },
     {
@@ -10947,9 +11094,9 @@
       "hanzi": "墙",
       "pinyin": "qiáng",
       "meanings": [
-        "variant of 墙, wall"
+        "wall"
       ],
-      "meaning": "variant of 墙, wall",
+      "meaning": "wall",
       "hskLevel": 2
     },
     {
@@ -11140,11 +11287,12 @@
     {
       "id": "hsk2-433",
       "hanzi": "全",
-      "pinyin": "Quán",
+      "pinyin": "quán",
       "meanings": [
-        "surname Quan"
+        "all; whole; entire",
+        "complete"
       ],
-      "meaning": "surname Quan",
+      "meaning": "all; whole; complete",
       "hskLevel": 2
     },
     {
@@ -11995,11 +12143,18 @@
     {
       "id": "hsk2-504",
       "hanzi": "提",
-      "pinyin": "dī",
+      "pinyin": "tí",
       "meanings": [
-        "used in 防 and 溜"
+        "to carry (hanging down from the hand)",
+        "to lift",
+        "to put forward",
+        "to mention",
+        "to raise (an issue)",
+        "upwards character stroke",
+        "lifting brush stroke (in painting)",
+        "scoop for measuring liquid"
       ],
-      "meaning": "used in 防 and 溜",
+      "meaning": "to carry",
       "hskLevel": 2
     },
     {
@@ -12044,11 +12199,12 @@
     {
       "id": "hsk2-508",
       "hanzi": "题",
-      "pinyin": "Tí",
+      "pinyin": "tí",
       "meanings": [
-        "surname Ti"
+        "topic; subject",
+        "question; exam problem"
       ],
-      "meaning": "surname Ti",
+      "meaning": "topic; question; problem",
       "hskLevel": 2
     },
     {
@@ -12355,9 +12511,10 @@
       "hanzi": "腿",
       "pinyin": "tuǐ",
       "meanings": [
-        "leg"
+        "hip bone",
+        "old variant of 腿"
       ],
-      "meaning": "leg",
+      "meaning": "hip bone",
       "hskLevel": 2
     },
     {
@@ -12465,19 +12622,20 @@
       "hanzi": "碗",
       "pinyin": "wǎn",
       "meanings": [
-        "variant of 碗"
+        "bowl"
       ],
-      "meaning": "variant of 碗",
+      "meaning": "bowl",
       "hskLevel": 2
     },
     {
       "id": "hsk2-543",
       "hanzi": "万",
-      "pinyin": "mò",
+      "pinyin": "wàn",
       "meanings": [
-        "used in 俟"
+        "ten thousand",
+        "a great number"
       ],
-      "meaning": "used in 俟",
+      "meaning": "ten thousand",
       "hskLevel": 2
     },
     {
@@ -12532,19 +12690,13 @@
     {
       "id": "hsk2-548",
       "hanzi": "为",
-      "pinyin": "wéi",
+      "pinyin": "wèi",
       "meanings": [
-        "as (in the capacity of)",
-        "to take sth as",
-        "to act as",
-        "to serve as",
-        "to behave as",
-        "to become",
-        "to be",
-        "to do",
-        "by (in the passive voice)"
+        "because of",
+        "for",
+        "to"
       ],
-      "meaning": "as",
+      "meaning": "because of",
       "hskLevel": 2
     },
     {
@@ -12590,11 +12742,12 @@
     {
       "id": "hsk2-552",
       "hanzi": "喂",
-      "pinyin": "wéi",
+      "pinyin": "wèi",
       "meanings": [
-        "hello (when answering the phone)"
+        "hey",
+        "to feed (an animal, baby, invalid etc)"
       ],
-      "meaning": "hello",
+      "meaning": "hey",
       "hskLevel": 2
     },
     {
@@ -12610,11 +12763,13 @@
     {
       "id": "hsk2-554",
       "hanzi": "闻",
-      "pinyin": "Wén",
+      "pinyin": "wén",
       "meanings": [
-        "surname Wen"
+        "to smell",
+        "to hear (news)",
+        "reputation"
       ],
-      "meaning": "surname Wen",
+      "meaning": "to smell; to hear (news)",
       "hskLevel": 2
     },
     {
@@ -12700,11 +12855,11 @@
     {
       "id": "hsk2-562",
       "hanzi": "西北",
-      "pinyin": "Xī běi",
+      "pinyin": "xīběi",
       "meanings": [
-        "Northwest China (Shaanxi, Gansu, Qinghai, Ningxia, Xinjiang)"
+        "northwest"
       ],
-      "meaning": "Northwest China",
+      "meaning": "northwest",
       "hskLevel": 2
     },
     {
@@ -12868,11 +13023,12 @@
     {
       "id": "hsk2-577",
       "hanzi": "向",
-      "pinyin": "Xiàng",
+      "pinyin": "xiàng",
       "meanings": [
-        "surname Xiang"
+        "towards; to",
+        "to face; direction"
       ],
-      "meaning": "surname Xiang",
+      "meaning": "towards; to face",
       "hskLevel": 2
     },
     {
@@ -13157,22 +13313,21 @@
       "hanzi": "姓",
       "pinyin": "xìng",
       "meanings": [
-        "family name",
-        "surname",
+        "family name; surname",
         "to be surnamed"
       ],
-      "meaning": "family name",
+      "meaning": "family name; to be surnamed",
       "hskLevel": 2
     },
     {
       "id": "hsk2-603",
       "hanzi": "姓名",
-      "pinyin": "xìng míng",
+      "pinyin": "xìngmíng",
       "meanings": [
-        "surname and given name",
-        "full name"
+        "full name; name",
+        "surname and given name"
       ],
-      "meaning": "surname and given name",
+      "meaning": "full name; name",
       "hskLevel": 2
     },
     {
@@ -13224,11 +13379,11 @@
     {
       "id": "hsk2-608",
       "hanzi": "雪",
-      "pinyin": "Xuě",
+      "pinyin": "xuě",
       "meanings": [
-        "surname Xue"
+        "snow"
       ],
-      "meaning": "surname Xue",
+      "meaning": "snow",
       "hskLevel": 2
     },
     {
@@ -13330,11 +13485,12 @@
     {
       "id": "hsk2-617",
       "hanzi": "药水",
-      "pinyin": "Yào shuǐ",
+      "pinyin": "yàoshuǐ",
       "meanings": [
-        "Yaksu in North Korea, near the border with Liaoning and Jiling province"
+        "liquid medicine",
+        "potion"
       ],
-      "meaning": "Yaksu in North Korea, near the border with Liaoning and Jiling province",
+      "meaning": "liquid medicine",
       "hskLevel": 2
     },
     {
@@ -13368,9 +13524,9 @@
       "hanzi": "夜",
       "pinyin": "yè",
       "meanings": [
-        "variant of 夜"
+        "night; evening"
       ],
-      "meaning": "variant of 夜",
+      "meaning": "night; evening",
       "hskLevel": 2
     },
     {
@@ -13649,11 +13805,13 @@
     {
       "id": "hsk2-643",
       "hanzi": "阴",
-      "pinyin": "Yīn",
+      "pinyin": "yīn",
       "meanings": [
-        "surname Yin"
+        "overcast; cloudy",
+        "shade",
+        "negative"
       ],
-      "meaning": "surname Yin",
+      "meaning": "overcast; cloudy; shade",
       "hskLevel": 2
     },
     {
@@ -13892,21 +14050,22 @@
     {
       "id": "hsk2-664",
       "hanzi": "友好",
-      "pinyin": "Yǒu hǎo",
+      "pinyin": "yǒuhǎo",
       "meanings": [
-        "Youhao district of Yichun city 市, Heilongjiang"
+        "friendly; amicable",
+        "friendship"
       ],
-      "meaning": "Youhao district of Yichun city 市, Heilongjiang",
+      "meaning": "friendly; amicable",
       "hskLevel": 2
     },
     {
       "id": "hsk2-665",
       "hanzi": "鱼",
-      "pinyin": "Yú",
+      "pinyin": "yú",
       "meanings": [
-        "surname Yu"
+        "fish"
       ],
-      "meaning": "surname Yu",
+      "meaning": "fish",
       "hskLevel": 2
     },
     {
@@ -14023,12 +14182,12 @@
     {
       "id": "hsk2-675",
       "hanzi": "越",
-      "pinyin": "Yuè",
+      "pinyin": "yuè",
       "meanings": [
-        "generic word for peoples or states of south China or south Asia at different historical periods",
-        "abbr. for Vietnam 越南"
+        "to exceed; to cross",
+        "the more... the more..."
       ],
-      "meaning": "abbr. for Vietnam 越南",
+      "meaning": "to exceed; the more...",
       "hskLevel": 2
     },
     {
@@ -14072,9 +14231,10 @@
       "hanzi": "咱",
       "pinyin": "zán",
       "meanings": [
-        "variant of 咱"
+        "we; us (including the listener)",
+        "I; me"
       ],
-      "meaning": "variant of 咱",
+      "meaning": "we; us (inclusive)",
       "hskLevel": 2
     },
     {
@@ -14171,9 +14331,10 @@
       "hanzi": "占",
       "pinyin": "zhàn",
       "meanings": [
-        "variant of 占"
+        "to occupy; to take up",
+        "to account for"
       ],
-      "meaning": "variant of 占",
+      "meaning": "to occupy; to take up",
       "hskLevel": 2
     },
     {
@@ -14416,9 +14577,9 @@
       "hanzi": "纸",
       "pinyin": "zhǐ",
       "meanings": [
-        "variant of 纸"
+        "paper"
       ],
-      "meaning": "variant of 纸",
+      "meaning": "paper",
       "hskLevel": 2
     },
     {
@@ -14489,12 +14650,13 @@
     {
       "id": "hsk2-716",
       "hanzi": "重点",
-      "pinyin": "chóng diǎn",
+      "pinyin": "zhòngdiǎn",
       "meanings": [
-        "to recount (e.g. results of election)",
-        "to re-evaluate"
+        "important point; main point; focus",
+        "key (project etc)",
+        "to focus on; to emphasize"
       ],
-      "meaning": "to recount",
+      "meaning": "key point; focus; main point",
       "hskLevel": 2
     },
     {
@@ -14531,12 +14693,13 @@
     {
       "id": "hsk2-720",
       "hanzi": "周",
-      "pinyin": "Zhōu",
+      "pinyin": "zhōu",
       "meanings": [
-        "surname Zhou",
-        "Zhou Dynasty (1046-256 BC)"
+        "week",
+        "cycle; circuit",
+        "all around"
       ],
-      "meaning": "surname Zhou",
+      "meaning": "week; cycle; circuit",
       "hskLevel": 2
     },
     {
@@ -14733,11 +14896,12 @@
     {
       "id": "hsk2-737",
       "hanzi": "组",
-      "pinyin": "Zǔ",
+      "pinyin": "zǔ",
       "meanings": [
-        "surname Zu"
+        "group; team",
+        "to organize; to compose"
       ],
-      "meaning": "surname Zu",
+      "meaning": "group; team; to organize",
       "hskLevel": 2
     },
     {
@@ -14904,5 +15068,5 @@
       "hskLevel": 2
     }
   ],
-  "sha256": "744bb52c05b20268995118d83ad2ddcec71dd2da9b0ebdc22c185b2977e2f0af"
+  "sha256": "d849d1b2fa9e5afb6893db185507e68d205177e90a7aae66ce689d4f6c399acc"
 }

@@ -1,4 +1,4 @@
-import { resolveGuestSession } from './guest.js';
+import { resolveGuestSession, generateSecondaryAbuseFingerprint } from './guest.js';
 import { getSupabaseAdmin } from './supabaseAdmin.js';
 
 export interface ResolvedIdentity {
@@ -6,6 +6,7 @@ export interface ResolvedIdentity {
   userId: string | null;
   identifier: string; // e.g. "user:<uuid>", "guest:<uuid>"
   guestCookieHeader: string | null;
+  fingerprint?: string;
   error?: string;
 }
 
@@ -15,8 +16,12 @@ export interface ResolvedIdentity {
  */
 export async function resolveIdentity(
   authHeader?: string | null,
-  cookieHeader?: string | null
+  cookieHeader?: string | null,
+  clientIp?: string | null,
+  userAgent?: string | null
 ): Promise<ResolvedIdentity> {
+  const fingerprint = generateSecondaryAbuseFingerprint(clientIp, userAgent);
+
   // If Authorization header is provided, strictly evaluate it
   if (authHeader !== undefined && authHeader !== null && authHeader.trim() !== '') {
     if (!authHeader.startsWith('Bearer ')) {
@@ -25,6 +30,7 @@ export async function resolveIdentity(
         userId: null,
         identifier: '',
         guestCookieHeader: null,
+        fingerprint,
         error: 'Malformed Authorization header. Format must be "Bearer <token>"',
       };
     }
@@ -36,6 +42,7 @@ export async function resolveIdentity(
         userId: null,
         identifier: '',
         guestCookieHeader: null,
+        fingerprint,
         error: 'Empty bearer token provided',
       };
     }
@@ -47,6 +54,7 @@ export async function resolveIdentity(
         userId: null,
         identifier: '',
         guestCookieHeader: null,
+        fingerprint,
         error: 'Authentication service unavailable',
       };
     }
@@ -59,6 +67,7 @@ export async function resolveIdentity(
           userId: null,
           identifier: '',
           guestCookieHeader: null,
+          fingerprint,
           error: error?.message || 'Invalid or expired bearer token',
         };
       }
@@ -68,6 +77,7 @@ export async function resolveIdentity(
         userId: user.id,
         identifier: `user:${user.id}`,
         guestCookieHeader: null,
+        fingerprint,
       };
     } catch (err: unknown) {
       return {
@@ -75,6 +85,7 @@ export async function resolveIdentity(
         userId: null,
         identifier: '',
         guestCookieHeader: null,
+        fingerprint,
         error: err instanceof Error ? err.message : 'Authentication verification failed',
       };
     }
@@ -87,5 +98,6 @@ export async function resolveIdentity(
     userId: null,
     identifier: `guest:${guestId}`,
     guestCookieHeader: newCookie,
+    fingerprint,
   };
 }

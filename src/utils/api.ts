@@ -39,7 +39,7 @@ const STATIC_METADATA: CurriculumMetadata = {
     hsk2: 750,
     cumulative: 1250,
   },
-  sha256: '744bb52c05b20268995118d83ad2ddcec71dd2da9b0ebdc22c185b2977e2f0af',
+  sha256: 'd849d1b2fa9e5afb6893db185507e68d205177e90a7aae66ce689d4f6c399acc',
 };
 
 export function getCurriculumMetadata(): CurriculumMetadata {

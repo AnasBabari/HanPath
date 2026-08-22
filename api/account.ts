@@ -85,27 +85,31 @@ export default async function handler(
       throw err;
     }
 
-    if (rawText.trim()) {
-      if (!isJsonContentType(req.headers['content-type'])) {
-        res.statusCode = 415;
-        res.end(JSON.stringify({ error: 'Unsupported Media Type: Content-Type must be application/json' }));
-        return;
-      }
+    if (!rawText.trim()) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: 'Explicit confirmation required: { confirm: true }' }));
+      return;
+    }
 
-      let payload: { confirm?: boolean };
-      try {
-        payload = JSON.parse(rawText);
-      } catch {
-        res.statusCode = 400;
-        res.end(JSON.stringify({ error: 'Malformed JSON payload' }));
-        return;
-      }
+    if (!isJsonContentType(req.headers['content-type'])) {
+      res.statusCode = 415;
+      res.end(JSON.stringify({ error: 'Unsupported Media Type: Content-Type must be application/json' }));
+      return;
+    }
 
-      if (payload.confirm !== true) {
-        res.statusCode = 400;
-        res.end(JSON.stringify({ error: 'Explicit confirmation required: { confirm: true }' }));
-        return;
-      }
+    let payload: { confirm?: boolean };
+    try {
+      payload = JSON.parse(rawText);
+    } catch {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: 'Malformed JSON payload' }));
+      return;
+    }
+
+    if (!payload || typeof payload !== 'object' || payload.confirm !== true) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: 'Explicit confirmation required: { confirm: true }' }));
+      return;
     }
 
     // 1. Transactional application data deletion via SQL function

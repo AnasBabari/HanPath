@@ -20,7 +20,7 @@
 
 **HànPath** is built for learners mastering Mandarin Chinese with structural rigor, high performance, and offline resilience.
 
-- 📚 **HSK 3.0 Standard (2021):** 500 HSK 1 words and 772 HSK 2 words (1,272 cumulative vocabulary items) pre-bundled with pinyin, English definitions, and interactive stroke order animations referencing the CTI syllabus and normalized under MIT License.
+- 📚 **HSK 3.0 Standard (2021):** 500 HSK 1 words and 750 HSK 2 words (1,250 cumulative vocabulary items) pre-bundled with pinyin, English definitions, and interactive stroke order animations referencing the CTI syllabus and normalized under MIT License.
 - 📖 **16 Graded Stories:** 8 coherent narrative stories per level with tokenized glosses, character popups, and pinyin assistance.
 - 🤖 **Pedagogical AI Language Buddy:** Serverless OpenRouter proxy with fallback routing, strict server-authored system prompts, and context isolation.
 - ⚡ **Optimistic Concurrency & Local-First Sync:** Version-conditioned atomic cloud sync with guest-to-cloud merge, full offline persistence, and export/restore capabilities.
@@ -71,10 +71,11 @@ Browser Client (React 19 + Vite 8 + Zustand)
 
 ## 📚 Curriculum & Stories Provenance
 
-- **Curriculum:** Ministry of Education PRC GF0025-2021 Standard (*Chinese Proficiency Grading Standards for International Chinese Language Education*).
-- **Exact Counts:** Exactly **500 HSK 1** words and **772 HSK 2** words (1,272 cumulative).
-- **Integrity:** Validated against canonical SHA-256 hash `d9c33ef656dbd854bf9eb76ef635674ddeeac92de60264b70c84c7f370a01449`.
-- **License:** CC-BY-4.0 / MIT (CC-CEDICT & MIT Open Chinese Lexicon).
+- **Curriculum Standard:** Ministry of Education PRC GF0025-2021 Standard (*Chinese Proficiency Grading Standards for International Chinese Language Education*), referencing Chinese Testing International ([CTI HSK Syllabus](https://www.chinesetest.cn/HSK)).
+- **Normalized Dataset Source:** Curated via `drkameleon/complete-hsk-vocabulary` (pinned release commit `7ac65bf1a6387d35f1ade478906172a19311c7f9`) with custom HanPath pedagogical beginner overrides.
+- **Exact Counts:** Exactly **500 HSK 1** words and **750 HSK 2** words (1,250 cumulative).
+- **Integrity Checksum:** Validated against canonical SHA-256 hash `d849d1b2fa9e5afb6893db185507e68d205177e90a7aae66ce689d4f6c399acc`.
+- **License:** MIT License.
 - **Graded Stories:** 8 original stories for HSK 1 and 8 original stories for HSK 2 (16 total), structurally validated with automated tokenization and HSK-level vocabulary bounds.
 
 ---

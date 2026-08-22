@@ -81,6 +81,89 @@ describe('Curriculum Data Integrity & Provenance Validation', () => {
     }
   });
 
+  it('validates linguistic accuracy and pedagogical overrides for beginner vocabulary', () => {
+    const filePath = path.join(srcDataDir, 'curriculum_hsk3_v1.json');
+    const raw = fs.readFileSync(filePath, 'utf8');
+    const artifact = JSON.parse(raw) as CurriculumArtifact;
+    const allWords = [...artifact.hsk1, ...artifact.hsk2];
+
+    const findWord = (hanzi: string) => allWords.find(w => w.hanzi === hanzi);
+
+    // Verify key beginner semantic disambiguations
+    const ba = findWord('吧');
+    expect(ba).toBeDefined();
+    expect(ba?.pinyin).toBe('ba');
+    expect(ba?.meanings.some(m => m.includes('modal particle') || m.includes('suggestion'))).toBe(true);
+
+    const bai = findWord('百');
+    expect(bai).toBeDefined();
+    expect(bai?.pinyin).toBe('bǎi');
+    expect(bai?.meanings.some(m => m.includes('hundred'))).toBe(true);
+
+    const bi = findWord('比');
+    expect(bi).toBeDefined();
+    expect(bi?.pinyin).toBe('bǐ');
+    expect(bi?.meanings.some(m => m.includes('compare'))).toBe(true);
+
+    const bie = findWord('别');
+    expect(bie).toBeDefined();
+    expect(bie?.pinyin).toBe('bié');
+    expect(bie?.meanings.some(m => m.includes("don't") || m.includes('other'))).toBe(true);
+
+    const che = findWord('车');
+    expect(che).toBeDefined();
+    expect(che?.pinyin).toBe('chē');
+    expect(che?.meanings.some(m => m.includes('car') || m.includes('vehicle'))).toBe(true);
+
+    const da = findWord('打');
+    expect(da).toBeDefined();
+    expect(da?.pinyin).toBe('dǎ');
+    expect(da?.meanings.some(m => m.includes('hit') || m.includes('play'))).toBe(true);
+
+    const zhongdian = findWord('重点');
+    expect(zhongdian).toBeDefined();
+    expect(zhongdian?.pinyin).toBe('zhòngdiǎn');
+    expect(zhongdian?.meanings.some(m => m.includes('point') || m.includes('focus'))).toBe(true);
+
+    const daxue = findWord('大学');
+    expect(daxue).toBeDefined();
+    expect(daxue?.pinyin).toBe('dàxué');
+    expect(daxue?.meanings.some(m => m.includes('university') || m.includes('college'))).toBe(true);
+
+    const damen = findWord('大门');
+    expect(damen).toBeDefined();
+    expect(damen?.pinyin).toBe('dàmén');
+    expect(damen?.meanings.some(m => m.includes('entrance') || m.includes('gate') || m.includes('door'))).toBe(true);
+
+    const youhao = findWord('友好');
+    expect(youhao).toBeDefined();
+    expect(youhao?.pinyin).toBe('yǒuhǎo');
+    expect(youhao?.meanings.some(m => m.includes('friendly') || m.includes('amicable'))).toBe(true);
+
+    const yaoshui = findWord('药水');
+    expect(yaoshui).toBeDefined();
+    expect(yaoshui?.pinyin).toBe('yàoshuǐ');
+    expect(yaoshui?.meanings.some(m => m.includes('medicine'))).toBe(true);
+
+    const ting = findWord('听');
+    expect(ting).toBeDefined();
+    expect(ting?.pinyin).toBe('tīng');
+
+    const niao = findWord('鸟');
+    expect(niao).toBeDefined();
+    expect(niao?.pinyin).toBe('niǎo');
+
+    const dou = findWord('都');
+    expect(dou).toBeDefined();
+    expect(dou?.pinyin).toBe('dōu');
+
+    // Ensure none of the beginner words have accidental surname-first meanings
+    for (const w of allWords) {
+      expect(w.meanings[0].toLowerCase().startsWith('surname ')).toBe(false);
+      expect(w.meanings[0].toLowerCase().startsWith('euphemistic ')).toBe(false);
+    }
+  });
+
   it('validates public/data/hsk1_sentences.json and hsk2_sentences.json contracts', () => {
     for (const level of [1, 2]) {
       const filePath = path.join(dataDir, `hsk${level}_sentences.json`);

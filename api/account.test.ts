@@ -82,6 +82,78 @@ describe('DELETE /api/account Integration Suite', () => {
     expect(parsed.error).toContain('Database service unavailable');
   });
 
+  it('rejects empty body with 400 Bad Request', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
+    });
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({} as any);
+
+    const { runPromise, res, getResponseData } = createMockReqRes('DELETE', null);
+    await runPromise;
+
+    expect(res.statusCode).toBe(400);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Explicit confirmation required');
+  });
+
+  it('rejects { confirm: false } with 400 Bad Request', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
+    });
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({} as any);
+
+    const { runPromise, res, getResponseData } = createMockReqRes('DELETE', { confirm: false });
+    await runPromise;
+
+    expect(res.statusCode).toBe(400);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Explicit confirmation required');
+  });
+
+  it('rejects empty JSON object {} with 400 Bad Request', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
+    });
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({} as any);
+
+    const { runPromise, res, getResponseData } = createMockReqRes('DELETE', {});
+    await runPromise;
+
+    expect(res.statusCode).toBe(400);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Explicit confirmation required');
+  });
+
+  it('rejects non-JSON Content-Type with 415 Unsupported Media Type', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
+    });
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({} as any);
+
+    const { runPromise, res, getResponseData } = createMockReqRes(
+      'DELETE',
+      { confirm: true },
+      { 'content-type': 'text/plain' }
+    );
+    await runPromise;
+
+    expect(res.statusCode).toBe(415);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Unsupported Media Type');
+  });
+
   it('executes delete_user_data RPC and auth admin deleteUser on confirmation', async () => {
     vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
       type: 'user',

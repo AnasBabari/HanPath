@@ -58,7 +58,9 @@ describe('POST /api/chat Serverless Handler', () => {
     expect(isAllowedOrigin('http://localhost:5173')).toBe(true);
     expect(isAllowedOrigin('http://127.0.0.1:4173')).toBe(true);
     expect(isAllowedOrigin('https://hanpath.vercel.app')).toBe(true);
+    expect(isAllowedOrigin('https://han-path.vercel.app')).toBe(true);
     expect(isAllowedOrigin('https://hanpath-preview-123.vercel.app')).toBe(true);
+    expect(isAllowedOrigin('https://han-path-preview-123.vercel.app')).toBe(true);
     expect(isAllowedOrigin('https://malicious-app.vercel.app')).toBe(false);
     expect(isAllowedOrigin('https://evil.com')).toBe(false);
   });

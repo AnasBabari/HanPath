@@ -54,7 +54,7 @@ export function isAllowedOrigin(origin?: string | null): boolean {
   }
 
   // Allow specific HanPath production and preview domains
-  if (/^https:\/\/hanpath(-[a-zA-Z0-9_-]+)?\.vercel\.app$/.test(origin)) {
+  if (/^https:\/\/(hanpath|han-path)(-[a-zA-Z0-9_-]+)?\.vercel\.app$/.test(origin)) {
     return true;
   }
 
@@ -293,12 +293,25 @@ export default async function handler(
     // Resolve Identity
     const authHeader = req.headers['authorization'];
     const cookieHeader = req.headers['cookie'];
+    const clientIp = typeof req.headers['x-forwarded-for'] === 'string'
+      ? req.headers['x-forwarded-for']
+      : Array.isArray(req.headers['x-forwarded-for'])
+        ? req.headers['x-forwarded-for'][0]
+        : null;
+    const userAgent = typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : null;
+
     const identity = await resolveIdentity(
       typeof authHeader === 'string' ? authHeader : null,
-      typeof cookieHeader === 'string' ? cookieHeader : null
+      typeof cookieHeader === 'string' ? cookieHeader : null,
+      clientIp,
+      userAgent
     );
 
     identityType = identity.type;
+
+    if (identity.fingerprint) {
+      res.setHeader('x-client-fp', identity.fingerprint);
+    }
 
     if (identity.type === 'unauthorized') {
       res.statusCode = 401;

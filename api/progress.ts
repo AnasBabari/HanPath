@@ -185,8 +185,10 @@ export default async function handler(
       );
 
       if (rpcErr) {
+        const reqId = crypto.randomUUID();
+        console.error(`[ProgressRPC] Failed save_user_progress (reqId: ${reqId}):`, rpcErr);
         res.statusCode = 500;
-        res.end(JSON.stringify({ error: `Database RPC error: ${rpcErr.message}` }));
+        res.end(JSON.stringify({ error: 'Failed to save user progress', requestId: reqId }));
         return;
       }
 

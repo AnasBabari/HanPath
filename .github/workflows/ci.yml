@@ -42,7 +42,7 @@ jobs:
       - name: Verify production bundle size budget (<130 KB gzip initial)
         run: npm run check:bundle
 
-      - name: Run coverage analysis (>=80% lines, >=75% fn, >=70% branches)
+      - name: Run coverage analysis (enforce thresholds: >=75% lines, >=70% fn, >=60% branches, >=74% statements)
         run: npm run test:coverage
 
       - name: Security audit

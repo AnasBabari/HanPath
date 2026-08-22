@@ -51,18 +51,37 @@ test.describe('HànPath Core User Journeys (E2E)', () => {
     await expect(page.locator('text=Graded Stories').first()).toBeVisible();
   });
 
-  test('Journey 4: Profile settings, daily goals, and licenses navigation', async ({ page }) => {
+  test('Journey 4: Profile settings, daily goals, data backup and licenses navigation', async ({ page }) => {
     await page.goto('/profile');
 
     await expect(page.locator('text=Scholar Profile').first()).toBeVisible();
     await expect(page.locator('text=Guest Scholar').first()).toBeVisible();
 
-    // Check daily study goal selector
+    // Check daily study goal selector and adjust
     await expect(page.locator('text=15 min / day').first()).toBeVisible();
+    await page.locator('button:has-text("20 min")').first().click();
+
+    // Verify Export Backup button is present and accessible
+    const exportBtn = page.locator('button:has-text("Export Backup")').first();
+    await expect(exportBtn).toBeVisible();
 
     // Open About & Licenses
     await page.locator('text=About & Licenses').first().click();
     await expect(page.locator('text=HSK 3.0 Curriculum Attribution').first()).toBeVisible();
     await expect(page.locator('text=HSK-3.0-2021').first()).toBeVisible();
+  });
+
+  test('Journey 5: Keyboard navigation and skip-to-content focus', async ({ page }) => {
+    await page.goto('/');
+
+    // Press Tab to focus Skip Link
+    await page.keyboard.press('Tab');
+    const skipLink = page.locator('a:has-text("Skip to main content")');
+    await expect(skipLink).toBeFocused();
+
+    // Press Enter to skip to main
+    await page.keyboard.press('Enter');
+    const mainContent = page.locator('#main-content');
+    await expect(mainContent).toBeVisible();
   });
 });

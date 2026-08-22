@@ -80,6 +80,9 @@ describe('Stories Corpus Integrity, Drift Detection & Editorial Gate', () => {
             expect(t.meaning.length).toBeGreaterThan(0);
             // Word meanings must be word-specific, not whole sentence blocks
             expect(t.meaning.length).toBeLessThan(60);
+            // Strict level containment: HSK 1 story words must be <= 1, HSK 2 words <= 2
+            expect(t.hsk_level).toBeGreaterThanOrEqual(1);
+            expect(t.hsk_level).toBeLessThanOrEqual(level);
           } else {
             expect(t.hsk_level).toBe(0);
             expect(t.pinyin_hint).toBe('');
