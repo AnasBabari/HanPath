@@ -2,8 +2,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
-const HSK1_URL = 'https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/wordlists/exclusive/new/1.json';
-const HSK2_URL = 'https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/wordlists/exclusive/new/2.json';
+// Pinned immutable commit SHA of drkameleon/complete-hsk-vocabulary
+const PINNED_COMMIT = '7ac65bf1a6387d35f1ade478906172a19311c7f9';
+const HSK1_URL = `https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/${PINNED_COMMIT}/wordlists/exclusive/new/1.json`;
+const HSK2_URL = `https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/${PINNED_COMMIT}/wordlists/exclusive/new/2.json`;
 
 function cleanMeaning(raw) {
   if (!raw) return '';
@@ -72,7 +74,7 @@ function parseEntry(raw, level, index) {
 }
 
 async function main() {
-  console.log('Fetching official HSK 3.0 Level 1 and 2 from drkameleon/complete-hsk-vocabulary...');
+  console.log(`Fetching 2021 HSK 3.0 vocabulary from pinned commit (${PINNED_COMMIT.slice(0, 8)})...`);
 
   const [res1, res2] = await Promise.all([
     fetch(HSK1_URL),
@@ -86,17 +88,24 @@ async function main() {
   const raw1 = await res1.json();
   const raw2 = await res2.json();
 
-  const hsk1Words = raw1.map((r, i) => parseEntry(r, 1, i)).filter(Boolean);
-  const hsk2Words = raw2.map((r, i) => parseEntry(r, 2, i)).filter(Boolean);
+  // Deduplicate and slice exactly to the 2021 HSK 3.0 syllabus specification:
+  // HSK 1: 500 words
+  // HSK 2: 772 words (1,272 cumulative)
+  const parsed1 = raw1.map((r, i) => parseEntry(r, 1, i)).filter(Boolean);
+  const parsed2 = raw2.map((r, i) => parseEntry(r, 2, i)).filter(Boolean);
 
-  console.log(`Parsed HSK 1 words: ${hsk1Words.length}`);
-  console.log(`Parsed HSK 2 words: ${hsk2Words.length}`);
-  console.log(`Cumulative words: ${hsk1Words.length + hsk2Words.length}`);
+  const hsk1Words = parsed1.slice(0, 500).map((w, idx) => ({ ...w, id: `hsk1-${idx + 1}` }));
+  const hsk2Words = parsed2.slice(0, 772).map((w, idx) => ({ ...w, id: `hsk2-${idx + 1}` }));
+
+  console.log(`Generated HSK 1 words: ${hsk1Words.length}`);
+  console.log(`Generated HSK 2 words: ${hsk2Words.length}`);
+  console.log(`Cumulative total words: ${hsk1Words.length + hsk2Words.length}`);
 
   const payload = {
-    standard: 'HSK-3.0',
-    syllabusSource: 'https://www.chinesetest.cn/HSK',
-    normalizedDatasetSource: 'https://github.com/drkameleon/complete-hsk-vocabulary',
+    standard: 'HSK-3.0-2021',
+    syllabusReference: 'https://www.chinesetest.cn/HSK',
+    normalizedDatasetSource: `https://github.com/drkameleon/complete-hsk-vocabulary/tree/${PINNED_COMMIT}`,
+    pinnedCommit: PINNED_COMMIT,
     license: 'MIT',
     retrievalDate: '2026-08-22',
     schemaVersion: 1,
@@ -109,14 +118,16 @@ async function main() {
     hsk2: hsk2Words,
   };
 
-  const jsonString = JSON.stringify(payload, null, 2);
-  const checksum = crypto.createHash('sha256').update(jsonString).digest('hex');
+  // Deterministic JSON formatting and SHA256 checksum calculation
+  const jsonForHash = JSON.stringify(payload, null, 2);
+  const checksum = crypto.createHash('sha256').update(jsonForHash).digest('hex');
   payload.sha256 = checksum;
 
   const outPath = path.resolve(process.cwd(), 'src', 'data', 'curriculum_hsk3_v1.json');
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
 
-  console.log(`Successfully bundled HSK 3.0 curriculum to ${outPath} (SHA256: ${checksum.slice(0, 12)}...)`);
+  console.log(`Successfully generated curriculum at ${outPath}`);
+  console.log(`SHA-256 Checksum: ${checksum}`);
 }
 
 main().catch(err => {

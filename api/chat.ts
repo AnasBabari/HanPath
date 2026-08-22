@@ -53,8 +53,8 @@ export function isAllowedOrigin(origin?: string | null): boolean {
     return true;
   }
 
-  // Allow production domain and any Vercel preview deployment
-  if (/^https:\/\/([a-zA-Z0-9-]+\.)?vercel\.app$/.test(origin)) {
+  // Allow specific HanPath production and preview domains
+  if (/^https:\/\/hanpath(-[a-zA-Z0-9_-]+)?\.vercel\.app$/.test(origin)) {
     return true;
   }
 
@@ -203,9 +203,9 @@ export default async function handler(
     return;
   }
 
-  // Content-Type validation
+  // Content-Type validation (must be present and must be application/json)
   const contentType = req.headers['content-type'];
-  if (contentType && !contentType.toLowerCase().includes('application/json')) {
+  if (!contentType || !contentType.toLowerCase().includes('application/json')) {
     res.statusCode = 415;
     const err: ChatErrorResponse = {
       error: { code: 'unsupported_media_type', message: 'Content-Type must be application/json', retryable: false },

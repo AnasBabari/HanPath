@@ -1,20 +1,38 @@
+import crypto from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolveIdentity } from './_lib/auth.js';
 import { getSupabaseAdmin } from './_lib/supabaseAdmin.js';
 
+const MAX_BODY_BYTES = 32 * 1024; // 32 KB
+
+export class PayloadTooLargeError extends Error {
+  constructor(message = 'Payload Too Large') {
+    super(message);
+    this.name = 'PayloadTooLargeError';
+  }
+}
+
 function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     let body = '';
-    req.on('data', (chunk) => {
-      body += chunk;
-      if (body.length > 32 * 1024) {
+    let bytes = 0;
+    req.on('data', (chunk: Buffer | string) => {
+      bytes += typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.length;
+      if (bytes > MAX_BODY_BYTES) {
         req.destroy();
-        reject(new Error('Payload Too Large'));
+        reject(new PayloadTooLargeError(`Payload exceeds maximum limit of ${MAX_BODY_BYTES} bytes`));
+        return;
       }
+      body += chunk;
     });
     req.on('end', () => resolve(body));
     req.on('error', reject);
   });
+}
+
+function isJsonContentType(contentType?: string | null): boolean {
+  if (!contentType) return false;
+  return contentType.toLowerCase().includes('application/json');
 }
 
 export default async function handler(
@@ -55,9 +73,26 @@ export default async function handler(
   }
 
   try {
-    const rawText = await readBody(req);
-    let payload: { confirm?: boolean } = {};
+    let rawText = '';
+    try {
+      rawText = await readBody(req);
+    } catch (err) {
+      if (err instanceof PayloadTooLargeError) {
+        res.statusCode = 413;
+        res.end(JSON.stringify({ error: 'Payload Too Large: Maximum account body size is 32KB' }));
+        return;
+      }
+      throw err;
+    }
+
     if (rawText.trim()) {
+      if (!isJsonContentType(req.headers['content-type'])) {
+        res.statusCode = 415;
+        res.end(JSON.stringify({ error: 'Unsupported Media Type: Content-Type must be application/json' }));
+        return;
+      }
+
+      let payload: { confirm?: boolean };
       try {
         payload = JSON.parse(rawText);
       } catch {
@@ -65,55 +100,45 @@ export default async function handler(
         res.end(JSON.stringify({ error: 'Malformed JSON payload' }));
         return;
       }
+
+      if (payload.confirm !== true) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: 'Explicit confirmation required: { confirm: true }' }));
+        return;
+      }
     }
 
-    if (payload.confirm !== true) {
-      res.statusCode = 400;
-      res.end(JSON.stringify({ error: 'Explicit confirmation required: { confirm: true }' }));
-      return;
-    }
+    // 1. Transactional application data deletion via SQL function
+    const { error: rpcErr } = await supabase.rpc('delete_user_data', {
+      p_user_id: identity.userId,
+    });
 
-    // 1. Delete user progress
-    const { error: progErr } = await supabase
-      .from('user_progress')
-      .delete()
-      .eq('user_id', identity.userId);
-
-    if (progErr) {
+    if (rpcErr) {
+      const reqId = crypto.randomUUID();
+      console.error(`[AccountDeletion] Failed delete_user_data RPC (reqId: ${reqId}):`, rpcErr);
       res.statusCode = 500;
       res.end(
         JSON.stringify({
-          error: `Failed to delete user progress: ${progErr.message}`,
+          error: 'Failed to purge user application data',
+          requestId: reqId,
         })
       );
       return;
     }
 
-    // 2. Delete user AI usage
-    const { error: aiErr } = await supabase
-      .from('ai_usage')
-      .delete()
-      .eq('identifier', `user:${identity.userId}`);
-
-    if (aiErr) {
-      res.statusCode = 500;
-      res.end(
-        JSON.stringify({
-          error: `Failed to delete user AI usage: ${aiErr.message}`,
-        })
-      );
-      return;
-    }
-
-    // 3. Delete Supabase auth user
+    // 2. Delete Supabase Auth record
     const { error: authDelErr } = await supabase.auth.admin.deleteUser(
       identity.userId
     );
+
     if (authDelErr) {
+      const reqId = crypto.randomUUID();
+      console.error(`[AccountDeletion] Auth Admin deletion failed after data purge (reqId: ${reqId}):`, authDelErr);
       res.statusCode = 500;
       res.end(
         JSON.stringify({
-          error: `Failed to delete auth user: ${authDelErr.message}`,
+          error: 'Account deletion encountered an issue',
+          requestId: reqId,
         })
       );
       return;
@@ -122,7 +147,8 @@ export default async function handler(
     res.statusCode = 200;
     res.end(JSON.stringify({ success: true, message: 'Account and associated data deleted' }));
   } catch {
+    const reqId = crypto.randomUUID();
     res.statusCode = 500;
-    res.end(JSON.stringify({ error: 'Internal server error' }));
+    res.end(JSON.stringify({ error: 'Internal server error', requestId: reqId }));
   }
 }

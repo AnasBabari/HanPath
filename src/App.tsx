@@ -1,8 +1,6 @@
 import { useEffect, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { fetchHSKLevel, fetchSentencesForLevel } from './utils/api';
-import { buildCurriculum } from './utils/curriculum';
 import { checkNewAchievements } from './utils/gamification';
 import { playLevelUp } from './utils/sounds';
 import { useStore } from './store/useStore';
@@ -12,9 +10,9 @@ import AchievementToast from './components/ui/AchievementToast';
 import BottomNav from './components/ui/BottomNav';
 import SidebarNav from './components/ui/SidebarNav';
 import AppHeader from './components/ui/AppHeader';
-import LearnPage from './pages/LearnPage';
 
-// Lazy-loaded secondary routes for optimal code-splitting
+// Lazy-loaded routes for optimal code-splitting and small initial bundle
+const LearnPage = lazy(() => import('./pages/LearnPage'));
 const PracticePage = lazy(() => import('./pages/PracticePage'));
 const StoriesPage = lazy(() => import('./pages/StoriesPage'));
 const ChatPage = lazy(() => import('./pages/ChatPage'));
@@ -62,6 +60,10 @@ function AppContent() {
     setLoading(true);
     setError(null);
     try {
+      const [{ fetchHSKLevel, fetchSentencesForLevel }, { buildCurriculum }] = await Promise.all([
+        import('./utils/api'),
+        import('./utils/curriculum'),
+      ]);
       const [words, sentences] = await Promise.all([
         fetchHSKLevel(hskLevel),
         fetchSentencesForLevel(hskLevel),

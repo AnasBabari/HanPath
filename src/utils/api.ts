@@ -12,8 +12,9 @@ export interface HSKSentence {
 
 export interface CurriculumMetadata {
   standard: string;
-  syllabusSource: string;
+  syllabusReference: string;
   normalizedDatasetSource: string;
+  pinnedCommit: string;
   license: string;
   retrievalDate: string;
   schemaVersion: number;
@@ -25,18 +26,31 @@ export interface CurriculumMetadata {
   sha256: string;
 }
 
-import meta from '../data/curriculum_meta.json';
+const STATIC_METADATA: CurriculumMetadata = {
+  standard: 'HSK-3.0-2021',
+  syllabusReference: 'https://www.chinesetest.cn/HSK',
+  normalizedDatasetSource: 'https://github.com/drkameleon/complete-hsk-vocabulary/tree/7ac65bf1a6387d35f1ade478906172a19311c7f9',
+  pinnedCommit: '7ac65bf1a6387d35f1ade478906172a19311c7f9',
+  license: 'MIT',
+  retrievalDate: '2026-08-22',
+  schemaVersion: 1,
+  counts: {
+    hsk1: 500,
+    hsk2: 750,
+    cumulative: 1250,
+  },
+  sha256: '744bb52c05b20268995118d83ad2ddcec71dd2da9b0ebdc22c185b2977e2f0af',
+};
 
 export function getCurriculumMetadata(): CurriculumMetadata {
-  return meta;
+  return STATIC_METADATA;
 }
 
 /**
  * Returns pre-bundled HSK vocabulary for level 1 or 2
  */
 export async function fetchHSKLevel(level: number): Promise<HSKWord[]> {
-  const mod = await import('../data/curriculum_hsk3_v1.json');
-  const curriculumData = mod.default || mod;
+  const curriculumData = await import('../data/curriculum_hsk3_v1.json');
   if (level === 2) {
     return curriculumData.hsk2 as unknown as HSKWord[];
   }
@@ -47,11 +61,10 @@ export async function fetchHSKLevel(level: number): Promise<HSKWord[]> {
  * Returns pre-bundled sentence data for level 1 or 2
  */
 export async function fetchSentencesForLevel(level: number): Promise<HSKSentence[]> {
-  const targetLevel = level === 2 ? 2 : 1;
-  if (targetLevel === 2) {
-    const mod = await import('../data/sentences_hsk2.json');
-    return (mod.default || mod) as unknown as HSKSentence[];
+  if (level === 2) {
+    const s2 = await import('../data/sentences_hsk2.json');
+    return (s2.default || s2) as unknown as HSKSentence[];
   }
-  const mod = await import('../data/sentences_hsk1.json');
-  return (mod.default || mod) as unknown as HSKSentence[];
+  const s1 = await import('../data/sentences_hsk1.json');
+  return (s1.default || s1) as unknown as HSKSentence[];
 }

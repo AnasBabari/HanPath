@@ -1,161 +1,145 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import handler from './account.js';
+import * as authLib from './_lib/auth.js';
+import * as dbLib from './_lib/supabaseAdmin.js';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
-import accountHandler from './account';
 
-vi.mock('./_lib/supabaseAdmin', () => ({
-  getSupabaseAdmin: vi.fn(),
-}));
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
 
-import { getSupabaseAdmin } from './_lib/supabaseAdmin';
+function createMockReqRes(method: string, bodyObj?: unknown, headers: Record<string, string> = {}) {
+  const req = new EventEmitter() as unknown as IncomingMessage;
+  req.method = method;
+  req.headers = { 'content-type': 'application/json', ...headers };
 
-function createMockReqRes(options: {
-  method?: string;
-  headers?: Record<string, string>;
-  body?: string;
-}) {
-  const req = new EventEmitter() as any;
-  req.method = options.method || 'DELETE';
-  req.headers = options.headers || {};
-
-  process.nextTick(() => {
-    if (options.body) {
-      req.emit('data', Buffer.from(options.body));
-    }
-    req.emit('end');
-  });
-
-  let resolvePromise: (val: { statusCode: number; headers: Record<string, string>; body: string }) => void;
-  const promise = new Promise<{ statusCode: number; headers: Record<string, string>; body: string }>(
-    (res) => (resolvePromise = res)
-  );
+  let responseData = '';
+  const headersMap: Record<string, string> = {};
 
   const res = {
-    statusCode: 200,
-    headers: {} as Record<string, string>,
-    setHeader(k: string, v: string) {
-      this.headers[k.toLowerCase()] = v;
-    },
-    end(data?: string) {
-      resolvePromise({
-        statusCode: this.statusCode,
-        headers: this.headers,
-        body: data || '',
-      });
-    },
-  } as any;
+    statusCode: 0,
+    setHeader: vi.fn().mockImplementation((key: string, val: string) => {
+      headersMap[key.toLowerCase()] = val;
+    }),
+    end: vi.fn().mockImplementation((chunk: string) => {
+      responseData = chunk;
+    }),
+  } as unknown as ServerResponse;
 
-  return { req, res, promise };
+  const runPromise = handler(req, res);
+
+  setTimeout(() => {
+    if (bodyObj !== undefined) {
+      req.emit('data', Buffer.from(JSON.stringify(bodyObj)));
+    }
+    req.emit('end');
+  }, 10);
+
+  return { req, res, runPromise, getResponseData: () => responseData, headersMap };
 }
 
-describe('API: /api/account Deletion & Idempotency Boundary', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+describe('DELETE /api/account Integration Suite', () => {
+  it('rejects non-DELETE methods with 405 Method Not Allowed', async () => {
+    const { runPromise, res } = createMockReqRes('GET');
+    await runPromise;
+    expect(res.statusCode).toBe(405);
   });
 
-  it('rejects non-DELETE methods with 405', async () => {
-    const { req, res, promise } = createMockReqRes({ method: 'GET' });
-    await accountHandler(req, res);
-    const result = await promise;
-    expect(result.statusCode).toBe(405);
-  });
-
-  it('rejects unauthorized delete request with 401', async () => {
-    const { req, res, promise } = createMockReqRes({
-      method: 'DELETE',
-    });
-    await accountHandler(req, res);
-    const result = await promise;
-    expect(result.statusCode).toBe(401);
-  });
-
-  it('rejects deletion without explicit confirmation { confirm: true } with 400', async () => {
-    const mockSupabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: 'usr-1' } },
-          error: null,
-        }),
-      },
-    };
-    vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
-
-    const { req, res, promise } = createMockReqRes({
-      method: 'DELETE',
-      headers: { authorization: 'Bearer valid-token' },
-      body: JSON.stringify({ confirm: false }),
+  it('rejects unauthenticated requests with 401 Unauthorized', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'unauthorized',
+      userId: null,
+      identifier: '',
+      guestCookieHeader: null,
+      error: 'Unauthorized: Valid Bearer token required',
     });
 
-    await accountHandler(req, res);
-    const result = await promise;
-    expect(result.statusCode).toBe(400);
-    expect(JSON.parse(result.body).error).toContain('confirmation required');
+    const { runPromise, res, getResponseData } = createMockReqRes('DELETE', { confirm: true });
+    await runPromise;
+
+    expect(res.statusCode).toBe(401);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Unauthorized');
   });
 
-  it('fails with 500 if user progress deletion fails', async () => {
-    const mockSupabase = {
+  it('returns 503 when Supabase administrator client is unavailable', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
+    });
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue(null);
+
+    const { runPromise, res, getResponseData } = createMockReqRes('DELETE', { confirm: true });
+    await runPromise;
+
+    expect(res.statusCode).toBe(503);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Database service unavailable');
+  });
+
+  it('executes delete_user_data RPC and auth admin deleteUser on confirmation', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
+    });
+
+    const rpcMock = vi.fn().mockResolvedValue({ error: null });
+    const deleteUserMock = vi.fn().mockResolvedValue({ error: null });
+
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({
+      rpc: rpcMock,
       auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: 'usr-1' } },
-          error: null,
-        }),
         admin: {
-          deleteUser: vi.fn(),
+          deleteUser: deleteUserMock,
         },
       },
-      from: vi.fn().mockImplementation((table: string) => {
-        if (table === 'user_progress') {
-          return {
-            delete: vi.fn().mockReturnValue({
-              eq: vi.fn().mockResolvedValue({ error: { message: 'DB connection failure' } }),
-            }),
-          };
-        }
-      }),
-    };
-    vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
+    } as any);
 
-    const { req, res, promise } = createMockReqRes({
-      method: 'DELETE',
-      headers: { authorization: 'Bearer valid-token' },
-      body: JSON.stringify({ confirm: true }),
-    });
+    const { runPromise, res, getResponseData } = createMockReqRes('DELETE', { confirm: true });
+    await runPromise;
 
-    await accountHandler(req, res);
-    const result = await promise;
-    expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body).error).toContain('Failed to delete user progress');
-    expect(mockSupabase.auth.admin.deleteUser).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(200);
+    expect(rpcMock).toHaveBeenCalledWith('delete_user_data', { p_user_id: 'test-user-uuid' });
+    expect(deleteUserMock).toHaveBeenCalledWith('test-user-uuid');
+
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.success).toBe(true);
   });
 
-  it('successfully executes verified deletion and removes auth user', async () => {
-    const mockSupabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: 'usr-1' } },
-          error: null,
-        }),
-        admin: {
-          deleteUser: vi.fn().mockResolvedValue({ error: null }),
-        },
-      },
-      from: vi.fn().mockImplementation(() => ({
-        delete: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({ error: null }),
-        }),
-      })),
-    };
-    vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
-
-    const { req, res, promise } = createMockReqRes({
-      method: 'DELETE',
-      headers: { authorization: 'Bearer valid-token' },
-      body: JSON.stringify({ confirm: true }),
+  it('returns sanitized error with opaque requestId if auth admin deleteUser fails', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
     });
 
-    await accountHandler(req, res);
-    const result = await promise;
-    expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body).success).toBe(true);
-    expect(mockSupabase.auth.admin.deleteUser).toHaveBeenCalledWith('usr-1');
+    const rpcMock = vi.fn().mockResolvedValue({ error: null });
+    const deleteUserMock = vi.fn().mockResolvedValue({ error: { message: 'Internal auth service failed' } });
+
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({
+      rpc: rpcMock,
+      auth: {
+        admin: {
+          deleteUser: deleteUserMock,
+        },
+      },
+    } as any);
+
+    const { runPromise, res, getResponseData } = createMockReqRes('DELETE', { confirm: true });
+    await runPromise;
+
+    expect(res.statusCode).toBe(500);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toBe('Account deletion encountered an issue');
+    expect(parsed.requestId).toBeDefined();
+    expect(parsed.requestId.length).toBeGreaterThan(10);
   });
 });

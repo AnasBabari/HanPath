@@ -17,14 +17,14 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
   const writerRef = useRef<HanziWriterInstance | null>(null);
   const [completed, setCompleted] = useState(false);
   const callbacks = useRef({ onComplete, onMistake });
-  
+
   useEffect(() => {
     callbacks.current = { onComplete, onMistake };
   }, [onComplete, onMistake]);
 
   useEffect(() => {
     if (!containerRef.current) return;
-    
+
     let isCancelled = false;
     let timer1: ReturnType<typeof setTimeout> | undefined;
     let timer2: ReturnType<typeof setTimeout> | undefined;
@@ -44,11 +44,11 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
         showCharacter: false,
         strokeAnimationSpeed: 2,
         delayBetweenStrokes: 50,
-        strokeColor: '#58CC02', // var(--primary) in Claymorphism
-        outlineColor: '#E5E5E5',
-        drawingColor: '#235390', // var(--text-main)
+        strokeColor: '#1B4D3E', // Jade primary
+        outlineColor: '#E2DCD2', // Cream border
+        drawingColor: '#18251F', // Charcoal stroke
       });
-      
+
       writerRef.current = writer;
 
       timer1 = setTimeout(() => {
@@ -62,7 +62,7 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
             timer2 = setTimeout(() => {
               if (!isCancelled) callbacks.current.onComplete();
             }, 800);
-          }
+          },
         });
       }, 100);
     });
@@ -73,38 +73,23 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
       if (timer2) clearTimeout(timer2);
       writerRef.current?.cancelQuiz?.();
     };
-  }, [character]); 
+  }, [character]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
-      <p className="font-display" style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-muted)', textAlign: 'center' }}>
-        {completed ? "Perfect!" : "Trace the strokes in the correct order"}
+    <div className="flex flex-col items-center gap-6">
+      <p className="font-display text-lg font-bold text-on-surface-variant text-center">
+        {completed ? 'Perfect! 🎉' : 'Trace the strokes in the correct order'}
       </p>
-      <div 
-        ref={containerRef} 
-        style={{ 
-          background: '#fff', 
-          border: '2px dashed var(--surface-border)', 
-          borderRadius: '16px',
-          padding: '12px',
-          boxShadow: 'var(--clay-shadow)',
-          touchAction: 'none', // Critical for mobile tracing
-        }} 
+      <div
+        ref={containerRef}
+        className="bg-white border-2 border-dashed border-border rounded-2xl p-3 shadow-sm"
+        style={{ touchAction: 'none' }}
       />
       {!completed && (
-        <button 
+        <button
           type="button"
           onClick={() => writerRef.current?.animateCharacter?.()}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--primary)',
-            fontWeight: 800,
-            fontSize: '16px',
-            textDecoration: 'underline',
-            padding: '8px',
-            cursor: 'pointer'
-          }}
+          className="text-primary font-bold text-base hover:underline p-2 cursor-pointer transition-colors"
         >
           Show Hint
         </button>

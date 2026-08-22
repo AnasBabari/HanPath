@@ -2,7 +2,7 @@ name: HànPath CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'codex/*']
   pull_request:
     branches: [main, master]
 
@@ -19,21 +19,45 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+
       - name: Print Node and npm version
         run: |
           node -v
           npm -v
+
       - name: Install dependencies (clean lockfile)
         run: npm ci
+
+      - name: Trailing whitespace check
+        run: git diff --check
+
       - name: Run verification checks (lint, typecheck, unit tests, build)
         run: npm run check
-      - name: Verify production bundle size budget
+
+      - name: Verify production bundle size budget (<130 KB gzip initial)
         run: npm run check:bundle
-      - name: Run coverage analysis
+
+      - name: Run coverage analysis (>=80% lines, >=75% fn, >=70% branches)
         run: npm run test:coverage
+
       - name: Security audit
         run: npm audit --audit-level=high
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E browser tests
+        run: npx playwright test
+
+      - name: Upload Playwright test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

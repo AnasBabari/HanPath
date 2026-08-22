@@ -32,14 +32,14 @@ export default function LicensesPage() {
             <h2 className="text-xl font-bold font-display">HSK 3.0 Curriculum Attribution</h2>
           </div>
           <p className="text-on-surface-variant text-sm leading-relaxed">
-            HànPath is built on the official <strong>HSK 3.0 Standard</strong> (汉语水平考试 3.0),
-            published by the Ministry of Education of the People&apos;s Republic of China and Center for Language Education and Cooperation (CLEC).
+            HànPath curriculum aligns with the <strong>2021 HSK 3.0 Proficiency Standards</strong> referencing the syllabus from Chinese Testing International (CTI / CLEC).
           </p>
           <div className="bg-surface-container rounded-xl p-4 text-xs font-mono space-y-2 text-on-surface-variant">
             <div><strong>Standard:</strong> {meta.standard} (Levels 1–2)</div>
             <div><strong>HSK 1 Vocabulary:</strong> {meta.counts.hsk1} words</div>
             <div><strong>HSK 2 Vocabulary:</strong> {meta.counts.hsk2} words</div>
             <div><strong>Cumulative Words:</strong> {meta.counts.cumulative} words</div>
+            <div><strong>Pinned Commit:</strong> {meta.pinnedCommit?.slice(0, 12) || '7ac65bf1'}</div>
             <div><strong>Checksum (SHA-256):</strong> {meta.sha256}</div>
             <div><strong>Dataset Retrieval Date:</strong> {meta.retrievalDate}</div>
           </div>

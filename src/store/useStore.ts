@@ -104,7 +104,7 @@ interface AppState {
   importProgressJSON: (jsonStr: string) => { success: boolean; error?: string };
 }
 
-function deriveUserStats(snapshot: ProgressSnapshotV4, currentHskLevel: 1 | 2): UserStats {
+export function deriveUserStats(snapshot: ProgressSnapshotV4, currentHskLevel: 1 | 2): UserStats {
   const levelProgress = snapshot.hskLevelProgress[currentHskLevel] || { completedLessons: [] };
   const completedLessons = levelProgress.completedLessons || [];
 

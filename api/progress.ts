@@ -3,19 +3,36 @@ import { resolveIdentity } from './_lib/auth.js';
 import { getSupabaseAdmin } from './_lib/supabaseAdmin.js';
 import { validateProgressSnapshotV4 } from '../src/utils/progressSchema.js';
 
+const MAX_BODY_BYTES = 512 * 1024; // 512 KB
+
+export class PayloadTooLargeError extends Error {
+  constructor(message = 'Payload Too Large') {
+    super(message);
+    this.name = 'PayloadTooLargeError';
+  }
+}
+
 function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     let body = '';
-    req.on('data', (chunk) => {
-      body += chunk;
-      if (body.length > 512 * 1024) {
+    let bytes = 0;
+    req.on('data', (chunk: Buffer | string) => {
+      bytes += typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.length;
+      if (bytes > MAX_BODY_BYTES) {
         req.destroy();
-        reject(new Error('Payload Too Large'));
+        reject(new PayloadTooLargeError(`Payload exceeds maximum limit of ${MAX_BODY_BYTES} bytes`));
+        return;
       }
+      body += chunk;
     });
     req.on('end', () => resolve(body));
     req.on('error', reject);
   });
+}
+
+function isJsonContentType(contentType?: string | null): boolean {
+  if (!contentType) return false;
+  return contentType.toLowerCase().includes('application/json');
 }
 
 export default async function handler(
@@ -48,6 +65,7 @@ export default async function handler(
     return;
   }
 
+  // GET /api/progress
   if (req.method === 'GET') {
     try {
       const { data, error } = await supabase
@@ -68,10 +86,18 @@ export default async function handler(
         return;
       }
 
+      // Validate stored snapshot before returning
+      const validation = validateProgressSnapshotV4(data.snapshot);
+      if (!validation.success || !validation.data) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ error: 'Corrupt snapshot stored in database' }));
+        return;
+      }
+
       res.statusCode = 200;
       res.end(
         JSON.stringify({
-          snapshot: data.snapshot,
+          snapshot: validation.data,
           version: Number(data.version),
           updatedAt: data.updated_at,
         })
@@ -84,10 +110,28 @@ export default async function handler(
     }
   }
 
+  // PUT /api/progress
   if (req.method === 'PUT') {
+    if (!isJsonContentType(req.headers['content-type'])) {
+      res.statusCode = 415;
+      res.end(JSON.stringify({ error: 'Unsupported Media Type: Content-Type must be application/json' }));
+      return;
+    }
+
     try {
-      const rawText = await readBody(req);
-      let payload: { snapshot?: unknown; expectedVersion?: number };
+      let rawText: string;
+      try {
+        rawText = await readBody(req);
+      } catch (err) {
+        if (err instanceof PayloadTooLargeError) {
+          res.statusCode = 413;
+          res.end(JSON.stringify({ error: 'Payload Too Large: Maximum progress body size is 512KB' }));
+          return;
+        }
+        throw err;
+      }
+
+      let payload: { snapshot?: unknown; expectedVersion?: unknown };
       try {
         payload = JSON.parse(rawText);
       } catch {
@@ -101,12 +145,14 @@ export default async function handler(
         typeof payload !== 'object' ||
         payload.snapshot === undefined ||
         payload.snapshot === null ||
-        typeof payload.expectedVersion !== 'number'
+        typeof payload.expectedVersion !== 'number' ||
+        !Number.isInteger(payload.expectedVersion) ||
+        payload.expectedVersion < 0
       ) {
         res.statusCode = 400;
         res.end(
           JSON.stringify({
-            error: 'Field "snapshot" (object) and numeric "expectedVersion" are required',
+            error: 'Field "snapshot" (object) and finite non-negative integer "expectedVersion" are required',
           })
         );
         return;
@@ -128,139 +174,60 @@ export default async function handler(
       const validSnapshot = validation.data;
       const expectedVersion = Number(payload.expectedVersion);
 
-      // Check current record in DB
-      const { data: existing, error: selectErr } = await supabase
-        .from('user_progress')
-        .select('snapshot, version, updated_at')
-        .eq('user_id', identity.userId)
-        .maybeSingle();
+      // Execute atomic save_user_progress RPC function
+      const { data: rpcResult, error: rpcErr } = await supabase.rpc(
+        'save_user_progress',
+        {
+          p_user_id: identity.userId,
+          p_snapshot: validSnapshot,
+          p_expected_version: expectedVersion,
+        }
+      );
 
-      if (selectErr) {
+      if (rpcErr) {
         res.statusCode = 500;
-        res.end(JSON.stringify({ error: 'Failed to check current progress' }));
+        res.end(JSON.stringify({ error: `Database RPC error: ${rpcErr.message}` }));
         return;
       }
 
-      const currentVersion = existing ? Number(existing.version) : 0;
+      if (!rpcResult || typeof rpcResult !== 'object') {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ error: 'Invalid response from database progress RPC' }));
+        return;
+      }
 
-      // Concurrency check before write
-      if (existing && expectedVersion !== currentVersion) {
+      const result = rpcResult as {
+        status: 'success' | 'conflict';
+        version?: number;
+        updated_at?: string;
+        current_version?: number;
+        snapshot?: unknown;
+      };
+
+      if (result.status === 'conflict') {
         res.statusCode = 409;
         res.end(
           JSON.stringify({
             error: 'Conflict: Version mismatch',
-            currentEnvelope: {
-              snapshot: existing.snapshot,
-              version: currentVersion,
-              updatedAt: existing.updated_at,
-            },
-          })
-        );
-        return;
-      }
-
-      if (!existing && expectedVersion !== 0) {
-        res.statusCode = 409;
-        res.end(
-          JSON.stringify({
-            error: 'Conflict: Initial progress record requires expectedVersion 0',
-            currentEnvelope: null,
-          })
-        );
-        return;
-      }
-
-      const nextVersion = currentVersion + 1;
-      const now = new Date().toISOString();
-
-      if (existing) {
-        // Atomic update conditioned on both user_id AND version
-        const { data: updatedData, error: updateErr } = await supabase
-          .from('user_progress')
-          .update({
-            snapshot: validSnapshot,
-            version: nextVersion,
-            updated_at: now,
-          })
-          .eq('user_id', identity.userId)
-          .eq('version', expectedVersion)
-          .select('snapshot, version, updated_at');
-
-        if (updateErr) {
-          res.statusCode = 500;
-          res.end(JSON.stringify({ error: 'Failed to update progress' }));
-          return;
-        }
-
-        // If 0 rows updated, concurrent write occurred between select and update
-        if (!updatedData || updatedData.length === 0) {
-          const { data: reFetched } = await supabase
-            .from('user_progress')
-            .select('snapshot, version, updated_at')
-            .eq('user_id', identity.userId)
-            .maybeSingle();
-
-          res.statusCode = 409;
-          res.end(
-            JSON.stringify({
-              error: 'Conflict: Concurrent update detected',
-              currentEnvelope: reFetched
+            currentEnvelope:
+              result.current_version && result.current_version > 0
                 ? {
-                    snapshot: reFetched.snapshot,
-                    version: Number(reFetched.version),
-                    updatedAt: reFetched.updated_at,
+                    snapshot: result.snapshot,
+                    version: Number(result.current_version),
+                    updatedAt: result.updated_at,
                   }
                 : null,
-            })
-          );
-          return;
-        }
-      } else {
-        // Initial insert
-        const { error: insertErr } = await supabase
-          .from('user_progress')
-          .insert({
-            user_id: identity.userId,
-            snapshot: validSnapshot,
-            version: 1,
-            updated_at: now,
-          });
-
-        if (insertErr) {
-          // If unique conflict on insert, fetch existing and return 409
-          const { data: reFetched } = await supabase
-            .from('user_progress')
-            .select('snapshot, version, updated_at')
-            .eq('user_id', identity.userId)
-            .maybeSingle();
-
-          if (reFetched) {
-            res.statusCode = 409;
-            res.end(
-              JSON.stringify({
-                error: 'Conflict: Concurrent creation detected',
-                currentEnvelope: {
-                  snapshot: reFetched.snapshot,
-                  version: Number(reFetched.version),
-                  updatedAt: reFetched.updated_at,
-                },
-              })
-            );
-            return;
-          }
-
-          res.statusCode = 500;
-          res.end(JSON.stringify({ error: 'Failed to insert progress' }));
-          return;
-        }
+          })
+        );
+        return;
       }
 
       res.statusCode = 200;
       res.end(
         JSON.stringify({
           snapshot: validSnapshot,
-          version: nextVersion,
-          updatedAt: now,
+          version: Number(result.version),
+          updatedAt: result.updated_at,
         })
       );
       return;

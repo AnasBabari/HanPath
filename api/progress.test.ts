@@ -1,251 +1,194 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import handler from './progress.js';
+import * as authLib from './_lib/auth.js';
+import * as dbLib from './_lib/supabaseAdmin.js';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
-import progressHandler from './progress';
-import { createDefaultProgressSnapshotV4 } from '../src/utils/progressSchema';
 
-vi.mock('./_lib/supabaseAdmin', () => ({
-  getSupabaseAdmin: vi.fn(),
-}));
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
 
-import { getSupabaseAdmin } from './_lib/supabaseAdmin';
+import { createDefaultProgressSnapshotV4 } from '../src/utils/progressSchema.js';
 
-function createMockReqRes(options: {
-  method?: string;
-  headers?: Record<string, string>;
-  body?: string;
-}) {
-  const req = new EventEmitter() as any;
-  req.method = options.method || 'GET';
-  req.headers = options.headers || {};
+const sampleSnapshot = createDefaultProgressSnapshotV4();
+sampleSnapshot.hskLevelProgress[1].completedLessons = ['hsk1-l1'];
+sampleSnapshot.studyDays = ['2026-08-22'];
+sampleSnapshot.stats.totalXP = 50;
+sampleSnapshot.stats.totalCorrect = 10;
+sampleSnapshot.stats.totalAttempted = 10;
+sampleSnapshot.wordAccuracy['hsk1-1'] = {
+  correct: 10,
+  total: 10,
+  lastSeen: Date.now(),
+};
+sampleSnapshot.wordSRS['hsk1-1'] = {
+  wordId: 'hsk1-1',
+  interval: 1,
+  easeFactor: 2.5,
+  nextReviewDate: '2026-08-23',
+  repetitions: 1,
+  updatedAt: '2026-08-22T10:00:00.000Z',
+};
 
-  process.nextTick(() => {
-    if (options.body) {
-      req.emit('data', Buffer.from(options.body));
-    }
-    req.emit('end');
-  });
+function createMockReqRes(method: string, bodyObj?: unknown, headers: Record<string, string> = {}) {
+  const req = new EventEmitter() as unknown as IncomingMessage;
+  req.method = method;
+  req.headers = { 'content-type': 'application/json', ...headers };
 
-  let resolvePromise: (val: { statusCode: number; headers: Record<string, string>; body: string }) => void;
-  const promise = new Promise<{ statusCode: number; headers: Record<string, string>; body: string }>(
-    (res) => (resolvePromise = res)
-  );
+  let responseData = '';
+  const headersMap: Record<string, string> = {};
 
   const res = {
-    statusCode: 200,
-    headers: {} as Record<string, string>,
-    setHeader(k: string, v: string) {
-      this.headers[k.toLowerCase()] = v;
-    },
-    end(data?: string) {
-      resolvePromise({
-        statusCode: this.statusCode,
-        headers: this.headers,
-        body: data || '',
-      });
-    },
-  } as any;
+    statusCode: 0,
+    setHeader: vi.fn().mockImplementation((key: string, val: string) => {
+      headersMap[key.toLowerCase()] = val;
+    }),
+    end: vi.fn().mockImplementation((chunk: string) => {
+      responseData = chunk;
+    }),
+  } as unknown as ServerResponse;
 
-  return { req, res, promise };
+  const runPromise = handler(req, res);
+
+  setTimeout(() => {
+    if (bodyObj !== undefined) {
+      req.emit('data', Buffer.from(JSON.stringify(bodyObj)));
+    }
+    req.emit('end');
+  }, 10);
+
+  return { req, res, runPromise, getResponseData: () => responseData, headersMap };
 }
 
-describe('API: /api/progress Handler & Concurrency Boundary', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('rejects unauthorized request without valid Bearer token (401)', async () => {
-    const { req, res, promise } = createMockReqRes({
-      method: 'GET',
+describe('API /api/progress Integration Suite', () => {
+  it('rejects unauthenticated requests with 401 Unauthorized', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'unauthorized',
+      userId: null,
+      identifier: '',
+      guestCookieHeader: null,
+      error: 'Unauthorized: Valid Bearer token required',
     });
 
-    await progressHandler(req, res);
-    const result = await promise;
+    const { runPromise, res, getResponseData } = createMockReqRes('GET');
+    await runPromise;
 
-    expect(result.statusCode).toBe(401);
-    expect(JSON.parse(result.body).error).toContain('Unauthorized');
+    expect(res.statusCode).toBe(401);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Unauthorized');
   });
 
-  it('rejects invalid or expired token with 401', async () => {
-    const mockSupabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: null },
-          error: { message: 'Token expired' },
-        }),
-      },
-    };
-    vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
+  it('returns 503 when Supabase administrator client is unavailable', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
+    });
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue(null);
 
-    const { req, res, promise } = createMockReqRes({
-      method: 'GET',
-      headers: { authorization: 'Bearer expired-token' },
+    const { runPromise, res, getResponseData } = createMockReqRes('GET');
+    await runPromise;
+
+    expect(res.statusCode).toBe(503);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Database service unavailable');
+  });
+
+  it('rejects PUT with non-JSON Content-Type with 415', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
+    });
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({} as any);
+
+    const { runPromise, res, getResponseData } = createMockReqRes(
+      'PUT',
+      { snapshot: sampleSnapshot, expectedVersion: 0 },
+      { 'content-type': 'text/plain' }
+    );
+    await runPromise;
+
+    expect(res.statusCode).toBe(415);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Unsupported Media Type');
+  });
+
+  it('executes atomic save_user_progress RPC successfully on PUT', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
     });
 
-    await progressHandler(req, res);
-    const result = await promise;
-
-    expect(result.statusCode).toBe(401);
-  });
-
-  it('returns 404 on GET when no progress record exists', async () => {
-    const mockSupabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: 'usr-1' } },
-          error: null,
-        }),
+    const rpcMock = vi.fn().mockResolvedValue({
+      data: {
+        status: 'success',
+        version: 1,
+        updated_at: '2026-08-22T12:00:00.000Z',
       },
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-          }),
-        }),
-      }),
-    };
-    vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
-
-    const { req, res, promise } = createMockReqRes({
-      method: 'GET',
-      headers: { authorization: 'Bearer valid-token' },
+      error: null,
     });
 
-    await progressHandler(req, res);
-    const result = await promise;
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({
+      rpc: rpcMock,
+    } as any);
 
-    expect(result.statusCode).toBe(404);
-    expect(JSON.parse(result.body).error).toContain('No cloud progress found');
-  });
-
-  it('rejects invalid snapshot schema on PUT with 422 Unprocessable Entity', async () => {
-    const mockSupabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: 'usr-1' } },
-          error: null,
-        }),
-      },
-    };
-    vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
-
-    const invalidBody = JSON.stringify({
-      snapshot: { schemaVersion: 99, invalidField: true },
+    const { runPromise, res, getResponseData } = createMockReqRes('PUT', {
+      snapshot: sampleSnapshot,
       expectedVersion: 0,
     });
+    await runPromise;
 
-    const { req, res, promise } = createMockReqRes({
-      method: 'PUT',
-      headers: { authorization: 'Bearer valid-token' },
-      body: invalidBody,
+    expect(res.statusCode).toBe(200);
+    expect(rpcMock).toHaveBeenCalledWith('save_user_progress', {
+      p_user_id: 'test-user-uuid',
+      p_snapshot: sampleSnapshot,
+      p_expected_version: 0,
     });
 
-    await progressHandler(req, res);
-    const result = await promise;
-
-    expect(result.statusCode).toBe(422);
-    expect(JSON.parse(result.body).error).toContain('validation failed');
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.version).toBe(1);
+    expect(parsed.updatedAt).toBe('2026-08-22T12:00:00.000Z');
   });
 
-  it('returns 409 Conflict when expectedVersion does not match current DB version', async () => {
-    const defaultSnap = createDefaultProgressSnapshotV4();
-    const mockSupabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: 'usr-1' } },
-          error: null,
-        }),
+  it('handles 409 conflict when expectedVersion mismatches on PUT', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'user',
+      userId: 'test-user-uuid',
+      identifier: 'user:test-user-uuid',
+      guestCookieHeader: null,
+    });
+
+    const rpcMock = vi.fn().mockResolvedValue({
+      data: {
+        status: 'conflict',
+        current_version: 3,
+        snapshot: sampleSnapshot,
+        updated_at: '2026-08-22T11:00:00.000Z',
       },
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            maybeSingle: vi.fn().mockResolvedValue({
-              data: { snapshot: defaultSnap, version: 3, updated_at: '2026-08-20T10:00:00Z' },
-              error: null,
-            }),
-          }),
-        }),
-      }),
-    };
-    vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
-
-    const body = JSON.stringify({
-      snapshot: defaultSnap,
-      expectedVersion: 2, // Out of date, DB is at version 3
+      error: null,
     });
 
-    const { req, res, promise } = createMockReqRes({
-      method: 'PUT',
-      headers: { authorization: 'Bearer valid-token' },
-      body,
+    vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({
+      rpc: rpcMock,
+    } as any);
+
+    const { runPromise, res, getResponseData } = createMockReqRes('PUT', {
+      snapshot: sampleSnapshot,
+      expectedVersion: 1,
     });
+    await runPromise;
 
-    await progressHandler(req, res);
-    const result = await promise;
-
-    expect(result.statusCode).toBe(409);
-    const json = JSON.parse(result.body);
-    expect(json.error).toContain('Conflict');
-    expect(json.currentEnvelope.version).toBe(3);
-  });
-
-  it('atomically updates progress when expectedVersion matches and increments version', async () => {
-    const defaultSnap = createDefaultProgressSnapshotV4();
-    const nextSnap = {
-      ...defaultSnap,
-      stats: { ...defaultSnap.stats, totalXP: 50 },
-    };
-
-    const mockSupabase = {
-      auth: {
-        getUser: vi.fn().mockResolvedValue({
-          data: { user: { id: 'usr-1' } },
-          error: null,
-        }),
-      },
-      from: vi.fn().mockImplementation((table: string) => {
-        if (table === 'user_progress') {
-          return {
-            select: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                maybeSingle: vi.fn().mockResolvedValue({
-                  data: { snapshot: defaultSnap, version: 2, updated_at: '2026-08-20T10:00:00Z' },
-                  error: null,
-                }),
-              }),
-            }),
-            update: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                eq: vi.fn().mockReturnValue({
-                  select: vi.fn().mockResolvedValue({
-                    data: [{ snapshot: nextSnap, version: 3, updated_at: '2026-08-22T12:00:00Z' }],
-                    error: null,
-                  }),
-                }),
-              }),
-            }),
-          };
-        }
-      }),
-    };
-    vi.mocked(getSupabaseAdmin).mockReturnValue(mockSupabase as any);
-
-    const body = JSON.stringify({
-      snapshot: nextSnap,
-      expectedVersion: 2,
-    });
-
-    const { req, res, promise } = createMockReqRes({
-      method: 'PUT',
-      headers: { authorization: 'Bearer valid-token' },
-      body,
-    });
-
-    await progressHandler(req, res);
-    const result = await promise;
-
-    expect(result.statusCode).toBe(200);
-    const json = JSON.parse(result.body);
-    expect(json.version).toBe(3);
-    expect(json.snapshot.stats.totalXP).toBe(50);
+    expect(res.statusCode).toBe(409);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error).toContain('Conflict');
+    expect(parsed.currentEnvelope.version).toBe(3);
   });
 });

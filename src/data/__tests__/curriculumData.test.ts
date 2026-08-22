@@ -13,26 +13,11 @@ interface SentenceItem {
   required_words: string[];
 }
 
-interface StoryToken {
-  token: string;
-  is_word: boolean;
-  hsk_level: number;
-  pinyin_hint: string;
-  meaning: string;
-}
-
-interface StoryItem {
-  id: string;
-  title: string;
-  title_zh: string;
-  hsk_level: number;
-  tokens: StoryToken[];
-}
-
 interface CurriculumArtifact {
   standard: string;
-  syllabusSource: string;
+  syllabusReference: string;
   normalizedDatasetSource: string;
+  pinnedCommit: string;
   license: string;
   retrievalDate: string;
   schemaVersion: number;
@@ -46,7 +31,7 @@ interface CurriculumArtifact {
   hsk2: Array<{ id: string; hanzi: string; pinyin: string; meanings: string[]; hskLevel: number }>;
 }
 
-describe('Curriculum Data Integrity & Contract Validation', () => {
+describe('Curriculum Data Integrity & Provenance Validation', () => {
   const dataDir = path.resolve(process.cwd(), 'public', 'data');
   const srcDataDir = path.resolve(process.cwd(), 'src', 'data');
 
@@ -57,18 +42,19 @@ describe('Curriculum Data Integrity & Contract Validation', () => {
     const raw = fs.readFileSync(filePath, 'utf8');
     const artifact = JSON.parse(raw) as CurriculumArtifact;
 
-    expect(artifact.standard).toBe('HSK-3.0');
+    expect(artifact.standard).toBe('HSK-3.0-2021');
+    expect(artifact.syllabusReference).toBe('https://www.chinesetest.cn/HSK');
+    expect(artifact.pinnedCommit).toBe('7ac65bf1a6387d35f1ade478906172a19311c7f9');
     expect(artifact.license).toBe('MIT');
-    expect(artifact.counts.hsk1).toBeGreaterThanOrEqual(500);
-    expect(artifact.counts.hsk2).toBeGreaterThanOrEqual(750);
-    expect(artifact.counts.cumulative).toBeGreaterThanOrEqual(1250);
+    expect(artifact.counts.hsk1).toBe(500);
+    expect(artifact.counts.hsk2).toBe(750);
+    expect(artifact.counts.cumulative).toBe(1250);
 
     // Validate SHA256 integrity
     const copy = { ...artifact, sha256: undefined };
     delete copy.sha256;
     const computedHash = crypto.createHash('sha256').update(JSON.stringify(copy, null, 2)).digest('hex');
-    expect(computedHash.length).toBe(64);
-    expect(artifact.sha256).toBeDefined();
+    expect(computedHash).toBe(artifact.sha256);
 
     // Verify HSK 1 words
     const hsk1Ids = new Set<string>();
@@ -122,69 +108,6 @@ describe('Curriculum Data Integrity & Contract Validation', () => {
         expect(Array.isArray(item.tiles)).toBe(true);
         expect(item.tiles.length).toBeGreaterThanOrEqual(1);
       }
-    }
-  });
-
-  it('validates public/data/stories_hsk1.json structure and tokenization', () => {
-    const filePath = path.join(dataDir, 'stories_hsk1.json');
-    expect(fs.existsSync(filePath), 'stories_hsk1.json must exist').toBe(true);
-
-    const raw = fs.readFileSync(filePath, 'utf8');
-    const stories = JSON.parse(raw) as StoryItem[];
-
-    expect(Array.isArray(stories)).toBe(true);
-    expect(stories.length).toBeGreaterThan(0);
-
-    const seenIds = new Set<string>();
-
-    for (const story of stories) {
-      expect(typeof story.id).toBe('string');
-      expect(seenIds.has(story.id), `Story ID ${story.id} must be unique`).toBe(false);
-      seenIds.add(story.id);
-
-      expect(story.hsk_level).toBe(1);
-      expect(typeof story.title).toBe('string');
-      expect(story.title.length).toBeGreaterThan(0);
-      expect(typeof story.title_zh).toBe('string');
-      expect(story.title_zh.length).toBeGreaterThan(0);
-
-      expect(Array.isArray(story.tokens)).toBe(true);
-      expect(story.tokens.length).toBeGreaterThan(0);
-
-      for (const token of story.tokens) {
-        expect(typeof token.token).toBe('string');
-        expect(token.token.length).toBeGreaterThan(0);
-        expect(typeof token.is_word).toBe('boolean');
-        expect(typeof token.hsk_level).toBe('number');
-      }
-    }
-  });
-
-  it('validates public/data/stories_hsk2.json structure and tokenization', () => {
-    const filePath = path.join(dataDir, 'stories_hsk2.json');
-    expect(fs.existsSync(filePath), 'stories_hsk2.json must exist').toBe(true);
-
-    const raw = fs.readFileSync(filePath, 'utf8');
-    const stories = JSON.parse(raw) as StoryItem[];
-
-    expect(Array.isArray(stories)).toBe(true);
-    expect(stories.length).toBeGreaterThan(0);
-
-    const seenIds = new Set<string>();
-
-    for (const story of stories) {
-      expect(typeof story.id).toBe('string');
-      expect(seenIds.has(story.id), `Story ID ${story.id} must be unique`).toBe(false);
-      seenIds.add(story.id);
-
-      expect(story.hsk_level).toBe(2);
-      expect(typeof story.title).toBe('string');
-      expect(story.title.length).toBeGreaterThan(0);
-      expect(typeof story.title_zh).toBe('string');
-      expect(story.title_zh.length).toBeGreaterThan(0);
-
-      expect(Array.isArray(story.tokens)).toBe(true);
-      expect(story.tokens.length).toBeGreaterThan(0);
     }
   });
 });

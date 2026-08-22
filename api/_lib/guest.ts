@@ -3,6 +3,7 @@ import * as cookie from 'cookie';
 
 const GUEST_COOKIE_NAME = 'hanpath_guest_id';
 const DEFAULT_SECRET = 'hanpath-dev-guest-cookie-secret-min32chars!';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function getSecret(): string {
   const secret = process.env.GUEST_COOKIE_SECRET;
@@ -22,11 +23,18 @@ function getSecret(): string {
   return secret || DEFAULT_SECRET;
 }
 
+function getHmacSecret(): string {
+  return process.env.GUEST_HMAC_SECRET || getSecret();
+}
+
 /**
  * Sign a guest UUID with HMAC SHA-256
  */
 export function signGuestId(guestId: string): string {
   const secret = getSecret();
+  if (!UUID_REGEX.test(guestId)) {
+    throw new Error('Invalid guest identifier format: UUID required');
+  }
   const signature = crypto.createHmac('sha256', secret).update(guestId).digest('base64url');
   return `${guestId}.${signature}`;
 }
@@ -40,6 +48,8 @@ export function verifyGuestId(signedValue: string): string | null {
   if (parts.length !== 2) return null;
 
   const [guestId, signature] = parts;
+  if (!UUID_REGEX.test(guestId)) return null;
+
   const expectedSig = crypto.createHmac('sha256', getSecret()).update(guestId).digest('base64url');
 
   try {
@@ -51,6 +61,26 @@ export function verifyGuestId(signedValue: string): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Generates an HMAC SHA-256 network fingerprint (subnet + user-agent) for secondary abuse prevention without storing raw IP.
+ */
+export function generateSecondaryAbuseFingerprint(
+  forwardedFor?: string | null,
+  userAgent?: string | null
+): string {
+  const rawIp = (forwardedFor?.split(',')[0] || '').trim();
+  // Mask last octet of IPv4 or last segments of IPv6 to create a privacy-safe subnet representation
+  const subnet = rawIp.includes('.')
+    ? rawIp.split('.').slice(0, 3).join('.') + '.0'
+    : rawIp.split(':').slice(0, 4).join(':') + '::';
+  const ua = (userAgent || '').slice(0, 200);
+
+  return crypto
+    .createHmac('sha256', getHmacSecret())
+    .update(`${subnet}|${ua}`)
+    .digest('hex');
 }
 
 /**
@@ -74,7 +104,9 @@ export function resolveGuestSession(cookieHeader?: string | null): {
   // Generate new secure guest UUID and sign
   const newGuestId = crypto.randomUUID();
   const signed = signGuestId(newGuestId);
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd =
+    process.env.NODE_ENV === 'production' ||
+    process.env.VERCEL_ENV === 'production';
 
   const serialized = cookie.serialize(GUEST_COOKIE_NAME, signed, {
     httpOnly: true,

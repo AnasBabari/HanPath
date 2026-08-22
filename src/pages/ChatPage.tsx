@@ -93,7 +93,7 @@ export default function ChatPage() {
                   isOnline ? 'text-green-accessible' : 'text-amber-accessible'
                 }`}
               >
-                {isOnline ? 'Online' : 'Offline (Internet Required)'}
+                {isOnline ? 'Internet available' : 'Offline (Internet Required)'}
               </span>
             </div>
           </div>

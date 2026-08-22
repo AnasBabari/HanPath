@@ -20,7 +20,7 @@ export default function StoriesPage() {
   const [loading, setLoading] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
 
-  const { stats, hskLevel, markStoryRead, addXP, setFullScreen } = useStore();
+  const { snapshot, stats, hskLevel, markStoryRead, addXP, setFullScreen } = useStore();
 
   useEffect(() => {
     if (activeStory) {
@@ -90,7 +90,7 @@ export default function StoriesPage() {
 
   // Active Story Reader Screen
   if (activeStory) {
-    const isAlreadyRead = stats.readStories.includes(activeStory.id) || hasCompleted;
+    const isAlreadyRead = (snapshot.readStories || []).includes(activeStory.id) || hasCompleted;
 
     return (
       <div

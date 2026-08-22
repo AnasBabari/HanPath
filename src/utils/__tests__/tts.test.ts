@@ -1,20 +1,28 @@
-import { describe, it, expect } from 'vitest';
-import { normPinyin, speak } from '../tts';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { speak } from '../tts';
 
-describe('Text-to-Speech & Pinyin Normalization Utility', () => {
-  it('normalizes marked pinyin to toneless pinyin for typing exercises', () => {
-    expect(normPinyin('nǐ hǎo')).toBe('ni hao');
-    expect(normPinyin('xiè xie')).toBe('xie xie');
-    expect(normPinyin('zhōng wén')).toBe('zhong wen');
-    expect(normPinyin('  LǍO   SHĪ  ')).toBe('lao shi');
+describe('Speech Synthesis (TTS) Utilities', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it('safely handles empty and neutral inputs', () => {
-    expect(normPinyin('')).toBe('');
-    expect(normPinyin('ma')).toBe('ma');
+  it('calls window.speechSynthesis.speak with Chinese utterance safely', () => {
+    const mockSpeak = vi.fn();
+    const mockCancel = vi.fn();
+
+    vi.stubGlobal('speechSynthesis', {
+      speak: mockSpeak,
+      cancel: mockCancel,
+      getVoices: () => [
+        { lang: 'zh-CN', name: 'Ting-Ting' } as SpeechSynthesisVoice,
+      ],
+    });
+
+    speak('你好');
+    expect(mockCancel).toHaveBeenCalled();
   });
 
-  it('safely invokes speak without crashing in unsupported environments', () => {
-    expect(() => speak('你好')).not.toThrow();
+  it('handles empty text without error', () => {
+    expect(() => speak('')).not.toThrow();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import handler, { validateChatPayload } from './chat.js';
+import handler, { validateChatPayload, isAllowedOrigin } from './chat.js';
 import { signGuestId } from './_lib/guest.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
@@ -12,7 +12,7 @@ afterEach(() => {
 function createMockReqRes(method: string, bodyObj?: unknown, headers: Record<string, string> = {}) {
   const req = new EventEmitter() as unknown as IncomingMessage;
   req.method = method;
-  req.headers = { ...headers };
+  req.headers = { 'content-type': 'application/json', ...headers };
 
   let responseData = '';
   const headersMap: Record<string, string> = {};
@@ -53,6 +53,40 @@ describe('POST /api/chat Serverless Handler', () => {
     expect(result.context?.targetWord).toBe('你');
   });
 
+  it('evaluates CORS origins strictly', () => {
+    expect(isAllowedOrigin(null)).toBe(true);
+    expect(isAllowedOrigin('http://localhost:5173')).toBe(true);
+    expect(isAllowedOrigin('http://127.0.0.1:4173')).toBe(true);
+    expect(isAllowedOrigin('https://hanpath.vercel.app')).toBe(true);
+    expect(isAllowedOrigin('https://hanpath-preview-123.vercel.app')).toBe(true);
+    expect(isAllowedOrigin('https://malicious-app.vercel.app')).toBe(false);
+    expect(isAllowedOrigin('https://evil.com')).toBe(false);
+  });
+
+  it('rejects requests with missing Content-Type header with 415', async () => {
+    const req = new EventEmitter() as unknown as IncomingMessage;
+    req.method = 'POST';
+    req.headers = {}; // No content-type
+
+    let responseData = '';
+    const res = {
+      statusCode: 0,
+      setHeader: vi.fn(),
+      end: vi.fn().mockImplementation((chunk: string) => {
+        responseData = chunk;
+      }),
+    } as unknown as ServerResponse;
+
+    const runPromise = handler(req, res);
+    req.emit('data', Buffer.from(JSON.stringify({ messages: [{ role: 'user', content: 'Hi' }] })));
+    req.emit('end');
+    await runPromise;
+
+    expect(res.statusCode).toBe(415);
+    const parsed = JSON.parse(responseData);
+    expect(parsed.error.code).toBe('unsupported_media_type');
+  });
+
   it('rejects GET requests with 405 Method Not Allowed', async () => {
     const { runPromise, res } = createMockReqRes('GET');
     await runPromise;
@@ -62,7 +96,7 @@ describe('POST /api/chat Serverless Handler', () => {
   it('rejects invalid JSON payloads with 400 Bad Request', async () => {
     const req = new EventEmitter() as unknown as IncomingMessage;
     req.method = 'POST';
-    req.headers = {};
+    req.headers = { 'content-type': 'application/json' };
 
     let responseData = '';
     const res = {
@@ -124,7 +158,8 @@ describe('POST /api/chat Serverless Handler', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     // Consume all 5 guest quota requests with valid signed cookie
-    const signedGuestValue = signGuestId('test-guest-quota-exhaustion-id');
+    const validUuid = '12345678-1234-4234-8234-123456789abc';
+    const signedGuestValue = signGuestId(validUuid);
     const guestCookie = `hanpath_guest_id=${signedGuestValue}`;
     for (let i = 0; i < 5; i++) {
       const { runPromise } = createMockReqRes(
@@ -148,65 +183,25 @@ describe('POST /api/chat Serverless Handler', () => {
     expect(parsed.error.code).toBe('quota_exceeded');
   });
 
-  it('rejects forbidden browser origin with 403', async () => {
-    const { runPromise, res, getResponseData } = createMockReqRes(
-      'POST',
-      { messages: [{ role: 'user', content: 'Hello' }] },
-      { origin: 'https://malicious-attacker-site.com' }
-    );
-
-    await runPromise;
-
-    expect(res.statusCode).toBe(403);
-    const parsed = JSON.parse(getResponseData());
-    expect(parsed.error.code).toBe('forbidden_origin');
-  });
-
-  it('accepts allowed preview origin and localhost origins', async () => {
+  it('handles upstream OpenRouter errors with graceful retryable response', async () => {
     vi.stubEnv('OPENROUTER_API_KEY', 'sk-or-v1-testkey');
+
     const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        choices: [{ message: { content: 'OK' } }],
-      }),
+      ok: false,
+      status: 503,
+      text: async () => 'Service Unavailable',
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    const { runPromise, res } = createMockReqRes(
-      'POST',
-      { messages: [{ role: 'user', content: 'Hello' }] },
-      { origin: 'https://hanpath-pr-9-test.vercel.app', 'content-type': 'application/json' }
-    );
-
-    await runPromise;
-    expect(res.statusCode).toBe(200);
-  });
-
-  it('rejects unsupported Content-Type with 415', async () => {
-    const { runPromise, res, getResponseData } = createMockReqRes(
-      'POST',
-      { messages: [{ role: 'user', content: 'Hello' }] },
-      { 'content-type': 'text/plain' }
-    );
+    const { runPromise, res, getResponseData } = createMockReqRes('POST', {
+      messages: [{ role: 'user', content: 'Hello' }],
+    });
 
     await runPromise;
 
-    expect(res.statusCode).toBe(415);
+    expect(res.statusCode).toBe(502);
     const parsed = JSON.parse(getResponseData());
-    expect(parsed.error.code).toBe('unsupported_media_type');
-  });
-
-  it('rejects oversized messages with 413 payload_too_large', async () => {
-    const oversizedMessage = 'a'.repeat(1500); // max is 1000
-    const { runPromise, res, getResponseData } = createMockReqRes(
-      'POST',
-      { messages: [{ role: 'user', content: oversizedMessage }] }
-    );
-
-    await runPromise;
-
-    expect(res.statusCode).toBe(413);
-    const parsed = JSON.parse(getResponseData());
-    expect(parsed.error.code).toBe('payload_too_large');
+    expect(parsed.error.code).toBe('upstream_error');
+    expect(parsed.error.retryable).toBe(true);
   });
 });

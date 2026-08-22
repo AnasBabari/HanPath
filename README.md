@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
   <img src="public/favicon.svg" alt="HànPath Logo" width="80" height="80" />
   <h1>汉路 HànPath</h1>
   
@@ -20,13 +20,13 @@
 
 **HànPath** is built for learners mastering Mandarin Chinese with structural rigor, high performance, and offline resilience.
 
-- 📚 **Official HSK 3.0 Standard (2021):** Exactly 500 HSK 1 words and 772 HSK 2 words (1,272 cumulative vocabulary items) pre-bundled with pinyin, English definitions, and interactive stroke order animations.
-- 📖 **Original Graded Stories:** 8 original stories per level with tokenized glosses, character popups, and pinyin assistance.
+- 📚 **HSK 3.0 Standard (2021):** 500 HSK 1 words and 772 HSK 2 words (1,272 cumulative vocabulary items) pre-bundled with pinyin, English definitions, and interactive stroke order animations referencing the CTI syllabus and normalized under MIT License.
+- 📖 **16 Graded Stories:** 8 coherent narrative stories per level with tokenized glosses, character popups, and pinyin assistance.
 - 🤖 **Pedagogical AI Language Buddy:** Serverless OpenRouter proxy with fallback routing, strict server-authored system prompts, and context isolation.
 - ⚡ **Optimistic Concurrency & Local-First Sync:** Version-conditioned atomic cloud sync with guest-to-cloud merge, full offline persistence, and export/restore capabilities.
 - 🔐 **Dual Auth Flows:** 6-digit email One-Time Passcode (OTP) and Google OAuth with PKCE redirection (`/auth/callback`).
 - ⚡ **Ultra-Fast Performance:** Initial page-load bundle budget strictly enforced at **<= 130 KB gzip** with dynamic code-splitting.
-- ♿ **Accessibility (a11y):** Full WCAG 2.1 AA compliance verified with automated axe-core audits.
+- ♿ **Accessibility (a11y):** Accessible UI designed according to WCAG 2.2 AA standards and tested with axe-core audits and keyboard navigation.
 
 ---
 
@@ -47,7 +47,7 @@ Browser Client (React 19 + Vite 8 + Zustand)
 
 1. **Authentication & Session Identity**
    - **Signed-in Users:** Authenticate via Supabase 6-digit email OTP or Google OAuth PKCE. Verified server-side via Bearer JWT tokens.
-   - **Guest Users:** Stateless signed HMAC-SHA256 cookies (`hp_guest_sess`) ensure tamper-proof identity tracking and rate limiting without requiring early database writes.
+   - **Guest Users:** Stateless signed HMAC-SHA256 cookies (`hanpath_guest_id`) ensure tamper-proof identity tracking and rate limiting without requiring early database writes.
    - **Fail-Closed Security:** Malformed or expired Bearer tokens return HTTP 401 without silent fallback to guest access.
 
 2. **Atomic Cloud Sync & Version Predicate**
