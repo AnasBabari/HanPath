@@ -147,4 +147,66 @@ describe('POST /api/chat Serverless Handler', () => {
     const parsed = JSON.parse(getResponseData());
     expect(parsed.error.code).toBe('quota_exceeded');
   });
+
+  it('rejects forbidden browser origin with 403', async () => {
+    const { runPromise, res, getResponseData } = createMockReqRes(
+      'POST',
+      { messages: [{ role: 'user', content: 'Hello' }] },
+      { origin: 'https://malicious-attacker-site.com' }
+    );
+
+    await runPromise;
+
+    expect(res.statusCode).toBe(403);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error.code).toBe('forbidden_origin');
+  });
+
+  it('accepts allowed preview origin and localhost origins', async () => {
+    vi.stubEnv('OPENROUTER_API_KEY', 'sk-or-v1-testkey');
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: 'OK' } }],
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { runPromise, res } = createMockReqRes(
+      'POST',
+      { messages: [{ role: 'user', content: 'Hello' }] },
+      { origin: 'https://hanpath-pr-9-test.vercel.app', 'content-type': 'application/json' }
+    );
+
+    await runPromise;
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('rejects unsupported Content-Type with 415', async () => {
+    const { runPromise, res, getResponseData } = createMockReqRes(
+      'POST',
+      { messages: [{ role: 'user', content: 'Hello' }] },
+      { 'content-type': 'text/plain' }
+    );
+
+    await runPromise;
+
+    expect(res.statusCode).toBe(415);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error.code).toBe('unsupported_media_type');
+  });
+
+  it('rejects oversized messages with 413 payload_too_large', async () => {
+    const oversizedMessage = 'a'.repeat(1500); // max is 1000
+    const { runPromise, res, getResponseData } = createMockReqRes(
+      'POST',
+      { messages: [{ role: 'user', content: oversizedMessage }] }
+    );
+
+    await runPromise;
+
+    expect(res.statusCode).toBe(413);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error.code).toBe('payload_too_large');
+  });
 });

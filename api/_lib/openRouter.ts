@@ -43,15 +43,39 @@ export async function callOpenRouterWithFallback(
     };
   }
 
-  // Prepend server-owned pedagogical system prompt
-  const systemPrompt = buildPedagogicalSystemPrompt(context);
-  const upstreamMessages = [
+  // Prepend server-owned pedagogical system prompt based only on mode and HSK level
+  const mode = context?.mode || 'chat';
+  const hskLevel = context?.hskLevel === 2 ? 2 : 1;
+  const systemPrompt = buildPedagogicalSystemPrompt(mode, hskLevel);
+
+  const upstreamMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
     { role: 'system', content: systemPrompt },
-    ...messages.slice(-8).map((m) => ({
+  ];
+
+  // Supply untrusted exercise context in a dedicated structured JSON user message
+  if (
+    context &&
+    (context.targetWord || context.exercisePrompt || context.userAnswer || context.correctAnswer)
+  ) {
+    const safeContext = {
+      targetWord: context.targetWord,
+      exercisePrompt: context.exercisePrompt,
+      userAnswer: context.userAnswer,
+      correctAnswer: context.correctAnswer,
+    };
+    upstreamMessages.push({
+      role: 'user',
+      content: `[EXERCISE_CONTEXT_DATA]: ${JSON.stringify(safeContext)}`,
+    });
+  }
+
+  // Append user messages (max last 8)
+  for (const m of messages.slice(-8)) {
+    upstreamMessages.push({
       role: m.role === 'assistant' ? 'assistant' : 'user',
       content: m.content.slice(0, 1000),
-    })),
-  ];
+    });
+  }
 
   let lastError: OpenRouterResult['error'] = {
     code: 'upstream_error',
@@ -60,7 +84,22 @@ export async function callOpenRouterWithFallback(
     retryable: true,
   };
 
+  const TOTAL_DEADLINE_MS = 15000;
+  const deadline = Date.now() + TOTAL_DEADLINE_MS;
+
   for (const model of RELIABLE_FREE_MODELS) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 500) {
+      // Exceeded or near total deadline: break immediately
+      lastError = {
+        code: 'upstream_timeout',
+        message: 'AI request timed out within the 15-second deadline.',
+        status: 504,
+        retryable: true,
+      };
+      break;
+    }
+
     try {
       const response = await fetch(OPENROUTER_API_URL, {
         method: 'POST',
@@ -76,7 +115,7 @@ export async function callOpenRouterWithFallback(
           temperature: 0.7,
           max_tokens: 300,
         }),
-        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+        signal: AbortSignal.timeout(remainingMs),
       });
 
       if (response.ok) {
@@ -101,7 +140,7 @@ export async function callOpenRouterWithFallback(
           retryable: true,
           retryAfterSeconds: 5,
         };
-        // Continue to fallback model
+        // Continue to fallback model if deadline allows
         continue;
       }
 
@@ -112,7 +151,7 @@ export async function callOpenRouterWithFallback(
           status: 502,
           retryable: true,
         };
-        // Continue to fallback model
+        // Continue to fallback model if deadline allows
         continue;
       }
 
@@ -127,16 +166,22 @@ export async function callOpenRouterWithFallback(
         },
       };
     } catch (err: unknown) {
-      const isTimeout = err instanceof Error && err.name === 'TimeoutError';
+      const isTimeout =
+        (err instanceof Error && err.name === 'TimeoutError') ||
+        Date.now() >= deadline;
+
       lastError = {
         code: isTimeout ? 'upstream_timeout' : 'network_error',
         message: isTimeout
-          ? 'AI request timed out after 15 seconds.'
+          ? 'AI request timed out within the 15-second deadline.'
           : 'Failed to contact AI service.',
         status: isTimeout ? 504 : 503,
         retryable: true,
       };
-      // Try next fallback model
+
+      if (Date.now() >= deadline) {
+        break;
+      }
     }
   }
 
