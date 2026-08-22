@@ -1,7 +1,7 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import { getSupabaseClient } from '../utils/supabase';
+import { getSupabaseClientAsync } from '../utils/supabase';
 import { useStore } from '../store/useStore';
 
 export default function AuthCallbackPage() {
@@ -29,7 +29,7 @@ export default function AuthCallbackPage() {
       }
 
       // 2. Check Supabase session
-      const supabase = getSupabaseClient();
+      const supabase = await getSupabaseClientAsync();
       if (!supabase) {
         if (isMounted) {
           setStatus('error');

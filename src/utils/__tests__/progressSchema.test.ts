@@ -1,8 +1,7 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   createDefaultProgressSnapshotV4,
   validateProgressSnapshotV4,
-  ProgressSnapshotV4Schema,
 } from '../progressSchema';
 
 describe('Progress Snapshot V4 Schema & Validation', () => {

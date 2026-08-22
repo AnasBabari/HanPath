@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 
@@ -19,6 +19,17 @@ const jsFiles = files.filter((f) => f.endsWith('.js'));
 console.log('HanPath Production Bundle Size Audit:');
 console.log('--------------------------------------------------');
 
+const indexPath = path.join(distDir, 'index.html');
+const indexHtml = fs.existsSync(indexPath) ? fs.readFileSync(indexPath, 'utf8') : '';
+
+// Initial chunks are those directly loaded or preloaded by index.html for first paint
+const initialChunkNames = new Set();
+const assetMatches = indexHtml.matchAll(/(?:src|href)="(?:\/assets\/|assets\/)?([^"]+\.js)"/g);
+for (const match of assetMatches) {
+  const baseName = path.basename(match[1]);
+  initialChunkNames.add(baseName);
+}
+
 let initialTotalBytes = 0;
 let initialTotalGzipBytes = 0;
 
@@ -31,21 +42,14 @@ for (const file of jsFiles) {
   const rawKb = (rawBytes / 1024).toFixed(2);
   const gzipKb = (gzipBytes / 1024).toFixed(2);
 
-  const search = file.toLowerCase();
-  const isLazy =
-    search.includes('practicepage') ||
-    search.includes('storiespage') ||
-    search.includes('chatpage') ||
-    search.includes('profilepage') ||
-    search.includes('licensespage') ||
-    search.includes('strokeorderpractice') ||
-    search.includes('vendor-hanzi');
+  // If index.html is present, rely on actual entry module graph; otherwise fallback to heuristics
+  const isInitial = initialChunkNames.size > 0 ? initialChunkNames.has(file) : !file.includes('Page') && !file.includes('stories') && !file.includes('sentences') && !file.includes('hanzi');
 
   console.log(
-    `  ${isLazy ? '[LAZY]   ' : '[INITIAL]'} ${file.padEnd(35)} : ${rawKb.padStart(7)} KB raw | ${gzipKb.padStart(6)} KB gzip`
+    `  ${!isInitial ? '[LAZY]   ' : '[INITIAL]'} ${file.padEnd(35)} : ${rawKb.padStart(7)} KB raw | ${gzipKb.padStart(6)} KB gzip`
   );
 
-  if (!isLazy) {
+  if (isInitial) {
     initialTotalBytes += rawBytes;
     initialTotalGzipBytes += gzipBytes;
   }

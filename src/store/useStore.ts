@@ -5,7 +5,7 @@ import { updateSRS } from '../utils/srs';
 import { createDefaultProgressSnapshotV4, validateProgressSnapshotV4 } from '../utils/progressSchema';
 import { mergeGuestWithCloud, calculateStreakFromStudyDays } from '../utils/progressMerge';
 import { fetchCloudProgress, syncCloudProgress, deleteCloudAccount } from '../utils/cloudProgress';
-import { getSupabaseClient } from '../utils/supabase';
+import { getSupabaseClientAsync } from '../utils/supabase';
 
 const GUEST_STORAGE_KEY = 'hanpath:guest:progress_v4';
 const getUserStorageKey = (userId: string) => `hanpath:user:${userId}:progress_v4`;
@@ -419,7 +419,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   // Auth & Cloud Sync Implementation
   initAuthSession: async () => {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClientAsync();
     if (!supabase) return;
 
     try {
@@ -519,7 +519,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   requestEmailOtp: async (email: string) => {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClientAsync();
     if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
 
     const cleanEmail = email.trim().toLowerCase();
@@ -537,7 +537,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   verifyEmailOtp: async (email: string, token: string) => {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClientAsync();
     if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
 
     const cleanToken = token.trim().replace(/\D/g, '');
@@ -568,7 +568,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   signInWithGoogle: async () => {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClientAsync();
     if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
 
     const { error } = await supabase.auth.signInWithOAuth({
@@ -585,7 +585,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   signOut: async () => {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClientAsync();
     if (supabase) {
       await supabase.auth.signOut();
     }
@@ -626,7 +626,7 @@ export const useStore = create<AppState>((set, get) => ({
     const guestSnap = createDefaultProgressSnapshotV4();
     saveSnapshotToStorage(GUEST_STORAGE_KEY, guestSnap);
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseClientAsync();
     if (supabase) {
       await supabase.auth.signOut().catch(() => {});
     }

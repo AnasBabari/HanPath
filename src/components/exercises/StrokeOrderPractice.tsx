@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import HanziWriter from 'hanzi-writer';
 
 interface StrokeOrderPracticeProps {
   character: string;
@@ -9,7 +8,7 @@ interface StrokeOrderPracticeProps {
 
 export default function StrokeOrderPractice({ character, onComplete, onMistake }: StrokeOrderPracticeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const writerRef = useRef<ReturnType<typeof HanziWriter.create> | null>(null);
+  const writerRef = useRef<{ create: Function; cancelQuiz?: Function; animateCharacter?: Function } | any>(null);
   const [completed, setCompleted] = useState(false);
   const callbacks = useRef({ onComplete, onMistake });
   
@@ -21,47 +20,52 @@ export default function StrokeOrderPractice({ character, onComplete, onMistake }
     if (!containerRef.current) return;
     
     let isCancelled = false;
+    let timer1: ReturnType<typeof setTimeout> | undefined;
+    let timer2: ReturnType<typeof setTimeout> | undefined;
 
     // Clear previous instance if any
     containerRef.current.innerHTML = '';
 
-    const writer = HanziWriter.create(containerRef.current, character, {
-      width: 250,
-      height: 250,
-      padding: 10,
-      showOutline: true,
-      showCharacter: false,
-      strokeAnimationSpeed: 2,
-      delayBetweenStrokes: 50,
-      strokeColor: '#58CC02', // var(--primary) in Claymorphism
-      outlineColor: '#E5E5E5',
-      drawingColor: '#235390', // var(--text-main)
-    });
-    
-    writerRef.current = writer;
+    void import('hanzi-writer').then((module) => {
+      if (isCancelled || !containerRef.current) return;
+      const HanziWriter = module.default || module;
 
-    // Give writer a tiny moment to init before starting quiz to prevent race conditions
-    let timer2: ReturnType<typeof setTimeout> | undefined;
-    const timer1 = setTimeout(() => {
-      if (isCancelled) return;
-      writer.quiz({
-        onMistake: () => {
-          callbacks.current.onMistake?.();
-        },
-        onComplete: () => {
-          setCompleted(true);
-          timer2 = setTimeout(() => {
-            if (!isCancelled) callbacks.current.onComplete();
-          }, 800);
-        }
+      const writer = HanziWriter.create(containerRef.current, character, {
+        width: 250,
+        height: 250,
+        padding: 10,
+        showOutline: true,
+        showCharacter: false,
+        strokeAnimationSpeed: 2,
+        delayBetweenStrokes: 50,
+        strokeColor: '#58CC02', // var(--primary) in Claymorphism
+        outlineColor: '#E5E5E5',
+        drawingColor: '#235390', // var(--text-main)
       });
-    }, 100);
+      
+      writerRef.current = writer;
+
+      timer1 = setTimeout(() => {
+        if (isCancelled) return;
+        writer.quiz({
+          onMistake: () => {
+            callbacks.current.onMistake?.();
+          },
+          onComplete: () => {
+            setCompleted(true);
+            timer2 = setTimeout(() => {
+              if (!isCancelled) callbacks.current.onComplete();
+            }, 800);
+          }
+        });
+      }, 100);
+    });
 
     return () => {
       isCancelled = true;
       clearTimeout(timer1);
       if (timer2) clearTimeout(timer2);
-      writer.cancelQuiz();
+      writerRef.current?.cancelQuiz?.();
     };
   }, [character]); 
 

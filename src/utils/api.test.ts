@@ -2,35 +2,42 @@ import { describe, it, expect } from 'vitest';
 import { fetchHSKLevel, fetchSentencesForLevel, getCurriculumMetadata } from './api';
 
 describe('HSK 3.0 Curriculum API (Offline Bundled)', () => {
-  it('returns valid metadata with canonical HSK 3.0 standard', () => {
+  it('returns valid metadata with exact canonical HSK 3.0 standard counts', () => {
     const meta = getCurriculumMetadata();
     expect(meta.standard).toBe('HSK-3.0');
     expect(meta.license).toBe('MIT');
-    expect(meta.counts.hsk1).toBeGreaterThanOrEqual(500);
-    expect(meta.counts.hsk2).toBeGreaterThanOrEqual(750);
-    expect(meta.counts.cumulative).toBeGreaterThanOrEqual(1250);
+    expect(meta.counts.hsk1).toBe(500);
+    expect(meta.counts.hsk2).toBe(772);
+    expect(meta.counts.cumulative).toBe(1272);
     expect(meta.sha256).toBeDefined();
+    expect(meta.sha256.length).toBe(64);
   });
 
-  it('loads HSK 1 vocabulary words directly from bundled dataset', async () => {
+  it('loads exact 500 HSK 1 vocabulary words directly from bundled dataset', async () => {
     const words = await fetchHSKLevel(1);
     expect(Array.isArray(words)).toBe(true);
-    expect(words.length).toBeGreaterThanOrEqual(500);
+    expect(words.length).toBe(500);
     expect(words[0].hanzi).toBeDefined();
     expect(words[0].pinyin).toBeDefined();
     expect(words[0].hskLevel).toBe(1);
+
+    const uniqueHanzi = new Set(words.map((w) => w.hanzi));
+    expect(uniqueHanzi.size).toBe(500);
   });
 
-  it('loads HSK 2 vocabulary words directly from bundled dataset', async () => {
+  it('loads exact 772 HSK 2 vocabulary words directly from bundled dataset', async () => {
     const words = await fetchHSKLevel(2);
     expect(Array.isArray(words)).toBe(true);
-    expect(words.length).toBeGreaterThanOrEqual(750);
+    expect(words.length).toBe(772);
     expect(words[0].hanzi).toBeDefined();
     expect(words[0].pinyin).toBeDefined();
     expect(words[0].hskLevel).toBe(2);
+
+    const uniqueHanzi = new Set(words.map((w) => w.hanzi));
+    expect(uniqueHanzi.size).toBe(772);
   });
 
-  it('provides sentence structures for Level 1 and Level 2', async () => {
+  it('provides sentence structures for Level 1 and Level 2 without errors', async () => {
     const s1 = await fetchSentencesForLevel(1);
     const s2 = await fetchSentencesForLevel(2);
 

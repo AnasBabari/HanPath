@@ -1,6 +1,6 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { resolveIdentity } from './_lib/auth';
-import { signGuestId, verifyGuestId, resolveGuestSession } from './_lib/guest';
+import { signGuestId, verifyGuestId } from './_lib/guest';
 
 vi.mock('./_lib/supabaseAdmin', () => ({
   getSupabaseAdmin: vi.fn(),

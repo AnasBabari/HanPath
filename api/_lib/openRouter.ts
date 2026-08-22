@@ -2,7 +2,6 @@ import type { ChatMessage, PedagogicalContext } from './types.js';
 import { buildPedagogicalSystemPrompt } from './prompt.js';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_TIMEOUT_MS = 15000;
 
 export const RELIABLE_FREE_MODELS = [
   'arcee-ai/trinity-large-preview:free',

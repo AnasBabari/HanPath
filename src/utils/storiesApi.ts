@@ -15,16 +15,11 @@ export interface Story {
 }
 
 export async function fetchAllStories(): Promise<Story[]> {
-  try {
-    const requests = [1, 2, 3, 4].map(i =>
-      fetch(`/data/stories_hsk${i}.json`)
-        .then(res => res.ok ? res.json() as Promise<Story[]> : [])
-        .catch(() => [])
-    );
-    const results = await Promise.all(requests);
-    return results.flat();
-  } catch (e) {
-    console.warn('Could not load stories', e);
-    return [];
-  }
+  const [s1, s2] = await Promise.all([
+    import('../data/stories_hsk1.json'),
+    import('../data/stories_hsk2.json'),
+  ]);
+  const storiesHsk1 = s1.default || s1;
+  const storiesHsk2 = s2.default || s2;
+  return [...(storiesHsk1 as Story[]), ...(storiesHsk2 as Story[])];
 }
