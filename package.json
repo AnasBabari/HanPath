@@ -12,11 +12,16 @@
     "test": "vitest",
     "test:api": "vitest --run api/chat.test.ts"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "@floating-ui/react": "^0.27.20",
     "@supabase/supabase-js": "^2.100.1",
     "@vercel/speed-insights": "^2.0.0",
+    "cookie": "^1.0.2",
     "hanzi-writer": "^3.7.3",
+    "lucide-react": "^1.16.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.2",
@@ -32,6 +37,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/cookie": "^0.6.0",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

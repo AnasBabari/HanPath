@@ -1,180 +1,150 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import handler, { resetChatRateLimits } from './chat';
-import { buildPedagogicalSystemPrompt, validateChatRequest } from '../src/shared/chatContract';
-
-function responseRecorder() {
-  let statusCode = 200;
-  let body: Record<string, unknown> | undefined;
-  const res = {
-    headers: new Map<string, string | number>(),
-    status(code: number) {
-      statusCode = code;
-      return res;
-    },
-    setHeader(name: string, value: string | number) {
-      res.headers.set(name, value);
-    },
-    json(value: Record<string, unknown>) {
-      body = value;
-    },
-  };
-  return { res, read: () => ({ statusCode, body }) };
-}
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import handler, { validateChatPayload } from './chat.js';
+import { signGuestId } from './_lib/guest.js';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { EventEmitter } from 'node:events';
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  delete process.env.OPENROUTER_API_KEY;
-  resetChatRateLimits();
+  vi.unstubAllEnvs();
 });
 
-describe('/api/chat validation boundary & pedagogical constraints', () => {
-  it('rejects arbitrary model IDs and falls back or validates', async () => {
-    const fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
-    const recorder = responseRecorder();
+function createMockReqRes(method: string, bodyObj?: unknown, headers: Record<string, string> = {}) {
+  const req = new EventEmitter() as unknown as IncomingMessage;
+  req.method = method;
+  req.headers = { ...headers };
 
-    // Invalid messages format
-    await handler(
-      {
-        method: 'POST',
-        body: { messages: [] },
-      },
-      recorder.res,
-    );
+  let responseData = '';
+  const headersMap: Record<string, string> = {};
 
-    expect(recorder.read().statusCode).toBe(400);
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
+  const res = {
+    statusCode: 0,
+    setHeader: vi.fn().mockImplementation((key: string, val: string) => {
+      headersMap[key.toLowerCase()] = val;
+    }),
+    end: vi.fn().mockImplementation((chunk: string) => {
+      responseData = chunk;
+    }),
+  } as unknown as ServerResponse;
 
-  it('fails closed when the server-side key is absent', async () => {
-    const recorder = responseRecorder();
+  const runPromise = handler(req, res);
 
-    await handler(
-      {
-        method: 'POST',
-        body: { messages: [{ role: 'user', content: 'hello' }] },
-      },
-      recorder.res,
-    );
+  if (bodyObj !== undefined) {
+    req.emit('data', Buffer.from(JSON.stringify(bodyObj)));
+  }
+  req.emit('end');
 
-    expect(recorder.read()).toEqual({
-      statusCode: 503,
-      body: {
-        code: 'ai_not_configured',
-        error: 'AI assistant service is currently unconfigured. Lessons and flashcard review remain fully functional.',
-      },
-    });
-  });
+  return { req, res, runPromise, getResponseData: () => responseData, headersMap };
+}
 
-  it('generates server-owned educational system prompt for explain-mistake mode', async () => {
-    process.env.OPENROUTER_API_KEY = 'test-key';
-    let interceptedBody: string | undefined;
+describe('POST /api/chat Serverless Handler', () => {
+  it('validates chat payloads accurately', () => {
+    expect(validateChatPayload(null).valid).toBe(false);
+    expect(validateChatPayload({}).valid).toBe(false);
+    expect(validateChatPayload({ messages: [] }).valid).toBe(false);
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockImplementation((_url, init) => {
-        interceptedBody = init?.body as string;
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ choices: [{ message: { content: 'Good effort!' } }] }),
-        });
-      }),
-    );
-
-    const recorder = responseRecorder();
-    await handler(
-      {
-        method: 'POST',
-        body: {
-          messages: [{ role: 'user', content: 'Why is this wrong?' }],
-          context: {
-            mode: 'explain-mistake',
-            hskLevel: 1,
-            userAnswer: '水',
-            correctAnswer: '茶',
-            exercisePrompt: 'Translate: tea',
-          },
-        },
-      },
-      recorder.res,
-    );
-
-    expect(recorder.read().statusCode).toBe(200);
-    expect(interceptedBody).toBeDefined();
-    const parsed = JSON.parse(interceptedBody!);
-    expect(parsed.messages[0].role).toBe('system');
-    expect(parsed.messages[0].content).toContain('Task: Explain a mistake');
-    expect(parsed.messages[0].content).toContain('Learner\'s answer: "水"');
-    expect(parsed.messages[0].content).toContain('Correct solution: "茶"');
-  });
-
-  it('does not expose raw upstream exception stack traces to the client', async () => {
-    process.env.OPENROUTER_API_KEY = 'test-key';
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 500,
-        text: async () => 'secret upstream stack trace',
-      }),
-    );
-    const recorder = responseRecorder();
-
-    await handler(
-      {
-        method: 'POST',
-        body: { messages: [{ role: 'user', content: 'hello' }] },
-      },
-      recorder.res,
-    );
-
-    expect(recorder.read()).toEqual({
-      statusCode: 502,
-      body: {
-        code: 'upstream_error',
-        error: 'Upstream AI service encountered an error.',
-      },
-    });
-  });
-
-  it('limits repeated requests by forwarded client address', async () => {
-    process.env.OPENROUTER_API_KEY = 'test-key';
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ choices: [] }) }));
-    const request = {
-      method: 'POST',
-      headers: { 'x-forwarded-for': '198.51.100.42' },
-      body: { messages: [{ role: 'user', content: 'hello' }] },
+    const validPayload = {
+      messages: [{ role: 'user', content: 'Hello' }],
+      context: { mode: 'explain-word', hskLevel: 1, targetWord: '你' },
     };
+    const result = validateChatPayload(validPayload);
+    expect(result.valid).toBe(true);
+    expect(result.messages?.[0].content).toBe('Hello');
+    expect(result.context?.targetWord).toBe('你');
+  });
 
-    for (let i = 0; i < 10; i += 1) {
-      await handler(request, responseRecorder().res);
+  it('rejects GET requests with 405 Method Not Allowed', async () => {
+    const { runPromise, res } = createMockReqRes('GET');
+    await runPromise;
+    expect(res.statusCode).toBe(405);
+  });
+
+  it('rejects invalid JSON payloads with 400 Bad Request', async () => {
+    const req = new EventEmitter() as unknown as IncomingMessage;
+    req.method = 'POST';
+    req.headers = {};
+
+    let responseData = '';
+    const res = {
+      statusCode: 0,
+      setHeader: vi.fn(),
+      end: vi.fn().mockImplementation((chunk: string) => {
+        responseData = chunk;
+      }),
+    } as unknown as ServerResponse;
+
+    const runPromise = handler(req, res);
+    req.emit('data', Buffer.from('invalid-json{{{'));
+    req.emit('end');
+    await runPromise;
+
+    expect(res.statusCode).toBe(400);
+    const parsed = JSON.parse(responseData);
+    expect(parsed.error.code).toBe('invalid_json');
+  });
+
+  it('issues a signed guest cookie and executes chat request successfully', async () => {
+    vi.stubEnv('OPENROUTER_API_KEY', 'sk-or-v1-testkey');
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: '你好！(nǐ hǎo - Hello!)' } }],
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { runPromise, res, getResponseData, headersMap } = createMockReqRes('POST', {
+      messages: [{ role: 'user', content: 'Hello' }],
+      context: { mode: 'chat', hskLevel: 1 },
+    });
+
+    await runPromise;
+
+    expect(res.statusCode).toBe(200);
+    expect(headersMap['set-cookie']).toBeDefined();
+    expect(headersMap['set-cookie']).toContain('hanpath_guest_id=');
+
+    const response = JSON.parse(getResponseData());
+    expect(response.message).toBe('你好！(nǐ hǎo - Hello!)');
+    expect(response.quota).toBeDefined();
+    expect(response.quota.limit).toBe(5); // Guest tier
+    expect(response.quota.remaining).toBe(4);
+  });
+
+  it('enforces guest quota limits and returns 429 when exhausted', async () => {
+    vi.stubEnv('OPENROUTER_API_KEY', 'sk-or-v1-testkey');
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: 'OK' } }],
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    // Consume all 5 guest quota requests with valid signed cookie
+    const signedGuestValue = signGuestId('test-guest-quota-exhaustion-id');
+    const guestCookie = `hanpath_guest_id=${signedGuestValue}`;
+    for (let i = 0; i < 5; i++) {
+      const { runPromise } = createMockReqRes(
+        'POST',
+        { messages: [{ role: 'user', content: 'Msg' }] },
+        { cookie: guestCookie }
+      );
+      await runPromise;
     }
-    const recorder = responseRecorder();
-    await handler(request, recorder.res);
 
-    expect(recorder.read().statusCode).toBe(429);
-    expect(recorder.read().body).toMatchObject({ code: 'rate_limited' });
-  });
+    // 6th request should fail with 429
+    const { runPromise: finalPromise, res: finalRes, getResponseData } = createMockReqRes(
+      'POST',
+      { messages: [{ role: 'user', content: 'Msg 6' }] },
+      { cookie: guestCookie }
+    );
+    await finalPromise;
 
-  it('validates chat request helper directly', () => {
-    const invalid = validateChatRequest({});
-    expect(invalid.valid).toBe(false);
-
-    const valid = validateChatRequest({
-      messages: [{ role: 'user', content: '你好' }],
-      context: { mode: 'chat', hskLevel: 2 },
-    });
-    expect(valid.valid).toBe(true);
-    expect(valid.sanitized?.context?.hskLevel).toBe(2);
-  });
-
-  it('constructs specific prompt for vocabulary explanation', () => {
-    const prompt = buildPedagogicalSystemPrompt({
-      mode: 'explain-word',
-      hskLevel: 2,
-      targetWord: '苹果',
-    });
-    expect(prompt).toContain('苹果');
-    expect(prompt).toContain('HSK 2');
+    expect(finalRes.statusCode).toBe(429);
+    const parsed = JSON.parse(getResponseData());
+    expect(parsed.error.code).toBe('quota_exceeded');
   });
 });

@@ -74,7 +74,7 @@ export default function ReviewPage() {
         {
           context: {
             mode: 'explain-word',
-            hskLevel: card.hskLevel || 1,
+            hskLevel: (card.hskLevel === 2 ? 2 : 1),
             targetWord: `${card.hanzi} (${card.pinyin}: ${card.meaning})`,
           },
         }

@@ -105,7 +105,7 @@ export default function ExerciseRunner({ lesson, onWordResult, onExit, onComplet
         {
           context: {
             mode: 'explain-mistake',
-            hskLevel: lesson.vocab[0]?.hskLevel || 1,
+            hskLevel: (lesson.vocab[0]?.hskLevel === 2 ? 2 : 1),
             userAnswer: lastWrongAnswerRef.current,
             correctAnswer: ex.answer,
             exercisePrompt: ex.prompt,

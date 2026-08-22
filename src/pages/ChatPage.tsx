@@ -33,7 +33,7 @@ export default function ChatPage() {
       const response = await callOpenRouter(history, {
         context: {
           mode: 'chat',
-          hskLevel,
+          hskLevel: (hskLevel === 2 ? 2 : 1),
         },
       });
       addChatMessage({ role: 'model', content: response });
