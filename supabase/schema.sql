@@ -6,8 +6,8 @@
 
 -- 1. Progress Table (Level-scoped JSONB snapshot + monotonic version counter)
 CREATE TABLE IF NOT EXISTS public.user_progress (
-    user_id UUID PRIMARY KEY,
-    snapshot JSONB NOT NULL,
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    snapshot JSONB NOT NULL DEFAULT '{}'::JSONB,
     version BIGINT NOT NULL DEFAULT 1,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public.user_progress (
 -- 2. AI Usage & Quota Rate-limiting Table
 CREATE TABLE IF NOT EXISTS public.ai_usage (
     identifier TEXT PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     daily_count INT NOT NULL DEFAULT 0,
     minute_count INT NOT NULL DEFAULT 0,
     last_reset_day DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -67,12 +68,17 @@ DECLARE
     v_remaining_daily INT := 0;
     v_retry_after INT := 0;
     v_reset_at TIMESTAMPTZ;
+    v_user_id UUID := NULL;
 BEGIN
     v_reset_at := (v_today + INTERVAL '1 day');
 
+    IF p_identifier ~* '^user:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$' THEN
+        v_user_id := SUBSTRING(p_identifier FROM 6)::UUID;
+    END IF;
+
     -- Insert initial row if not existing
-    INSERT INTO public.ai_usage (identifier, daily_count, minute_count, last_reset_day, last_reset_minute)
-    VALUES (p_identifier, 0, 0, v_today, v_now)
+    INSERT INTO public.ai_usage (identifier, user_id, daily_count, minute_count, last_reset_day, last_reset_minute)
+    VALUES (p_identifier, v_user_id, 0, 0, v_today, v_now)
     ON CONFLICT (identifier) DO NOTHING;
 
     -- Lock row for update
@@ -213,23 +219,7 @@ BEGIN
 END;
 $$;
 
--- 6. Atomic User Data Deletion Function
-CREATE OR REPLACE FUNCTION public.delete_user_data(
-    p_user_id UUID
-)
-RETURNS JSONB
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-BEGIN
-    DELETE FROM public.user_progress WHERE user_id = p_user_id;
-    DELETE FROM public.ai_usage WHERE identifier = ('user:' || p_user_id::TEXT);
-    RETURN jsonb_build_object('success', TRUE);
-END;
-$$;
-
--- 7. Strict Service-Role Only Permissions
+-- 6. Strict Service-Role Only Permissions
 ALTER TABLE public.user_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_usage ENABLE ROW LEVEL SECURITY;
 
@@ -237,14 +227,13 @@ REVOKE ALL ON public.user_progress FROM anon, authenticated, public;
 REVOKE ALL ON public.ai_usage FROM anon, authenticated, public;
 REVOKE ALL ON FUNCTION public.record_and_check_ai_quota FROM anon, authenticated, public;
 REVOKE ALL ON FUNCTION public.save_user_progress FROM anon, authenticated, public;
-REVOKE ALL ON FUNCTION public.delete_user_data FROM anon, authenticated, public;
+REVOKE ALL ON FUNCTION public.handle_updated_at FROM anon, authenticated, public;
 
 -- Grant access exclusively to service_role (used by serverless Vercel backend)
 GRANT ALL ON public.user_progress TO service_role;
 GRANT ALL ON public.ai_usage TO service_role;
 GRANT EXECUTE ON FUNCTION public.record_and_check_ai_quota TO service_role;
 GRANT EXECUTE ON FUNCTION public.save_user_progress TO service_role;
-GRANT EXECUTE ON FUNCTION public.delete_user_data TO service_role;
 
 -- Drop legacy leaderboard view if exists
 DROP VIEW IF EXISTS public.leaderboard;

@@ -439,7 +439,7 @@ export default function ProfilePage() {
                 <Target className="w-5 h-5 text-primary" />
                 <div>
                   <div className="text-sm font-bold text-on-surface">Target Curriculum Level</div>
-                  <div className="text-xs text-on-surface-variant">Switch between official HSK 1 and 2 standards</div>
+                  <div className="text-xs text-on-surface-variant">Switch between HSK 3.0-aligned level 1 and 2 content</div>
                 </div>
               </div>
               <div className="flex gap-1 bg-surface-container p-1 rounded-xl border border-border">

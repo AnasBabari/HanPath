@@ -23,8 +23,21 @@ function getSecret(): string {
   return secret || DEFAULT_SECRET;
 }
 
-function getHmacSecret(): string {
-  return process.env.GUEST_HMAC_SECRET || getSecret();
+function getHmacSecret(): Buffer {
+  const override = process.env.GUEST_HMAC_SECRET;
+  const isProd =
+    process.env.NODE_ENV === 'production' ||
+    process.env.VERCEL_ENV === 'production';
+
+  if (override && isProd && override.length < 32) {
+    throw new Error('GUEST_HMAC_SECRET must be at least 32 characters in production.');
+  }
+
+  const rootSecret = override || getSecret();
+  return crypto
+    .createHmac('sha256', rootSecret)
+    .update('hanpath:guest-network-fingerprint:v1')
+    .digest();
 }
 
 /**
@@ -69,12 +82,19 @@ export function verifyGuestId(signedValue: string): string | null {
 export function generateSecondaryAbuseFingerprint(
   forwardedFor?: string | null,
   userAgent?: string | null
-): string {
+): string | null {
   const rawIp = (forwardedFor?.split(',')[0] || '').trim();
+  if (!rawIp) return null;
+
   // Mask last octet of IPv4 or last segments of IPv6 to create a privacy-safe subnet representation
-  const subnet = rawIp.includes('.')
-    ? rawIp.split('.').slice(0, 3).join('.') + '.0'
-    : rawIp.split(':').slice(0, 4).join(':') + '::';
+  const ipv4Parts = rawIp.split('.');
+  const subnet = ipv4Parts.length === 4 && ipv4Parts.every(part => /^\d{1,3}$/.test(part))
+    ? `${ipv4Parts.slice(0, 3).join('.')}.0`
+    : rawIp.includes(':')
+      ? `${rawIp.split(':').slice(0, 4).join(':')}::`
+      : null;
+  if (!subnet) return null;
+
   const ua = (userAgent || '').slice(0, 200);
 
   return crypto

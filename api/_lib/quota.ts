@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from './supabaseAdmin.js';
 // Quota Constants
 export const QUOTA_LIMITS = {
   guest: { daily: 5, minute: 5 },
+  guestNetwork: { daily: 25, minute: 10 },
   user: { daily: 50, minute: 10 },
 } as const;
 
@@ -98,7 +99,8 @@ export class QuotaStoreUnavailableError extends Error {
  */
 export async function checkAndRecordQuota(
   identifier: string,
-  isGuest: boolean
+  isGuest: boolean,
+  secondaryFingerprint?: string
 ): Promise<QuotaResult> {
   const limits = isGuest ? QUOTA_LIMITS.guest : QUOTA_LIMITS.user;
   const isProd =
@@ -107,12 +109,16 @@ export async function checkAndRecordQuota(
 
   const supabase = getSupabaseAdmin();
 
-  if (supabase) {
+  async function recordWithSupabase(
+    quotaIdentifier: string,
+    maxDaily: number,
+    maxMinute: number
+  ): Promise<QuotaResult | null> {
     try {
-      const { data, error } = await supabase.rpc('record_and_check_ai_quota', {
-        p_identifier: identifier,
-        p_max_daily: limits.daily,
-        p_max_minute: limits.minute,
+      const { data, error } = await supabase!.rpc('record_and_check_ai_quota', {
+        p_identifier: quotaIdentifier,
+        p_max_daily: maxDaily,
+        p_max_minute: maxMinute,
       });
 
       if (!error && data && typeof data === 'object') {
@@ -130,7 +136,7 @@ export async function checkAndRecordQuota(
 
         return {
           allowed: Boolean(result.allowed),
-          limit: limits.daily,
+          limit: maxDaily,
           remaining: Math.max(0, Number(result.remaining_daily ?? 0)),
           resetAt: result.reset_at || tomorrow.toISOString(),
           retryAfterSeconds: result.retry_after_seconds ? Number(result.retry_after_seconds) : undefined,
@@ -149,11 +155,52 @@ export async function checkAndRecordQuota(
           `Quota store failed in production: ${err instanceof Error ? err.message : 'Database error'}`
         );
       }
-      // In dev/test, fall through to memory bucket
+      return null;
     }
+
+    return null;
+  }
+
+  if (supabase) {
+    const primary = await recordWithSupabase(identifier, limits.daily, limits.minute);
+    if (primary && !primary.allowed) return primary;
+
+    if (isGuest && secondaryFingerprint) {
+      const networkLimits = QUOTA_LIMITS.guestNetwork;
+      const secondary = await recordWithSupabase(
+        `network:${secondaryFingerprint}`,
+        networkLimits.daily,
+        networkLimits.minute
+      );
+      if (secondary && !secondary.allowed) {
+        return {
+          ...secondary,
+          limit: limits.daily,
+          remaining: primary?.remaining ?? 0,
+        };
+      }
+    }
+
+    if (primary) return primary;
   } else if (isProd) {
     throw new QuotaStoreUnavailableError('Supabase admin client unavailable in production');
   }
 
-  return checkMemoryQuota(identifier, limits.daily, limits.minute);
+  const primary = checkMemoryQuota(identifier, limits.daily, limits.minute);
+  if (!primary.allowed || !isGuest || !secondaryFingerprint) return primary;
+
+  const networkLimits = QUOTA_LIMITS.guestNetwork;
+  const secondary = checkMemoryQuota(
+    `network:${secondaryFingerprint}`,
+    networkLimits.daily,
+    networkLimits.minute
+  );
+  if (!secondary.allowed) {
+    return {
+      ...secondary,
+      limit: limits.daily,
+      remaining: primary.remaining,
+    };
+  }
+  return primary;
 }

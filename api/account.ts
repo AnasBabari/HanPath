@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolveIdentity } from './_lib/auth.js';
 import { getSupabaseAdmin } from './_lib/supabaseAdmin.js';
+import { isAllowedOrigin } from './_lib/origin.js';
+import { isJsonContentType } from './_lib/contentType.js';
 
 const MAX_BODY_BYTES = 32 * 1024; // 32 KB
 
@@ -30,11 +32,6 @@ function readBody(req: IncomingMessage): Promise<string> {
   });
 }
 
-function isJsonContentType(contentType?: string | null): boolean {
-  if (!contentType) return false;
-  return contentType.toLowerCase().includes('application/json');
-}
-
 export default async function handler(
   req: IncomingMessage,
   res: ServerResponse
@@ -49,11 +46,23 @@ export default async function handler(
     return;
   }
 
+  if (!isAllowedOrigin(typeof req.headers.origin === 'string' ? req.headers.origin : null)) {
+    res.statusCode = 403;
+    res.end(JSON.stringify({ error: 'Forbidden: Invalid request origin' }));
+    return;
+  }
+
   const authHeader = req.headers['authorization'];
   const identity = await resolveIdentity(
     typeof authHeader === 'string' ? authHeader : null,
     null
   );
+
+  if (identity.type === 'unavailable') {
+    res.statusCode = 503;
+    res.end(JSON.stringify({ error: 'Authentication service is temporarily unavailable' }));
+    return;
+  }
 
   if (identity.type !== 'user' || !identity.userId) {
     res.statusCode = 401;
@@ -112,32 +121,17 @@ export default async function handler(
       return;
     }
 
-    // 1. Transactional application data deletion via SQL function
-    const { error: rpcErr } = await supabase.rpc('delete_user_data', {
-      p_user_id: identity.userId,
-    });
-
-    if (rpcErr) {
-      const reqId = crypto.randomUUID();
-      console.error(`[AccountDeletion] Failed delete_user_data RPC (reqId: ${reqId}):`, rpcErr);
-      res.statusCode = 500;
-      res.end(
-        JSON.stringify({
-          error: 'Failed to purge user application data',
-          requestId: reqId,
-        })
-      );
-      return;
-    }
-
-    // 2. Delete Supabase Auth record
+    // The database migration attaches application rows to auth.users with
+    // ON DELETE CASCADE. A hard Auth deletion therefore removes the account,
+    // progress, and authenticated quota rows in one database transaction.
     const { error: authDelErr } = await supabase.auth.admin.deleteUser(
-      identity.userId
+      identity.userId,
+      false
     );
 
     if (authDelErr) {
       const reqId = crypto.randomUUID();
-      console.error(`[AccountDeletion] Auth Admin deletion failed after data purge (reqId: ${reqId}):`, authDelErr);
+      console.error(`[AccountDeletion] Auth Admin deletion failed (reqId: ${reqId}):`, authDelErr);
       res.statusCode = 500;
       res.end(
         JSON.stringify({

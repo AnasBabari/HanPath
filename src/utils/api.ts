@@ -12,6 +12,9 @@ export interface HSKSentence {
 
 export interface CurriculumMetadata {
   standard: string;
+  datasetStatus: string;
+  upstreamRelease: string;
+  provenanceNotice: string;
   syllabusReference: string;
   normalizedDatasetSource: string;
   pinnedCommit: string;
@@ -27,7 +30,10 @@ export interface CurriculumMetadata {
 }
 
 const STATIC_METADATA: CurriculumMetadata = {
-  standard: 'HSK-3.0-2021',
+  standard: 'HSK-3.0-aligned-v1.4',
+  datasetStatus: 'community-curated',
+  upstreamRelease: 'v1.4',
+  provenanceNotice: 'Community-curated HSK 3.0-aligned vocabulary derived from the pinned upstream release with HanPath pedagogical overrides; not an official CTI/CLEC publication.',
   syllabusReference: 'https://www.chinesetest.cn/HSK',
   normalizedDatasetSource: 'https://github.com/drkameleon/complete-hsk-vocabulary/tree/7ac65bf1a6387d35f1ade478906172a19311c7f9',
   pinnedCommit: '7ac65bf1a6387d35f1ade478906172a19311c7f9',
@@ -35,11 +41,11 @@ const STATIC_METADATA: CurriculumMetadata = {
   retrievalDate: '2026-08-22',
   schemaVersion: 1,
   counts: {
-    hsk1: 500,
+    hsk1: 506,
     hsk2: 750,
-    cumulative: 1250,
+    cumulative: 1256,
   },
-  sha256: 'd849d1b2fa9e5afb6893db185507e68d205177e90a7aae66ce689d4f6c399acc',
+  sha256: 'bb994a16036a6ac0f23161227e4ade31416248197facd21f9d08471373d240ec',
 };
 
 export function getCurriculumMetadata(): CurriculumMetadata {

@@ -12,9 +12,13 @@
     "typecheck": "tsc -b",
     "test": "vitest",
     "test:unit": "vitest run",
+    "test:api": "vitest run api",
+    "test:a11y": "vitest run src/test/a11y.test.tsx",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "check": "npm run lint && npm run typecheck && npm run test:unit && npm run build",
+    "build:stories": "node scripts/normalize_story_support.mjs",
+    "check:stories": "node scripts/normalize_story_support.mjs --check",
+    "check": "npm run check:stories && npm run lint && npm run typecheck && npm run test:unit && npm run build",
     "check:bundle": "node scripts/check_bundle.mjs"
   },
   "engines": {

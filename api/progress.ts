@@ -2,6 +2,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolveIdentity } from './_lib/auth.js';
 import { getSupabaseAdmin } from './_lib/supabaseAdmin.js';
 import { validateProgressSnapshotV4 } from '../src/utils/progressSchema.js';
+import { isAllowedOrigin } from './_lib/origin.js';
+import { isJsonContentType } from './_lib/contentType.js';
 
 const MAX_BODY_BYTES = 512 * 1024; // 512 KB
 
@@ -30,11 +32,6 @@ function readBody(req: IncomingMessage): Promise<string> {
   });
 }
 
-function isJsonContentType(contentType?: string | null): boolean {
-  if (!contentType) return false;
-  return contentType.toLowerCase().includes('application/json');
-}
-
 export default async function handler(
   req: IncomingMessage,
   res: ServerResponse
@@ -47,6 +44,12 @@ export default async function handler(
     typeof authHeader === 'string' ? authHeader : null,
     null
   );
+
+  if (identity.type === 'unavailable') {
+    res.statusCode = 503;
+    res.end(JSON.stringify({ error: 'Authentication service is temporarily unavailable' }));
+    return;
+  }
 
   if (identity.type !== 'user' || !identity.userId) {
     res.statusCode = 401;
@@ -112,6 +115,12 @@ export default async function handler(
 
   // PUT /api/progress
   if (req.method === 'PUT') {
+    if (!isAllowedOrigin(typeof req.headers.origin === 'string' ? req.headers.origin : null)) {
+      res.statusCode = 403;
+      res.end(JSON.stringify({ error: 'Forbidden: Invalid request origin' }));
+      return;
+    }
+
     if (!isJsonContentType(req.headers['content-type'])) {
       res.statusCode = 415;
       res.end(JSON.stringify({ error: 'Unsupported Media Type: Content-Type must be application/json' }));

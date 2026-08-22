@@ -1,5 +1,8 @@
 {
-  "standard": "HSK-3.0-2021",
+  "standard": "HSK-3.0-aligned-v1.4",
+  "datasetStatus": "community-curated",
+  "upstreamRelease": "v1.4",
+  "provenanceNotice": "Community-curated HSK 3.0-aligned vocabulary derived from the pinned upstream release with HanPath pedagogical overrides; not an official CTI/CLEC publication.",
   "syllabusReference": "https://www.chinesetest.cn/HSK",
   "normalizedDatasetSource": "https://github.com/drkameleon/complete-hsk-vocabulary/tree/7ac65bf1a6387d35f1ade478906172a19311c7f9",
   "pinnedCommit": "7ac65bf1a6387d35f1ade478906172a19311c7f9",
@@ -7,9 +10,9 @@
   "retrievalDate": "2026-08-22",
   "schemaVersion": 1,
   "counts": {
-    "hsk1": 500,
+    "hsk1": 506,
     "hsk2": 750,
-    "cumulative": 1250
+    "cumulative": 1256
   },
   "hsk1": [
     {
@@ -946,13 +949,9 @@
       "hanzi": "第",
       "pinyin": "dì",
       "meanings": [
-        "(prefix indicating ordinal number, as in 六 \"sixth\")",
-        "(literary) grades in which successful candidates in the imperial examinations were placed",
-        "(old) residence of a high official",
-        "(literary) but; however",
-        "(literary) only; just"
+        "prefix for ordinal numbers (first, second, etc.)"
       ],
-      "meaning": "but",
+      "meaning": "ordinal number prefix",
       "hskLevel": 1
     },
     {
@@ -973,26 +972,12 @@
       "hanzi": "点",
       "pinyin": "diǎn",
       "meanings": [
-        "point",
-        "dot",
-        "drop",
-        "speck",
+        "point; dot",
         "o'clock",
-        "point (in space or time)",
-        "to draw a dot",
-        "to check on a list",
-        "to choose",
-        "to order (food in a restaurant)",
-        "to touch briefly",
-        "to hint",
-        "to light",
-        "to ignite",
-        "to pour a liquid drop by drop",
-        "(old) one fifth of a two-hour watch 更",
-        "dot stroke in Chinese characters",
-        "classifier for items"
+        "a little; a bit",
+        "to order (food)"
       ],
-      "meaning": "point",
+      "meaning": "point; o'clock; a little",
       "hskLevel": 1
     },
     {
@@ -1112,16 +1097,10 @@
       "hanzi": "动",
       "pinyin": "dòng",
       "meanings": [
-        "(of sth) to move",
-        "to set in movement",
-        "to displace",
-        "to touch",
-        "to make use of",
-        "to stir (emotions)",
-        "to alter",
-        "abbr. for 动词, verb"
+        "to move; to set in motion",
+        "to act; to use"
       ],
-      "meaning": "to move",
+      "meaning": "to move; to act",
       "hskLevel": 1
     },
     {
@@ -1411,12 +1390,12 @@
     {
       "id": "hsk1-113",
       "hanzi": "干",
-      "pinyin": "gān",
+      "pinyin": "gàn",
       "meanings": [
-        "dry",
-        "clean"
+        "to do; to work",
+        "capable; effective"
       ],
-      "meaning": "dry; clean",
+      "meaning": "to do; to work",
       "hskLevel": 1
     },
     {
@@ -1783,14 +1762,11 @@
     {
       "id": "hsk1-144",
       "hanzi": "好玩儿",
-      "pinyin": "hǎo wán r",
+      "pinyin": "hǎowánr",
       "meanings": [
-        "erhua variant of 好玩",
-        "amusing",
-        "fun",
-        "interesting"
+        "fun; amusing; interesting"
       ],
-      "meaning": "erhua variant of 好玩",
+      "meaning": "fun; interesting",
       "hskLevel": 1
     },
     {
@@ -1807,12 +1783,11 @@
     {
       "id": "hsk1-146",
       "hanzi": "喝",
-      "pinyin": "hē",
+      "pinyin": "hè",
       "meanings": [
-        "to drink",
-        "variant of 嗬"
+        "to shout"
       ],
-      "meaning": "to drink",
+      "meaning": "to shout",
       "hskLevel": 1
     },
     {
@@ -2121,10 +2096,9 @@
     {
       "id": "hsk1-172",
       "hanzi": "家人",
-      "pinyin": "jiā rén",
+      "pinyin": "jiārén",
       "meanings": [
-        "family member",
-        "(old) servant"
+        "family member; family"
       ],
       "meaning": "family member",
       "hskLevel": 1
@@ -2347,17 +2321,11 @@
       "hanzi": "开",
       "pinyin": "kāi",
       "meanings": [
-        "to open (transitive or intransitive)",
-        "(of ships, vehicles, troops etc) to start",
-        "to turn on; to put in operation; to operate; to run",
-        "to boil",
-        "to write out (a prescription, check, invoice etc)",
-        "(directional complement) away; off",
-        "carat (gold)",
-        "abbr. for Kelvin, 开尔文",
-        "abbr. for 开本, book format"
+        "to open",
+        "to turn on",
+        "to start; to operate"
       ],
-      "meaning": "to open",
+      "meaning": "to open; to turn on; to start",
       "hskLevel": 1
     },
     {
@@ -2443,14 +2411,10 @@
       "hanzi": "考",
       "pinyin": "kǎo",
       "meanings": [
-        "to beat",
-        "to hit",
-        "variant of 考",
-        "to inspect",
-        "to test",
+        "to test; to examine",
         "to take an exam"
       ],
-      "meaning": "to beat",
+      "meaning": "to test; to take an exam",
       "hskLevel": 1
     },
     {
@@ -2590,19 +2554,11 @@
       "hanzi": "老",
       "pinyin": "lǎo",
       "meanings": [
-        "prefix used before the surname of a person or a numeral indicating the order of birth of the children in a family or to indicate affection or familiarity",
-        "old (of people)",
-        "venerable (person)",
+        "old; aged",
         "experienced",
-        "of long standing",
-        "always",
-        "all the time",
-        "of the past",
-        "very",
-        "outdated",
-        "(of meat etc) tough"
+        "always"
       ],
-      "meaning": "old",
+      "meaning": "old; experienced",
       "hskLevel": 1
     },
     {
@@ -2688,13 +2644,10 @@
       "hanzi": "两",
       "pinyin": "liǎng",
       "meanings": [
-        "two",
-        "both",
-        "some",
-        "a few",
-        "tael, unit of weight equal to 50 grams (modern) or 1⁄16 of a catty 斤 (old)"
+        "two; both",
+        "a few; some"
       ],
-      "meaning": "two",
+      "meaning": "two; both",
       "hskLevel": 1
     },
     {
@@ -3048,12 +3001,11 @@
     {
       "id": "hsk1-248",
       "hanzi": "面条儿",
-      "pinyin": "miàn tiáo r",
+      "pinyin": "miàntiáor",
       "meanings": [
-        "erhua variant of 面条",
         "noodles"
       ],
-      "meaning": "erhua variant of 面条",
+      "meaning": "noodles",
       "hskLevel": 1
     },
     {
@@ -3252,12 +3204,11 @@
     {
       "id": "hsk1-266",
       "hanzi": "男孩儿",
-      "pinyin": "nán hái r",
+      "pinyin": "nánháir",
       "meanings": [
-        "erhua variant of 男孩",
         "boy"
       ],
-      "meaning": "erhua variant of 男孩",
+      "meaning": "boy",
       "hskLevel": 1
     },
     {
@@ -3433,12 +3384,11 @@
     {
       "id": "hsk1-282",
       "hanzi": "女孩儿",
-      "pinyin": "nǚ hái r",
+      "pinyin": "nǚháir",
       "meanings": [
-        "erhua variant of 女孩",
         "girl"
       ],
-      "meaning": "erhua variant of 女孩",
+      "meaning": "girl",
       "hskLevel": 1
     },
     {
@@ -3730,22 +3680,10 @@
       "hanzi": "去",
       "pinyin": "qù",
       "meanings": [
-        "to go",
-        "to go to (a place)",
-        "(of a time etc) last",
-        "just passed",
-        "to send",
-        "to remove",
-        "to get rid of",
-        "to reduce",
-        "to be apart from in space or time",
-        "to die (euphemism)",
-        "to play (a part)",
-        "(when used either before or after a verb) to go in order to do sth",
-        "(after a verb of motion indicates movement away from the speaker)",
-        "(used after certain verbs to indicate detachment or separation)"
+        "to go; to go to",
+        "to leave; to remove"
       ],
-      "meaning": "to go",
+      "meaning": "to go; to leave",
       "hskLevel": 1
     },
     {
@@ -4931,12 +4869,11 @@
     {
       "id": "hsk1-406",
       "hanzi": "小孩儿",
-      "pinyin": "xiǎo hái r",
+      "pinyin": "xiǎoháir",
       "meanings": [
-        "erhua variant of 小孩",
-        "child"
+        "child; kid"
       ],
-      "meaning": "erhua variant of 小孩",
+      "meaning": "child",
       "hskLevel": 1
     },
     {
@@ -5081,18 +5018,13 @@
     {
       "id": "hsk1-420",
       "hanzi": "行",
-      "pinyin": "háng",
+      "pinyin": "xíng",
       "meanings": [
-        "row",
-        "line",
-        "commercial firm",
-        "line of business",
-        "profession",
-        "to rank (first, second etc) among one's siblings (by age)",
-        "(in data tables) row",
-        "(Tw) column"
+        "okay; all right",
+        "to go; to travel",
+        "capable"
       ],
-      "meaning": "row",
+      "meaning": "okay; to go; capable",
       "hskLevel": 1
     },
     {
@@ -5255,14 +5187,11 @@
     {
       "id": "hsk1-434",
       "hanzi": "一点儿",
-      "pinyin": "yī diǎn r",
+      "pinyin": "yīdiǎnr",
       "meanings": [
-        "erhua variant of 一点",
-        "a bit; a little bit",
-        "(used in negative expressions) (not) the least bit",
-        "(after an adjective, used to form the comparative) a bit more"
+        "a little; a bit"
       ],
-      "meaning": "erhua variant of 一点",
+      "meaning": "a little; a bit",
       "hskLevel": 1
     },
     {
@@ -5282,13 +5211,12 @@
     {
       "id": "hsk1-436",
       "hanzi": "一块儿",
-      "pinyin": "yī kuài r",
+      "pinyin": "yīkuàir",
       "meanings": [
-        "erhua variant of 一块",
-        "a piece; a chunk",
-        "(coll.) one yuan; one dollar"
+        "together",
+        "in the same place"
       ],
-      "meaning": "erhua variant of 一块",
+      "meaning": "together",
       "hskLevel": 1
     },
     {
@@ -5307,13 +5235,12 @@
     {
       "id": "hsk1-438",
       "hanzi": "一下儿",
-      "pinyin": "yī xià r",
+      "pinyin": "yīxiàr",
       "meanings": [
-        "erhua variant of 一下",
-        "one time; once",
-        "all of sudden"
+        "once; one time",
+        "briefly; for a moment"
       ],
-      "meaning": "erhua variant of 一下",
+      "meaning": "once; briefly",
       "hskLevel": 1
     },
     {
@@ -5482,12 +5409,9 @@
       "hanzi": "右",
       "pinyin": "yòu",
       "meanings": [
-        "(bound form) right; right-hand side",
-        "(bound form) (politics) right of center",
-        "(bound form) (old) west",
-        "(literary) the right side as the side of precedence"
+        "right; right-hand side"
       ],
-      "meaning": "right",
+      "meaning": "right; right-hand side",
       "hskLevel": 1
     },
     {
@@ -5590,11 +5514,9 @@
     {
       "id": "hsk1-462",
       "hanzi": "在家",
-      "pinyin": "zài jiā",
+      "pinyin": "zàijiā",
       "meanings": [
-        "to be at home",
-        "(at a workplace) to be in (as opposed to being away on official business 差)",
-        "(Buddhism etc) to remain a layman (as opposed to becoming a monk or a nun 家)"
+        "to be at home"
       ],
       "meaning": "to be at home",
       "hskLevel": 1
@@ -5742,14 +5664,11 @@
     {
       "id": "hsk1-475",
       "hanzi": "着",
-      "pinyin": "zhāo",
+      "pinyin": "zhe",
       "meanings": [
-        "(chess) move",
-        "trick",
-        "all right!",
-        "(dialect) to add"
+        "particle indicating an ongoing action or state"
       ],
-      "meaning": "move",
+      "meaning": "aspect particle indicating a continuing state",
       "hskLevel": 1
     },
     {
@@ -6070,6 +5989,74 @@
         "ultimate"
       ],
       "meaning": "final",
+      "hskLevel": 1
+    },
+    {
+      "id": "hsk1-501",
+      "hanzi": "昨天",
+      "pinyin": "zuó tiān",
+      "meanings": [
+        "yesterday"
+      ],
+      "meaning": "yesterday",
+      "hskLevel": 1
+    },
+    {
+      "id": "hsk1-502",
+      "hanzi": "左",
+      "pinyin": "zuǒ",
+      "meanings": [
+        "left; left side"
+      ],
+      "meaning": "left",
+      "hskLevel": 1
+    },
+    {
+      "id": "hsk1-503",
+      "hanzi": "左边",
+      "pinyin": "zuǒ bian",
+      "meanings": [
+        "left",
+        "the left side",
+        "to the left of"
+      ],
+      "meaning": "left",
+      "hskLevel": 1
+    },
+    {
+      "id": "hsk1-504",
+      "hanzi": "坐",
+      "pinyin": "zuò",
+      "meanings": [
+        "to sit",
+        "to ride/travel by (bus, train, plane)"
+      ],
+      "meaning": "to sit; to ride",
+      "hskLevel": 1
+    },
+    {
+      "id": "hsk1-505",
+      "hanzi": "坐下",
+      "pinyin": "zuò xia",
+      "meanings": [
+        "to sit down"
+      ],
+      "meaning": "to sit down",
+      "hskLevel": 1
+    },
+    {
+      "id": "hsk1-506",
+      "hanzi": "做",
+      "pinyin": "zuò",
+      "meanings": [
+        "to make; to produce",
+        "to write; to compose",
+        "to do; to engage in; to hold (a party etc)",
+        "(of a person) to be (an intermediary, a good student etc); to become (husband and wife, friends etc)",
+        "(of a thing) to serve as; to be used for",
+        "to assume (an air or manner)"
+      ],
+      "meaning": "to make",
       "hskLevel": 1
     }
   ],
@@ -6786,9 +6773,9 @@
     {
       "id": "hsk2-59",
       "hanzi": "超市",
-      "pinyin": "chāo shì",
+      "pinyin": "chāoshì",
       "meanings": [
-        "supermarket (abbr. for 超级市场)"
+        "supermarket"
       ],
       "meaning": "supermarket",
       "hskLevel": 2
@@ -7385,22 +7372,11 @@
       "hanzi": "道",
       "pinyin": "dào",
       "meanings": [
-        "road",
-        "path",
-        "principle",
-        "truth",
-        "morality",
-        "reason",
-        "skill",
-        "method",
-        "Dao (of Daoism)",
-        "to say",
-        "to speak",
-        "to talk",
-        "classifier for long thin things (rivers, cracks etc), barriers (walls, doors etc), questions (in an exam etc), commands, courses in a meal, steps in a process",
-        "(old) circuit (administrative division)"
+        "road; path; way",
+        "method; principle",
+        "classifier for questions or courses"
       ],
-      "meaning": "road",
+      "meaning": "road; way; method",
       "hskLevel": 2
     },
     {
@@ -7474,22 +7450,11 @@
     {
       "id": "hsk2-115",
       "hanzi": "得",
-      "pinyin": "dé",
+      "pinyin": "de",
       "meanings": [
-        "to obtain",
-        "to get",
-        "to gain",
-        "to catch (a disease)",
-        "proper",
-        "suitable",
-        "proud",
-        "contented",
-        "to allow",
-        "to permit",
-        "ready",
-        "finished"
+        "particle linking a verb with a complement"
       ],
-      "meaning": "to obtain",
+      "meaning": "structural particle after a verb",
       "hskLevel": 2
     },
     {
@@ -7889,16 +7854,12 @@
     {
       "id": "hsk2-149",
       "hanzi": "方便",
-      "pinyin": "fāng biàn",
+      "pinyin": "fāngbiàn",
       "meanings": [
-        "convenient",
-        "suitable",
-        "to facilitate",
-        "to make things easy",
-        "having money to spare",
-        "(euphemism) to relieve oneself"
+        "convenient; suitable",
+        "to make things easier"
       ],
-      "meaning": "convenient",
+      "meaning": "convenient; suitable",
       "hskLevel": 2
     },
     {
@@ -8012,10 +7973,11 @@
       "hanzi": "份",
       "pinyin": "fèn",
       "meanings": [
-        "classifier for gifts, newspaper, magazine, papers, reports, contracts etc",
-        "variant of 分"
+        "portion; share",
+        "copy",
+        "classifier for documents, meals, and jobs"
       ],
-      "meaning": "variant of 分",
+      "meaning": "portion; copy; classifier",
       "hskLevel": 2
     },
     {
@@ -8158,13 +8120,11 @@
     {
       "id": "hsk2-171",
       "hanzi": "干活儿",
-      "pinyin": "gàn huó r",
+      "pinyin": "gànhuór",
       "meanings": [
-        "erhua variant of 干活",
-        "(coll.) to work",
-        "(coll.) to be employed"
+        "to work; to do a job"
       ],
-      "meaning": "erhua variant of 干活",
+      "meaning": "to work",
       "hskLevel": 2
     },
     {
@@ -8220,12 +8180,11 @@
     {
       "id": "hsk2-176",
       "hanzi": "高中",
-      "pinyin": "gāo zhōng",
+      "pinyin": "gāo zhòng",
       "meanings": [
-        "senior high school",
-        "abbr. for 高级中学"
+        "to pass brilliantly (used in congratulatory fashion)"
       ],
-      "meaning": "senior high school",
+      "meaning": "to pass brilliantly",
       "hskLevel": 2
     },
     {
@@ -8729,12 +8688,9 @@
       "pinyin": "huà",
       "meanings": [
         "to draw; to paint",
-        "picture; painting",
-        "to draw (a line) (variant of 划)",
-        "stroke of a Chinese character (variant of 划)",
-        "(calligraphy) horizontal stroke (variant of 划)"
+        "picture; painting"
       ],
-      "meaning": "to draw",
+      "meaning": "to draw; picture",
       "hskLevel": 2
     },
     {
@@ -9128,15 +9084,11 @@
       "hanzi": "交",
       "pinyin": "jiāo",
       "meanings": [
-        "to hand over",
-        "to deliver",
-        "to pay (money)",
-        "to turn over",
-        "to make friends",
-        "to intersect (lines)",
-        "variant of 跤"
+        "to hand over; to deliver",
+        "to pay",
+        "to make friends"
       ],
-      "meaning": "to hand over",
+      "meaning": "to hand over; to pay; to make friends",
       "hskLevel": 2
     },
     {
@@ -9543,15 +9495,11 @@
     {
       "id": "hsk2-287",
       "hanzi": "酒店",
-      "pinyin": "jiǔ diàn",
+      "pinyin": "jiǔdiàn",
       "meanings": [
-        "wine shop",
-        "pub (public house)",
-        "hotel",
-        "restaurant",
-        "(Tw) hostess club"
+        "hotel"
       ],
-      "meaning": "wine shop",
+      "meaning": "hotel",
       "hskLevel": 2
     },
     {
@@ -9625,15 +9573,10 @@
       "hanzi": "卡",
       "pinyin": "kǎ",
       "meanings": [
-        "to stop",
-        "to block",
-        "(computing) (coll.) slow",
-        "(loanword) card",
-        "truck (from \"car\")",
-        "calorie (abbr. for 里)",
-        "cassette"
+        "card",
+        "to block; to stop"
       ],
-      "meaning": "to stop",
+      "meaning": "card; to block",
       "hskLevel": 2
     },
     {
@@ -9702,15 +9645,11 @@
       "hanzi": "靠",
       "pinyin": "kào",
       "meanings": [
-        "to lean against or on",
-        "to stand by the side of",
-        "to come near to",
-        "to depend on",
-        "to trust",
-        "to fuck (vulgar)",
-        "traditional military costume drama where the performers wear armor (old)"
+        "to lean against",
+        "to depend on; to rely on",
+        "to come near"
       ],
-      "meaning": "to lean against or on",
+      "meaning": "to lean on; to depend on",
       "hskLevel": 2
     },
     {
@@ -9916,13 +9855,12 @@
     {
       "id": "hsk2-316",
       "hanzi": "快点儿",
-      "pinyin": "kuài diǎn r",
+      "pinyin": "kuàidiǎnr",
       "meanings": [
-        "erhua variant of 快点",
-        "to do smh more quickly",
-        "Hurry up!"
+        "hurry up",
+        "more quickly"
       ],
-      "meaning": "erhua variant of 快点",
+      "meaning": "hurry up; more quickly",
       "hskLevel": 2
     },
     {
@@ -10648,13 +10586,10 @@
     {
       "id": "hsk2-379",
       "hanzi": "难听",
-      "pinyin": "nán tīng",
+      "pinyin": "nántīng",
       "meanings": [
         "unpleasant to hear",
-        "coarse",
-        "vulgar",
-        "offensive",
-        "shameful"
+        "offensive; harsh-sounding"
       ],
       "meaning": "unpleasant to hear",
       "hskLevel": 2
@@ -10841,12 +10776,10 @@
       "hanzi": "篇",
       "pinyin": "piān",
       "meanings": [
-        "sheet",
-        "piece of writing",
-        "bound set of bamboo slips used for record keeping (old)",
-        "classifier for written items: chapter, article"
+        "article; piece of writing",
+        "classifier for articles or chapters"
       ],
-      "meaning": "sheet",
+      "meaning": "article; piece of writing",
       "hskLevel": 2
     },
     {
@@ -11007,12 +10940,11 @@
     {
       "id": "hsk2-409",
       "hanzi": "骑",
-      "pinyin": "jì",
+      "pinyin": "qí",
       "meanings": [
-        "(Tw) saddle horse",
-        "mounted soldier"
+        "to ride (a bicycle, horse, etc.)"
       ],
-      "meaning": "saddle horse",
+      "meaning": "to ride",
       "hskLevel": 2
     },
     {
@@ -11620,13 +11552,11 @@
       "hanzi": "省",
       "pinyin": "shěng",
       "meanings": [
-        "to save; to economize; to be frugal",
-        "to omit; to delete; to leave out",
-        "province",
-        "provincial capital",
-        "a ministry (of the Japanese government)"
+        "to save; to economize",
+        "to omit",
+        "province"
       ],
-      "meaning": "to save",
+      "meaning": "to save; to economize; province",
       "hskLevel": 2
     },
     {
@@ -12048,10 +11978,9 @@
     {
       "id": "hsk2-497",
       "hanzi": "太阳",
-      "pinyin": "tài yang",
+      "pinyin": "tàiyáng",
       "meanings": [
-        "sun",
-        "abbr. for 太阳穴"
+        "sun"
       ],
       "meaning": "sun",
       "hskLevel": 2
@@ -12511,10 +12440,9 @@
       "hanzi": "腿",
       "pinyin": "tuǐ",
       "meanings": [
-        "hip bone",
-        "old variant of 腿"
+        "leg"
       ],
-      "meaning": "hip bone",
+      "meaning": "leg",
       "hskLevel": 2
     },
     {
@@ -12692,11 +12620,10 @@
       "hanzi": "为",
       "pinyin": "wèi",
       "meanings": [
-        "because of",
-        "for",
-        "to"
+        "for; for the sake of",
+        "on behalf of"
       ],
-      "meaning": "because of",
+      "meaning": "for; on behalf of",
       "hskLevel": 2
     },
     {
@@ -12938,11 +12865,9 @@
     {
       "id": "hsk2-570",
       "hanzi": "相机",
-      "pinyin": "xiàng jī",
+      "pinyin": "xiàngjī",
       "meanings": [
-        "camera (abbr. for 照相机)",
-        "at the opportune moment",
-        "as the circumstances allow"
+        "camera"
       ],
       "meaning": "camera",
       "hskLevel": 2
@@ -13285,14 +13210,12 @@
     {
       "id": "hsk2-600",
       "hanzi": "行人",
-      "pinyin": "xíng rén",
+      "pinyin": "xíngrén",
       "meanings": [
         "pedestrian",
-        "traveler on foot",
-        "passer-by",
-        "official responsible for arranging audiences with the emperor"
+        "passer-by"
       ],
-      "meaning": "pedestrian",
+      "meaning": "pedestrian; passer-by",
       "hskLevel": 2
     },
     {
@@ -13456,10 +13379,10 @@
       "hanzi": "药",
       "pinyin": "yào",
       "meanings": [
-        "leaf of the iris",
-        "variant of 药"
+        "medicine; drug",
+        "remedy"
       ],
-      "meaning": "leaf of the iris",
+      "meaning": "medicine; drug",
       "hskLevel": 2
     },
     {
@@ -14135,15 +14058,11 @@
     {
       "id": "hsk2-671",
       "hanzi": "院子",
-      "pinyin": "yuàn zi",
+      "pinyin": "yuànzi",
       "meanings": [
-        "courtyard",
-        "garden",
-        "yard",
-        "patio",
-        "(old) servant"
+        "courtyard; yard; garden"
       ],
-      "meaning": "courtyard",
+      "meaning": "courtyard; yard",
       "hskLevel": 2
     },
     {
@@ -15013,12 +14932,9 @@
       "pinyin": "zuò",
       "meanings": [
         "seat",
-        "base",
-        "stand",
-        "(archaic) suffix used in a respectful form of address, e.g. 师座",
-        "classifier for buildings, mountains and similar immovable objects"
+        "classifier for buildings and mountains"
       ],
-      "meaning": "seat",
+      "meaning": "seat; classifier for buildings",
       "hskLevel": 2
     },
     {
@@ -15068,5 +14984,5 @@
       "hskLevel": 2
     }
   ],
-  "sha256": "d849d1b2fa9e5afb6893db185507e68d205177e90a7aae66ce689d4f6c399acc"
+  "sha256": "bb994a16036a6ac0f23161227e4ade31416248197facd21f9d08471373d240ec"
 }

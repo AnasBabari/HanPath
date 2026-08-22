@@ -74,6 +74,9 @@ export default function ExerciseRunner({
   const { idx, feedback, showXP, shake, explanationText, explanationLoading } = state;
   const correctCountRef = useRef(0);
   const lastWrongAnswerRef = useRef<string | undefined>(undefined);
+  const xpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
 
   const total = lesson.exercises.length;
   const ex = lesson.exercises[idx];
@@ -91,6 +94,15 @@ export default function ExerciseRunner({
   useEffect(() => {
     advanceRef.current = advance;
   });
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (xpTimerRef.current) clearTimeout(xpTimerRef.current);
+      if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -121,8 +133,10 @@ export default function ExerciseRunner({
           },
         }
       );
+      if (!isMountedRef.current) return;
       dispatch({ type: 'SET_EXPLANATION', text: response, loading: false });
     } catch (err: unknown) {
+      if (!isMountedRef.current) return;
       const msg = err instanceof Error ? err.message : 'Could not load explanation.';
       dispatch({
         type: 'SET_EXPLANATION',
@@ -176,7 +190,11 @@ export default function ExerciseRunner({
             if (ex.wordId) onWordResult?.(ex.wordId, true);
             playCorrect();
             dispatch({ type: 'SET_SHOW_XP', showXP: true });
-            setTimeout(() => dispatch({ type: 'SET_SHOW_XP', showXP: false }), 1000);
+            if (xpTimerRef.current) clearTimeout(xpTimerRef.current);
+            xpTimerRef.current = setTimeout(() => {
+              xpTimerRef.current = null;
+              dispatch({ type: 'SET_SHOW_XP', showXP: false });
+            }, 1000);
             const shouldSpeakAnswer =
               ex.type !== 'listening-select' &&
               ex.type !== 'listening-meaning' &&
@@ -188,7 +206,11 @@ export default function ExerciseRunner({
             lastWrongAnswerRef.current = wrongAns;
             if (ex.wordId) onWordResult?.(ex.wordId, false);
             playWrong();
-            setTimeout(() => dispatch({ type: 'SET_SHAKE', shake: false }), 400);
+            if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
+            shakeTimerRef.current = setTimeout(() => {
+              shakeTimerRef.current = null;
+              dispatch({ type: 'SET_SHAKE', shake: false });
+            }, 400);
           }}
         />
       </main>

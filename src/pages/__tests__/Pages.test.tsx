@@ -9,6 +9,7 @@ import LicensesPage from '../LicensesPage';
 import AuthCallbackPage from '../AuthCallbackPage';
 import { useStore } from '../../store/useStore';
 import { buildCurriculum } from '../../utils/curriculum';
+import * as supabaseLib from '../../utils/supabase';
 
 describe('Page Components Rendering & Interactions', () => {
   beforeEach(() => {
@@ -113,6 +114,7 @@ describe('Page Components Rendering & Interactions', () => {
   });
 
   it('renders AuthCallbackPage with loading state', () => {
+    vi.spyOn(supabaseLib, 'getSupabaseClientAsync').mockReturnValue(new Promise(() => {}));
     render(
       <BrowserRouter>
         <AuthCallbackPage />

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import ProfilePage from '../ProfilePage';
 import { useStore, deriveUserStats } from '../../store/useStore';
@@ -70,6 +71,7 @@ describe('ProfilePage Full Interactive Coverage', () => {
   });
 
   it('triggers delete account confirmation text input and submission', async () => {
+    const user = userEvent.setup();
     const deleteAccountMock = vi.fn().mockResolvedValue({ success: true });
     useStore.setState({ deleteAccount: deleteAccountMock });
 
@@ -80,15 +82,16 @@ describe('ProfilePage Full Interactive Coverage', () => {
     );
 
     const deleteBtn = screen.getByText('Delete Account & Data');
-    fireEvent.click(deleteBtn);
+    await user.click(deleteBtn);
 
     const input = screen.getByPlaceholderText('DELETE');
-    fireEvent.change(input, { target: { value: 'DELETE' } });
+    await user.type(input, 'DELETE');
 
     const confirmBtn = screen.getByText('Permanently Delete');
-    fireEvent.click(confirmBtn);
+    await user.click(confirmBtn);
 
     expect(deleteAccountMock).toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('handles progress JSON export trigger', () => {
@@ -107,7 +110,8 @@ describe('ProfilePage Full Interactive Coverage', () => {
     expect(exportProgressJSONMock).toHaveBeenCalled();
   });
 
-  it('handles guest sign-in with Google OAuth', () => {
+  it('handles guest sign-in with Google OAuth', async () => {
+    const user = userEvent.setup();
     useStore.setState({
       authSession: { user: null, token: null },
     });
@@ -122,7 +126,7 @@ describe('ProfilePage Full Interactive Coverage', () => {
     );
 
     const googleBtn = screen.getByText('Continue with Google');
-    fireEvent.click(googleBtn);
+    await user.click(googleBtn);
     expect(signInWithGoogleMock).toHaveBeenCalled();
   });
 });

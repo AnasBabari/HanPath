@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import ProfilePage from '../ProfilePage';
 import { useStore, deriveUserStats } from '../../store/useStore';
@@ -35,6 +36,7 @@ describe('ProfilePage Deep Feature Coverage', () => {
   });
 
   it('handles email OTP submit', async () => {
+    const user = userEvent.setup();
     const requestEmailOtpMock = vi.fn().mockResolvedValue({ success: true });
     useStore.setState({
       requestEmailOtp: requestEmailOtpMock,
@@ -48,12 +50,13 @@ describe('ProfilePage Deep Feature Coverage', () => {
 
     // Type email and submit
     const emailInput = screen.getByLabelText('Email address for sign-in');
-    fireEvent.change(emailInput, { target: { value: 'learner@example.com' } });
+    await user.type(emailInput, 'learner@example.com');
 
     const sendBtn = screen.getByText('Send Verification Code');
-    fireEvent.click(sendBtn);
+    await user.click(sendBtn);
 
     expect(requestEmailOtpMock).toHaveBeenCalledWith('learner@example.com');
+    expect(await screen.findByLabelText('6-digit verification code')).toBeInTheDocument();
   });
 
   it('toggles sound effects and daily study goal', () => {

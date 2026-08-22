@@ -81,6 +81,22 @@ describe('API /api/progress Integration Suite', () => {
     expect(parsed.error).toContain('Unauthorized');
   });
 
+  it('returns 503 when authentication infrastructure is unavailable', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'unavailable',
+      userId: null,
+      identifier: '',
+      guestCookieHeader: null,
+      error: 'Authentication service is temporarily unavailable',
+    });
+
+    const { runPromise, res, getResponseData } = createMockReqRes('GET');
+    await runPromise;
+
+    expect(res.statusCode).toBe(503);
+    expect(JSON.parse(getResponseData()).error).toContain('temporarily unavailable');
+  });
+
   it('returns 503 when Supabase administrator client is unavailable', async () => {
     vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
       type: 'user',

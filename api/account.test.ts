@@ -65,6 +65,22 @@ describe('DELETE /api/account Integration Suite', () => {
     expect(parsed.error).toContain('Unauthorized');
   });
 
+  it('returns 503 when authentication infrastructure is unavailable', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'unavailable',
+      userId: null,
+      identifier: '',
+      guestCookieHeader: null,
+      error: 'Authentication service is temporarily unavailable',
+    });
+
+    const { runPromise, res, getResponseData } = createMockReqRes('DELETE', { confirm: true });
+    await runPromise;
+
+    expect(res.statusCode).toBe(503);
+    expect(JSON.parse(getResponseData()).error).toContain('temporarily unavailable');
+  });
+
   it('returns 503 when Supabase administrator client is unavailable', async () => {
     vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
       type: 'user',
@@ -154,7 +170,7 @@ describe('DELETE /api/account Integration Suite', () => {
     expect(parsed.error).toContain('Unsupported Media Type');
   });
 
-  it('executes delete_user_data RPC and auth admin deleteUser on confirmation', async () => {
+  it('hard-deletes the Auth user so database cascade constraints purge application rows', async () => {
     vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
       type: 'user',
       userId: 'test-user-uuid',
@@ -162,11 +178,9 @@ describe('DELETE /api/account Integration Suite', () => {
       guestCookieHeader: null,
     });
 
-    const rpcMock = vi.fn().mockResolvedValue({ error: null });
     const deleteUserMock = vi.fn().mockResolvedValue({ error: null });
 
     vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({
-      rpc: rpcMock,
       auth: {
         admin: {
           deleteUser: deleteUserMock,
@@ -178,14 +192,14 @@ describe('DELETE /api/account Integration Suite', () => {
     await runPromise;
 
     expect(res.statusCode).toBe(200);
-    expect(rpcMock).toHaveBeenCalledWith('delete_user_data', { p_user_id: 'test-user-uuid' });
-    expect(deleteUserMock).toHaveBeenCalledWith('test-user-uuid');
+    expect(deleteUserMock).toHaveBeenCalledWith('test-user-uuid', false);
 
     const parsed = JSON.parse(getResponseData());
     expect(parsed.success).toBe(true);
   });
 
   it('returns sanitized error with opaque requestId if auth admin deleteUser fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
       type: 'user',
       userId: 'test-user-uuid',
@@ -193,11 +207,9 @@ describe('DELETE /api/account Integration Suite', () => {
       guestCookieHeader: null,
     });
 
-    const rpcMock = vi.fn().mockResolvedValue({ error: null });
     const deleteUserMock = vi.fn().mockResolvedValue({ error: { message: 'Internal auth service failed' } });
 
     vi.spyOn(dbLib, 'getSupabaseAdmin').mockReturnValue({
-      rpc: rpcMock,
       auth: {
         admin: {
           deleteUser: deleteUserMock,
@@ -213,5 +225,9 @@ describe('DELETE /api/account Integration Suite', () => {
     expect(parsed.error).toBe('Account deletion encountered an issue');
     expect(parsed.requestId).toBeDefined();
     expect(parsed.requestId.length).toBeGreaterThan(10);
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.stringContaining('[AccountDeletion] Auth Admin deletion failed'),
+      { message: 'Internal auth service failed' }
+    );
   });
 });

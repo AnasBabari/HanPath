@@ -2,7 +2,7 @@ import { resolveGuestSession, generateSecondaryAbuseFingerprint } from './guest.
 import { getSupabaseAdmin } from './supabaseAdmin.js';
 
 export interface ResolvedIdentity {
-  type: 'user' | 'guest' | 'unauthorized';
+  type: 'user' | 'guest' | 'unauthorized' | 'unavailable';
   userId: string | null;
   identifier: string; // e.g. "user:<uuid>", "guest:<uuid>"
   guestCookieHeader: string | null;
@@ -20,7 +20,7 @@ export async function resolveIdentity(
   clientIp?: string | null,
   userAgent?: string | null
 ): Promise<ResolvedIdentity> {
-  const fingerprint = generateSecondaryAbuseFingerprint(clientIp, userAgent);
+  const fingerprint = generateSecondaryAbuseFingerprint(clientIp, userAgent) || undefined;
 
   // If Authorization header is provided, strictly evaluate it
   if (authHeader !== undefined && authHeader !== null && authHeader.trim() !== '') {
@@ -50,25 +50,36 @@ export async function resolveIdentity(
     const supabase = getSupabaseAdmin();
     if (!supabase) {
       return {
-        type: 'unauthorized',
+        type: 'unavailable',
         userId: null,
         identifier: '',
         guestCookieHeader: null,
         fingerprint,
-        error: 'Authentication service unavailable',
+        error: 'Authentication service is temporarily unavailable',
       };
     }
 
     try {
       const { data: { user }, error } = await supabase.auth.getUser(token);
       if (error || !user?.id) {
+        const status = Number((error as { status?: number } | null)?.status);
+        if (Number.isFinite(status) && (status === 0 || status >= 500)) {
+          return {
+            type: 'unavailable',
+            userId: null,
+            identifier: '',
+            guestCookieHeader: null,
+            fingerprint,
+            error: 'Authentication service is temporarily unavailable',
+          };
+        }
         return {
           type: 'unauthorized',
           userId: null,
           identifier: '',
           guestCookieHeader: null,
           fingerprint,
-          error: error?.message || 'Invalid or expired bearer token',
+          error: 'Invalid or expired bearer token',
         };
       }
 
@@ -79,14 +90,14 @@ export async function resolveIdentity(
         guestCookieHeader: null,
         fingerprint,
       };
-    } catch (err: unknown) {
+    } catch {
       return {
-        type: 'unauthorized',
+        type: 'unavailable',
         userId: null,
         identifier: '',
         guestCookieHeader: null,
         fingerprint,
-        error: err instanceof Error ? err.message : 'Authentication verification failed',
+        error: 'Authentication service is temporarily unavailable',
       };
     }
   }

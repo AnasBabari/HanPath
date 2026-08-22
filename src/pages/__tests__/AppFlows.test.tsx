@@ -41,7 +41,7 @@ describe('HànPath Production App Flows & Component Integration', () => {
     render(<App />);
 
     // Brand and Standard
-    expect(await screen.findByText('HSK 3.0 Standard', {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByText('HSK 3.0-aligned', {}, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.getByText(/3-day streak/i)).toBeInTheDocument();
   });
 

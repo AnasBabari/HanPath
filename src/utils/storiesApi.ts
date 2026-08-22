@@ -4,6 +4,7 @@ export interface Token {
   hsk_level: number;
   pinyin_hint: string;
   meaning: string;
+  is_support?: boolean;
 }
 
 export interface Story {

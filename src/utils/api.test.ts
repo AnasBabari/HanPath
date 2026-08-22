@@ -2,27 +2,29 @@ import { describe, it, expect } from 'vitest';
 import { fetchHSKLevel, fetchSentencesForLevel, getCurriculumMetadata } from './api';
 
 describe('HSK 3.0 Curriculum API (Offline Bundled)', () => {
-  it('returns valid metadata with exact canonical HSK 3.0 standard counts', () => {
+  it('returns valid metadata with exact canonical bundled HSK 3.0-aligned counts', () => {
     const meta = getCurriculumMetadata();
-    expect(meta.standard).toBe('HSK-3.0-2021');
+    expect(meta.standard).toBe('HSK-3.0-aligned-v1.4');
+    expect(meta.datasetStatus).toBe('community-curated');
+    expect(meta.provenanceNotice).toContain('not an official');
     expect(meta.license).toBe('MIT');
-    expect(meta.counts.hsk1).toBe(500);
+    expect(meta.counts.hsk1).toBe(506);
     expect(meta.counts.hsk2).toBe(750);
-    expect(meta.counts.cumulative).toBe(1250);
+    expect(meta.counts.cumulative).toBe(1256);
     expect(meta.sha256).toBeDefined();
     expect(meta.sha256.length).toBe(64);
   });
 
-  it('loads exact 500 HSK 1 vocabulary words directly from bundled dataset', async () => {
+  it('loads all 506 pinned upstream HSK 1 vocabulary words from the bundled dataset', async () => {
     const words = await fetchHSKLevel(1);
     expect(Array.isArray(words)).toBe(true);
-    expect(words.length).toBe(500);
+    expect(words.length).toBe(506);
     expect(words[0].hanzi).toBeDefined();
     expect(words[0].pinyin).toBeDefined();
     expect(words[0].hskLevel).toBe(1);
 
     const uniqueHanzi = new Set(words.map((w) => w.hanzi));
-    expect(uniqueHanzi.size).toBe(500);
+    expect(uniqueHanzi.size).toBe(506);
   });
 
   it('loads exact 750 HSK 2 vocabulary words directly from bundled dataset', async () => {

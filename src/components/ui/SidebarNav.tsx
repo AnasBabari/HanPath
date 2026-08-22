@@ -36,7 +36,7 @@ export default function SidebarNav() {
           <img src={logo} alt="HànPath Logo" className="w-10 h-10 object-contain rounded-xl" />
           <div>
             <span className="font-display text-2xl font-bold text-primary block leading-none">HànPath</span>
-            <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">HSK 3.0 Standard</span>
+            <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">HSK 3.0-aligned</span>
           </div>
         </div>
 
