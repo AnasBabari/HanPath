@@ -5,7 +5,21 @@ const GUEST_COOKIE_NAME = 'hanpath_guest_id';
 const DEFAULT_SECRET = 'hanpath-dev-guest-cookie-secret-min32chars!';
 
 function getSecret(): string {
-  return process.env.GUEST_COOKIE_SECRET || DEFAULT_SECRET;
+  const secret = process.env.GUEST_COOKIE_SECRET;
+  const isProd =
+    process.env.NODE_ENV === 'production' ||
+    process.env.VERCEL_ENV === 'production';
+
+  if (isProd) {
+    if (!secret || secret.length < 32) {
+      throw new Error(
+        'Critical security configuration error: GUEST_COOKIE_SECRET must be set and at least 32 characters in production.'
+      );
+    }
+    return secret;
+  }
+
+  return secret || DEFAULT_SECRET;
 }
 
 /**

@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolveIdentity } from './_lib/auth.js';
 import { getSupabaseAdmin } from './_lib/supabaseAdmin.js';
+import { validateProgressSnapshotV4 } from '../src/utils/progressSchema.js';
 
 function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -32,7 +33,11 @@ export default async function handler(
 
   if (identity.type !== 'user' || !identity.userId) {
     res.statusCode = 401;
-    res.end(JSON.stringify({ error: 'Unauthorized: Bearer token required' }));
+    res.end(
+      JSON.stringify({
+        error: identity.error || 'Unauthorized: Valid Bearer token required',
+      })
+    );
     return;
   }
 
@@ -91,11 +96,37 @@ export default async function handler(
         return;
       }
 
-      if (!payload || typeof payload !== 'object' || !payload.snapshot || typeof payload.expectedVersion !== 'number') {
+      if (
+        !payload ||
+        typeof payload !== 'object' ||
+        payload.snapshot === undefined ||
+        payload.snapshot === null ||
+        typeof payload.expectedVersion !== 'number'
+      ) {
         res.statusCode = 400;
-        res.end(JSON.stringify({ error: 'Field "snapshot" and numeric "expectedVersion" are required' }));
+        res.end(
+          JSON.stringify({
+            error: 'Field "snapshot" (object) and numeric "expectedVersion" are required',
+          })
+        );
         return;
       }
+
+      // Strict validation of the snapshot using the shared Zod schema
+      const validation = validateProgressSnapshotV4(payload.snapshot);
+      if (!validation.success || !validation.data) {
+        res.statusCode = 422;
+        res.end(
+          JSON.stringify({
+            error: 'Unprocessable Entity: Snapshot schema validation failed',
+            details: validation.error,
+          })
+        );
+        return;
+      }
+
+      const validSnapshot = validation.data;
+      const expectedVersion = Number(payload.expectedVersion);
 
       // Check current record in DB
       const { data: existing, error: selectErr } = await supabase
@@ -112,8 +143,8 @@ export default async function handler(
 
       const currentVersion = existing ? Number(existing.version) : 0;
 
-      // Optimistic concurrency check
-      if (existing && payload.expectedVersion !== currentVersion) {
+      // Concurrency check before write
+      if (existing && expectedVersion !== currentVersion) {
         res.statusCode = 409;
         res.end(
           JSON.stringify({
@@ -128,35 +159,96 @@ export default async function handler(
         return;
       }
 
+      if (!existing && expectedVersion !== 0) {
+        res.statusCode = 409;
+        res.end(
+          JSON.stringify({
+            error: 'Conflict: Initial progress record requires expectedVersion 0',
+            currentEnvelope: null,
+          })
+        );
+        return;
+      }
+
       const nextVersion = currentVersion + 1;
       const now = new Date().toISOString();
 
       if (existing) {
-        const { error: updateErr } = await supabase
+        // Atomic update conditioned on both user_id AND version
+        const { data: updatedData, error: updateErr } = await supabase
           .from('user_progress')
           .update({
-            snapshot: payload.snapshot,
+            snapshot: validSnapshot,
             version: nextVersion,
             updated_at: now,
           })
-          .eq('user_id', identity.userId);
+          .eq('user_id', identity.userId)
+          .eq('version', expectedVersion)
+          .select('snapshot, version, updated_at');
 
         if (updateErr) {
           res.statusCode = 500;
           res.end(JSON.stringify({ error: 'Failed to update progress' }));
           return;
         }
+
+        // If 0 rows updated, concurrent write occurred between select and update
+        if (!updatedData || updatedData.length === 0) {
+          const { data: reFetched } = await supabase
+            .from('user_progress')
+            .select('snapshot, version, updated_at')
+            .eq('user_id', identity.userId)
+            .maybeSingle();
+
+          res.statusCode = 409;
+          res.end(
+            JSON.stringify({
+              error: 'Conflict: Concurrent update detected',
+              currentEnvelope: reFetched
+                ? {
+                    snapshot: reFetched.snapshot,
+                    version: Number(reFetched.version),
+                    updatedAt: reFetched.updated_at,
+                  }
+                : null,
+            })
+          );
+          return;
+        }
       } else {
+        // Initial insert
         const { error: insertErr } = await supabase
           .from('user_progress')
           .insert({
             user_id: identity.userId,
-            snapshot: payload.snapshot,
-            version: nextVersion,
+            snapshot: validSnapshot,
+            version: 1,
             updated_at: now,
           });
 
         if (insertErr) {
+          // If unique conflict on insert, fetch existing and return 409
+          const { data: reFetched } = await supabase
+            .from('user_progress')
+            .select('snapshot, version, updated_at')
+            .eq('user_id', identity.userId)
+            .maybeSingle();
+
+          if (reFetched) {
+            res.statusCode = 409;
+            res.end(
+              JSON.stringify({
+                error: 'Conflict: Concurrent creation detected',
+                currentEnvelope: {
+                  snapshot: reFetched.snapshot,
+                  version: Number(reFetched.version),
+                  updatedAt: reFetched.updated_at,
+                },
+              })
+            );
+            return;
+          }
+
           res.statusCode = 500;
           res.end(JSON.stringify({ error: 'Failed to insert progress' }));
           return;
@@ -166,7 +258,7 @@ export default async function handler(
       res.statusCode = 200;
       res.end(
         JSON.stringify({
-          snapshot: payload.snapshot,
+          snapshot: validSnapshot,
           version: nextVersion,
           updatedAt: now,
         })

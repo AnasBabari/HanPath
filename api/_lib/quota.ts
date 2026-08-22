@@ -86,14 +86,25 @@ function checkMemoryQuota(
   };
 }
 
+export class QuotaStoreUnavailableError extends Error {
+  constructor(message = 'Distributed quota storage is currently unavailable') {
+    super(message);
+    this.name = 'QuotaStoreUnavailableError';
+  }
+}
+
 /**
- * Checks and records AI quota atomically via Supabase RPC or memory fallback
+ * Checks and records AI quota atomically via Supabase RPC or memory fallback in development
  */
 export async function checkAndRecordQuota(
   identifier: string,
   isGuest: boolean
 ): Promise<QuotaResult> {
   const limits = isGuest ? QUOTA_LIMITS.guest : QUOTA_LIMITS.user;
+  const isProd =
+    process.env.NODE_ENV === 'production' ||
+    process.env.VERCEL_ENV === 'production';
+
   const supabase = getSupabaseAdmin();
 
   if (supabase) {
@@ -125,9 +136,23 @@ export async function checkAndRecordQuota(
           retryAfterSeconds: result.retry_after_seconds ? Number(result.retry_after_seconds) : undefined,
         };
       }
-    } catch {
-      // Fall through to memory bucket on database connection issue
+
+      if (isProd) {
+        throw new QuotaStoreUnavailableError(
+          `Quota RPC returned error: ${error?.message || 'Invalid RPC response'}`
+        );
+      }
+    } catch (err: unknown) {
+      if (isProd) {
+        if (err instanceof QuotaStoreUnavailableError) throw err;
+        throw new QuotaStoreUnavailableError(
+          `Quota store failed in production: ${err instanceof Error ? err.message : 'Database error'}`
+        );
+      }
+      // In dev/test, fall through to memory bucket
     }
+  } else if (isProd) {
+    throw new QuotaStoreUnavailableError('Supabase admin client unavailable in production');
   }
 
   return checkMemoryQuota(identifier, limits.daily, limits.minute);

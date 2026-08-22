@@ -39,7 +39,11 @@ export default async function handler(
 
   if (identity.type !== 'user' || !identity.userId) {
     res.statusCode = 401;
-    res.end(JSON.stringify({ error: 'Unauthorized: Bearer token required' }));
+    res.end(
+      JSON.stringify({
+        error: identity.error || 'Unauthorized: Valid Bearer token required',
+      })
+    );
     return;
   }
 
@@ -70,16 +74,48 @@ export default async function handler(
     }
 
     // 1. Delete user progress
-    await supabase.from('user_progress').delete().eq('user_id', identity.userId);
+    const { error: progErr } = await supabase
+      .from('user_progress')
+      .delete()
+      .eq('user_id', identity.userId);
+
+    if (progErr) {
+      res.statusCode = 500;
+      res.end(
+        JSON.stringify({
+          error: `Failed to delete user progress: ${progErr.message}`,
+        })
+      );
+      return;
+    }
 
     // 2. Delete user AI usage
-    await supabase.from('ai_usage').delete().eq('identifier', `user:${identity.userId}`);
+    const { error: aiErr } = await supabase
+      .from('ai_usage')
+      .delete()
+      .eq('identifier', `user:${identity.userId}`);
+
+    if (aiErr) {
+      res.statusCode = 500;
+      res.end(
+        JSON.stringify({
+          error: `Failed to delete user AI usage: ${aiErr.message}`,
+        })
+      );
+      return;
+    }
 
     // 3. Delete Supabase auth user
-    const { error: authDelErr } = await supabase.auth.admin.deleteUser(identity.userId);
+    const { error: authDelErr } = await supabase.auth.admin.deleteUser(
+      identity.userId
+    );
     if (authDelErr) {
       res.statusCode = 500;
-      res.end(JSON.stringify({ error: 'Failed to delete auth user' }));
+      res.end(
+        JSON.stringify({
+          error: `Failed to delete auth user: ${authDelErr.message}`,
+        })
+      );
       return;
     }
 

@@ -5,32 +5,38 @@ export const WordAccuracySchema = z.object({
   correct: z.number().int().nonnegative(),
   total: z.number().int().nonnegative(),
   lastSeen: z.number().nonnegative(),
-});
+}).strict();
 
 export const WordSRSDataSchema = z.object({
-  wordId: z.string().min(1),
+  wordId: z.string().min(1).max(100),
   interval: z.number().nonnegative(),
   easeFactor: z.number().positive(),
   nextReviewDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   repetitions: z.number().int().nonnegative(),
   updatedAt: z.string().datetime({ offset: true }).or(z.string().datetime()),
-});
+}).strict();
 
 export const ProgressSnapshotV4Schema = z.object({
   schemaVersion: z.literal(4),
   hskLevelProgress: z.object({
     1: z.object({
-      completedLessons: z.array(z.string()),
-    }),
+      completedLessons: z.array(z.string().max(100)).max(500),
+    }).strict(),
     2: z.object({
-      completedLessons: z.array(z.string()),
-    }),
-  }),
-  studyDays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).max(365),
-  wordAccuracy: z.record(z.string(), WordAccuracySchema),
-  wordSRS: z.record(z.string(), WordSRSDataSchema),
-  readStories: z.array(z.string()),
-  unlockedAchievements: z.array(z.string()),
+      completedLessons: z.array(z.string().max(100)).max(500),
+    }).strict(),
+  }).strict(),
+  studyDays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).max(3650),
+  wordAccuracy: z.record(z.string().max(100), WordAccuracySchema).refine(
+    (rec) => Object.keys(rec).length <= 10000,
+    { message: 'wordAccuracy exceeds maximum limit of 10000 entries' }
+  ),
+  wordSRS: z.record(z.string().max(100), WordSRSDataSchema).refine(
+    (rec) => Object.keys(rec).length <= 10000,
+    { message: 'wordSRS exceeds maximum limit of 10000 entries' }
+  ),
+  readStories: z.array(z.string().max(100)).max(500),
+  unlockedAchievements: z.array(z.string().max(100)).max(100),
   stats: z.object({
     totalXP: z.number().int().nonnegative(),
     longestStreak: z.number().int().nonnegative(),
@@ -39,13 +45,13 @@ export const ProgressSnapshotV4Schema = z.object({
     minutesStudiedToday: z.number().int().nonnegative(),
     dailyDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
     lastStudyDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
-  }),
+  }).strict(),
   preferences: z.object({
     revealPinyin: z.enum(['always', 'peek']),
     targetHskLevel: z.union([z.literal(1), z.literal(2)]),
-    dailyGoalMinutes: z.number().int().positive(),
-  }),
-});
+    dailyGoalMinutes: z.number().int().min(1).max(180),
+  }).strict(),
+}).strict();
 
 export function createDefaultProgressSnapshotV4(): ProgressSnapshotV4 {
   return {
