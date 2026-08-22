@@ -21,6 +21,7 @@ const ChatPage = lazy(() => import('./pages/ChatPage'));
 const ReviewPage = lazy(() => import('./pages/ReviewPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const LicensesPage = lazy(() => import('./pages/LicensesPage'));
+const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
 
 import logo from './assets/logo.png';
 
@@ -121,18 +122,19 @@ function AppContent() {
   }
 
   const isFocusedExerciseOrStory = isFullScreen;
-  const isLicensesPage = location.pathname === '/licenses';
+  const isExcludedChromePage = location.pathname === '/licenses' || location.pathname === '/auth/callback';
+  const showChrome = !isFocusedExerciseOrStory && !isExcludedChromePage;
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-surface text-on-surface">
       {toast && <AchievementToast id={toast} onDone={() => setToast(null)} />}
 
       {/* Desktop Sidebar Navigation */}
-      {!isFocusedExerciseOrStory && !isLicensesPage && <SidebarNav />}
+      {showChrome && <SidebarNav />}
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {!isFocusedExerciseOrStory && !isLicensesPage && <AppHeader />}
+        {showChrome && <AppHeader />}
 
         <main id="main-content" className="flex-1 flex flex-col min-w-0">
           <Suspense fallback={<PageFallback />}>
@@ -144,13 +146,14 @@ function AppContent() {
               <Route path="/review" element={<ReviewPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/licenses" element={<LicensesPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
         </main>
 
         {/* Mobile Bottom Navigation */}
-        {!isFocusedExerciseOrStory && !isLicensesPage && <BottomNav />}
+        {showChrome && <BottomNav />}
       </div>
     </div>
   );

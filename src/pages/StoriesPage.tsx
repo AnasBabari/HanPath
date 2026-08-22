@@ -20,7 +20,19 @@ export default function StoriesPage() {
   const [loading, setLoading] = useState(true);
   const [hasCompleted, setHasCompleted] = useState(false);
 
-  const { stats, hskLevel, markStoryRead, addXP } = useStore();
+  const { stats, hskLevel, markStoryRead, addXP, setFullScreen } = useStore();
+
+  useEffect(() => {
+    if (activeStory) {
+      setFullScreen(true);
+      window.scrollTo(0, 0);
+    } else {
+      setFullScreen(false);
+    }
+    return () => {
+      setFullScreen(false);
+    };
+  }, [activeStory, setFullScreen]);
 
   useEffect(() => {
     let isMounted = true;
@@ -49,6 +61,8 @@ export default function StoriesPage() {
     setActiveStory(story);
     setHasCompleted(false);
     setActiveToken(null);
+    setFullScreen(true);
+    window.scrollTo(0, 0);
   };
 
   const handleCompleteStory = () => {
@@ -62,6 +76,8 @@ export default function StoriesPage() {
   const handleExitStory = () => {
     setActiveStory(null);
     setHasCompleted(false);
+    setFullScreen(false);
+    window.scrollTo(0, 0);
   };
 
   if (loading) {

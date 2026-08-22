@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useReducer } from 'react';
+import { Volume2 } from 'lucide-react';
 import { callOpenRouter } from '../../utils/ai';
 import type { Lesson, Exercise } from '../../types';
 import { playCorrect, playWrong } from '../../utils/sounds';
@@ -294,7 +295,7 @@ function ExerciseCard({ exercise: ex, locked, shake, onCorrect, onWrong }: {
               className="btn-secondary"
               style={{ padding: '8px 16px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 700 }}
             >
-              <span className="material-symbols-outlined text-lg">volume_up</span>
+              <Volume2 className="w-4 h-4" />
               Replay Audio
             </button>
             <button

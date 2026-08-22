@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, CheckCircle2, Lock, Sparkles, Trophy, ArrowRight } from 'lucide-react';
 import type { Unit, Lesson } from '../types';
 import { isLessonUnlocked, findLesson, allLessonsFlat } from '../utils/curriculum';
@@ -109,9 +109,21 @@ function LessonCompleteScreen({ onContinue }: { onContinue: () => void }) {
 }
 
 export default function LearnPage() {
-  const { units, stats, hskLevel, completeLesson, updateWordResult } = useStore();
+  const { units, stats, hskLevel, completeLesson, updateWordResult, setFullScreen } = useStore();
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [screen, setScreen] = useState<'path' | 'intro' | 'practice' | 'complete'>('path');
+
+  useEffect(() => {
+    if (screen !== 'path') {
+      setFullScreen(true);
+      window.scrollTo(0, 0);
+    } else {
+      setFullScreen(false);
+    }
+    return () => {
+      setFullScreen(false);
+    };
+  }, [screen, setFullScreen]);
 
   if (!units || units.length === 0) {
     return (
@@ -133,6 +145,8 @@ export default function LearnPage() {
   const handleHome = () => {
     setScreen('path');
     setActiveLessonId(null);
+    setFullScreen(false);
+    window.scrollTo(0, 0);
   };
 
   // Find next uncompleted lesson for the quick resume banner

@@ -33,14 +33,19 @@ export default function ReviewPage() {
   const [loadingMnemonic, setLoadingMnemonic] = useState(false);
 
   useEffect(() => {
+    if (cards.length > 0) {
+      setFullScreen(true);
+      window.scrollTo(0, 0);
+    }
     return () => {
       setFullScreen(false);
     };
-  }, [setFullScreen]);
+  }, [cards.length, setFullScreen]);
 
   const handleExit = () => {
     navigate(-1);
     setFullScreen(false);
+    window.scrollTo(0, 0);
   };
 
   if (!cards.length) {

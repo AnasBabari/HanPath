@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { ACHIEVEMENTS } from '../data/achievements';
+import { useEffect } from 'react';
 
 export default function ProfilePage() {
   const {
@@ -34,7 +35,9 @@ export default function ProfilePage() {
     syncStatus,
     lastSyncTime,
     performSync,
-    signInWithOtp,
+    requestEmailOtp,
+    verifyEmailOtp,
+    resendEmailOtp,
     signInWithGoogle,
     signOut,
     deleteAccount,
@@ -45,32 +48,98 @@ export default function ProfilePage() {
     setToast,
   } = useStore();
 
+  const [authStep, setAuthStep] = useState<'email' | 'code'>('email');
   const [emailInput, setEmailInput] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authMsg, setAuthMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [resendTimer, setResendTimer] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 60-second cooldown timer for OTP resend
+  useEffect(() => {
+    if (resendTimer <= 0) return;
+    const interval = setInterval(() => {
+      setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
   const unlockedCount = ACHIEVEMENTS.filter(
     (a) => (stats.unlockedAchievements || []).includes(a.id) || a.check(stats)
   ).length;
 
-  const handleOtpLogin = async (e: React.FormEvent) => {
+  const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput.trim()) return;
     setAuthLoading(true);
     setAuthMsg(null);
 
-    const res = await signInWithOtp(emailInput.trim());
+    const res = await requestEmailOtp(emailInput.trim());
     setAuthLoading(false);
     if (res.success) {
-      setAuthMsg({ type: 'success', text: 'Magic sign-in link sent to your email! Check your inbox.' });
-      setEmailInput('');
+      setAuthStep('code');
+      setResendTimer(60);
+      setAuthMsg({
+        type: 'success',
+        text: `We've sent a 6-digit verification code to ${emailInput.trim()}. Please enter it below.`,
+      });
     } else {
-      setAuthMsg({ type: 'error', text: res.error || 'Failed to send OTP.' });
+      setAuthMsg({ type: 'error', text: res.error || 'Failed to send verification code. Please try again.' });
     }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanCode = otpCode.trim().replace(/\D/g, '');
+    if (cleanCode.length !== 6) {
+      setAuthMsg({ type: 'error', text: 'Please enter a valid 6-digit verification code.' });
+      return;
+    }
+
+    setAuthLoading(true);
+    setAuthMsg(null);
+
+    const res = await verifyEmailOtp(emailInput.trim(), cleanCode);
+    setAuthLoading(false);
+    if (res.success) {
+      setAuthMsg(null);
+      setToast('Successfully signed in! Your progress is now synced to the cloud.');
+      setAuthStep('email');
+      setOtpCode('');
+    } else {
+      setAuthMsg({
+        type: 'error',
+        text: res.error || 'Invalid or expired verification code. Please check and try again.',
+      });
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (resendTimer > 0 || !emailInput.trim()) return;
+    setAuthLoading(true);
+    setAuthMsg(null);
+
+    const res = await resendEmailOtp(emailInput.trim());
+    setAuthLoading(false);
+    if (res.success) {
+      setResendTimer(60);
+      setAuthMsg({
+        type: 'success',
+        text: `A new 6-digit code was sent to ${emailInput.trim()}.`,
+      });
+    } else {
+      setAuthMsg({ type: 'error', text: res.error || 'Failed to resend code.' });
+    }
+  };
+
+  const handleChangeEmail = () => {
+    setAuthStep('email');
+    setOtpCode('');
+    setAuthMsg(null);
   };
 
   const handleGoogleLogin = async () => {
@@ -157,7 +226,9 @@ export default function ProfilePage() {
                 <div
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                     authSession.user
-                      ? 'bg-green-50 text-green-accessible border border-green-200'
+                      ? syncStatus === 'error'
+                        ? 'bg-red-50 text-red-accessible border border-red-200'
+                        : 'bg-green-50 text-green-accessible border border-green-200'
                       : 'bg-surface-container text-on-surface-variant border border-border'
                   }`}
                 >
@@ -165,6 +236,8 @@ export default function ProfilePage() {
                     <CloudCheck className="w-4 h-4" />
                   ) : syncStatus === 'syncing' ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : syncStatus === 'error' ? (
+                    <AlertCircle className="w-4 h-4" />
                   ) : (
                     <CloudOff className="w-4 h-4" />
                   )}
@@ -172,6 +245,8 @@ export default function ProfilePage() {
                     {authSession.user
                       ? syncStatus === 'syncing'
                         ? 'Syncing...'
+                        : syncStatus === 'error'
+                        ? 'Sync Error'
                         : 'Cloud Synced'
                       : 'Guest Local Mode'}
                   </span>
@@ -207,7 +282,8 @@ export default function ProfilePage() {
               <div className="space-y-1">
                 <h2 className="text-lg font-bold font-display text-primary">Enable Cloud Sync & 10x AI Quota</h2>
                 <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Sign in to automatically back up your learning progress across devices and increase your AI Language Tutor quota from 5 to 50 requests/day. Guest progress is safely merged!
+                  Sign in with a 6-digit email code to automatically back up your learning progress across devices and
+                  increase your AI Language Tutor quota from 5 to 50 requests/day. Guest progress is safely merged!
                 </p>
               </div>
             </div>
@@ -219,30 +295,77 @@ export default function ProfilePage() {
                     ? 'bg-green-50 text-green-accessible border border-green-200'
                     : 'bg-red-50 text-red-accessible border border-red-200'
                 }`}
+                role="alert"
               >
-                {authMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                {authMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
                 <span>{authMsg.text}</span>
               </div>
             )}
 
-            <form onSubmit={handleOtpLogin} className="flex flex-col sm:flex-row gap-2 pt-2">
-              <input
-                type="email"
-                required
-                placeholder="Enter your email for OTP link..."
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                className="flex-1 bg-surface-card border border-border rounded-2xl px-4 py-3 text-sm focus:border-primary"
-                aria-label="Email address for sign-in"
-              />
-              <button
-                type="submit"
-                disabled={authLoading}
-                className="touch-target px-6 py-3 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark transition-all disabled:opacity-50"
-              >
-                {authLoading ? 'Sending...' : 'Send Magic Link'}
-              </button>
-            </form>
+            {authStep === 'email' ? (
+              <form onSubmit={handleSendCode} className="flex flex-col sm:flex-row gap-2 pt-2">
+                <input
+                  type="email"
+                  required
+                  placeholder="Enter your email for 6-digit code..."
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  className="flex-1 bg-surface-card border border-border rounded-2xl px-4 py-3 text-sm focus:border-primary"
+                  aria-label="Email address for sign-in"
+                />
+                <button
+                  type="submit"
+                  disabled={authLoading || !emailInput.trim()}
+                  className="touch-target px-6 py-3 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark transition-all disabled:opacity-50"
+                >
+                  {authLoading ? 'Sending Code...' : 'Send Verification Code'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyCode} className="space-y-3 pt-2">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    required
+                    placeholder="Enter 6-digit code (e.g. 123456)"
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="flex-1 bg-surface-card border border-border rounded-2xl px-4 py-3 text-base font-mono tracking-widest text-center sm:text-left focus:border-primary"
+                    aria-label="6-digit verification code"
+                  />
+                  <button
+                    type="submit"
+                    disabled={authLoading || otpCode.trim().length !== 6}
+                    className="touch-target px-6 py-3 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark transition-all disabled:opacity-50"
+                  >
+                    {authLoading ? 'Verifying...' : 'Verify & Sign In'}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <button
+                    type="button"
+                    onClick={handleChangeEmail}
+                    className="text-primary font-bold hover:underline"
+                  >
+                    Change Email ({emailInput})
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={resendTimer > 0 || authLoading}
+                    onClick={() => void handleResendCode()}
+                    className="text-on-surface-variant font-bold hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {resendTimer > 0 ? `Resend code in ${resendTimer}s` : 'Resend Code'}
+                  </button>
+                </div>
+              </form>
+            )}
 
             <div className="flex items-center gap-3 pt-2">
               <div className="flex-1 h-px bg-border" />

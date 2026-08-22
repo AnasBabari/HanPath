@@ -34,7 +34,7 @@ function saveSnapshotToStorage(key: string, snapshot: ProgressSnapshotV4): void 
   }
 }
 
-export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
+export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'conflict' | 'error' | 'offline';
 
 export interface AuthUser {
   id: string;
@@ -52,6 +52,8 @@ interface AppState {
   syncStatus: SyncStatus;
   cloudVersion: number;
   lastSyncTime: string | null;
+  lastSuccessfulSyncTime: string | null;
+  lastSyncAttemptTime: string | null;
   isDirty: boolean;
 
   // Domain State
@@ -90,6 +92,9 @@ interface AppState {
 
   // Auth & Cloud Sync Actions
   initAuthSession: () => Promise<void>;
+  requestEmailOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
+  verifyEmailOtp: (email: string, token: string) => Promise<{ success: boolean; error?: string }>;
+  resendEmailOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
   signInWithOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
@@ -148,6 +153,8 @@ export const useStore = create<AppState>((set, get) => ({
   syncStatus: 'idle',
   cloudVersion: 0,
   lastSyncTime: null,
+  lastSuccessfulSyncTime: null,
+  lastSyncAttemptTime: null,
   isDirty: false,
 
   snapshot: initialSnapshot,
@@ -511,14 +518,15 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  signInWithOtp: async (email: string) => {
+  requestEmailOtp: async (email: string) => {
     const supabase = getSupabaseClient();
     if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
 
+    const cleanEmail = email.trim().toLowerCase();
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: cleanEmail,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        shouldCreateUser: true,
       },
     });
 
@@ -526,6 +534,37 @@ export const useStore = create<AppState>((set, get) => ({
       return { success: false, error: error.message };
     }
     return { success: true };
+  },
+
+  verifyEmailOtp: async (email: string, token: string) => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
+
+    const cleanToken = token.trim().replace(/\D/g, '');
+    if (cleanToken.length !== 6) {
+      return { success: false, error: 'Verification code must be exactly 6 digits' };
+    }
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: cleanToken,
+      type: 'email',
+    });
+
+    if (error || !data.session || !data.user) {
+      return { success: false, error: error?.message || 'Invalid or expired verification code' };
+    }
+
+    await get().initAuthSession();
+    return { success: true };
+  },
+
+  resendEmailOtp: async (email: string) => {
+    return get().requestEmailOtp(email);
+  },
+
+  signInWithOtp: async (email: string) => {
+    return get().requestEmailOtp(email);
   },
 
   signInWithGoogle: async () => {
@@ -558,6 +597,9 @@ export const useStore = create<AppState>((set, get) => ({
       stats: deriveUserStats(guestSnap, guestSnap.preferences.targetHskLevel || 1),
       syncStatus: 'idle',
       cloudVersion: 0,
+      lastSyncTime: null,
+      lastSuccessfulSyncTime: null,
+      lastSyncAttemptTime: null,
     });
   },
 
@@ -596,6 +638,9 @@ export const useStore = create<AppState>((set, get) => ({
       stats: deriveUserStats(guestSnap, 1),
       syncStatus: 'idle',
       cloudVersion: 0,
+      lastSyncTime: null,
+      lastSuccessfulSyncTime: null,
+      lastSyncAttemptTime: null,
       toast: 'Account and associated data deleted.',
     });
 
@@ -604,13 +649,16 @@ export const useStore = create<AppState>((set, get) => ({
 
   performSync: async () => {
     const state = get();
+    const nowIso = new Date().toISOString();
+    set({ lastSyncAttemptTime: nowIso });
+
     if (!navigator.onLine) {
       set({ syncStatus: 'offline' });
       return;
     }
 
     const token = state.authSession.token;
-    if (!token) {
+    if (!token || !state.authSession.user) {
       set({ syncStatus: 'idle' });
       return;
     }
@@ -620,7 +668,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     if (result.success && result.envelope) {
       const updatedSnap = result.mergedSnapshot || result.envelope.snapshot;
-      const userKey = getUserStorageKey(state.authSession.user!.id);
+      const userKey = getUserStorageKey(state.authSession.user.id);
       saveSnapshotToStorage(userKey, updatedSnap);
 
       set({
@@ -629,6 +677,7 @@ export const useStore = create<AppState>((set, get) => ({
         cloudVersion: result.envelope.version,
         syncStatus: 'synced',
         lastSyncTime: new Date().toLocaleTimeString(),
+        lastSuccessfulSyncTime: nowIso,
         isDirty: false,
       });
     } else {

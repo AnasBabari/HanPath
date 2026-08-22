@@ -188,7 +188,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input Composer */}
-      <footer className="bg-surface-card border-t border-border p-4">
+      <footer className="bg-surface-card border-t border-border p-4 pb-20 sm:pb-4">
         <form
           onSubmit={(e) => {
             e.preventDefault();
