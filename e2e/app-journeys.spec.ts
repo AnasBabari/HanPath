@@ -54,21 +54,21 @@ test.describe('HànPath Core User Journeys (E2E)', () => {
   test('Journey 4: Profile settings, daily goals, data backup and licenses navigation', async ({ page }) => {
     await page.goto('/profile');
 
-    await expect(page.locator('text=Scholar Profile').first()).toBeVisible();
-    await expect(page.locator('text=Guest Scholar').first()).toBeVisible();
+    await expect(page.locator('h1:has-text("Profile")').first()).toBeVisible();
+    await expect(page.locator('text=Local Storage Active').first()).toBeVisible();
 
     // Check daily study goal selector and adjust
-    await expect(page.locator('text=15 min / day').first()).toBeVisible();
-    await page.locator('button:has-text("20 min")').first().click();
+    const goalSelect = page.locator('select[aria-label="Daily study goal minutes"]');
+    await expect(goalSelect).toBeVisible();
+    await goalSelect.selectOption('20');
 
-    // Verify Export Backup button is present and accessible
-    const exportBtn = page.locator('button:has-text("Export Backup")').first();
+    // Verify Export Progress button is present and accessible
+    const exportBtn = page.locator('button:has-text("Export Progress (JSON)")').first();
     await expect(exportBtn).toBeVisible();
 
     // Open About & Licenses
-    await page.locator('text=About & Licenses').first().click();
+    await page.locator('text=Attribution & Open Source Licenses').first().click();
     await expect(page.locator('text=HSK 3.0 Curriculum Attribution').first()).toBeVisible();
-    await expect(page.locator('text=HSK-3.0-2021').first()).toBeVisible();
   });
 
   test('Journey 5: Keyboard navigation and skip-to-content focus', async ({ page }) => {

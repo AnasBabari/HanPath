@@ -37,25 +37,22 @@ describe('ProfilePage Full Interactive Coverage', () => {
     });
   });
 
-  it('handles sign out button click', async () => {
-    const signOutMock = vi.fn().mockResolvedValue(undefined);
-    useStore.setState({ signOut: signOutMock });
-
+  it('renders Profile page with stats and local storage active', () => {
     render(
       <MemoryRouter>
         <ProfilePage />
       </MemoryRouter>
     );
 
-    const signOutBtn = screen.getByText('Sign Out');
-    fireEvent.click(signOutBtn);
-
-    expect(signOutMock).toHaveBeenCalled();
+    expect(screen.getByRole('heading', { level: 1, name: 'Profile' })).toBeInTheDocument();
+    expect(screen.getByText('Local Storage Active')).toBeInTheDocument();
+    expect(screen.getByText('Day Streak')).toBeInTheDocument();
+    expect(screen.getByText('Total XP')).toBeInTheDocument();
   });
 
-  it('handles manual cloud sync trigger button', async () => {
-    const performSyncMock = vi.fn().mockResolvedValue(undefined);
-    useStore.setState({ performSync: performSyncMock });
+  it('triggers reset local progress confirmation text input and submission', async () => {
+    const resetLocalProgressMock = vi.fn();
+    useStore.setState({ resetLocalProgress: resetLocalProgressMock });
 
     render(
       <MemoryRouter>
@@ -63,32 +60,16 @@ describe('ProfilePage Full Interactive Coverage', () => {
       </MemoryRouter>
     );
 
-    const syncBtn = screen.getByLabelText('Manual Cloud Sync');
-    fireEvent.click(syncBtn);
+    const resetBtn = screen.getByText('Reset Local Progress');
+    fireEvent.click(resetBtn);
 
-    expect(performSyncMock).toHaveBeenCalled();
-  });
+    const input = screen.getByPlaceholderText('RESET');
+    fireEvent.change(input, { target: { value: 'RESET' } });
 
-  it('triggers delete account confirmation text input and submission', async () => {
-    const deleteAccountMock = vi.fn().mockResolvedValue({ success: true });
-    useStore.setState({ deleteAccount: deleteAccountMock });
-
-    render(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    );
-
-    const deleteBtn = screen.getByText('Delete Account & Data');
-    fireEvent.click(deleteBtn);
-
-    const input = screen.getByPlaceholderText('DELETE');
-    fireEvent.change(input, { target: { value: 'DELETE' } });
-
-    const confirmBtn = screen.getByText('Permanently Delete');
+    const confirmBtn = screen.getByRole('button', { name: 'Reset Progress' });
     fireEvent.click(confirmBtn);
 
-    expect(deleteAccountMock).toHaveBeenCalled();
+    expect(resetLocalProgressMock).toHaveBeenCalled();
   });
 
   it('handles progress JSON export trigger', () => {
@@ -107,13 +88,9 @@ describe('ProfilePage Full Interactive Coverage', () => {
     expect(exportProgressJSONMock).toHaveBeenCalled();
   });
 
-  it('handles guest sign-in with Google OAuth', () => {
-    useStore.setState({
-      authSession: { user: null, token: null },
-    });
-
-    const signInWithGoogleMock = vi.fn().mockResolvedValue({ success: true });
-    useStore.setState({ signInWithGoogle: signInWithGoogleMock });
+  it('switches HSK level between HSK 1 and HSK 2', () => {
+    const setHSKLevelMock = vi.fn();
+    useStore.setState({ setHSKLevel: setHSKLevelMock });
 
     render(
       <MemoryRouter>
@@ -121,8 +98,9 @@ describe('ProfilePage Full Interactive Coverage', () => {
       </MemoryRouter>
     );
 
-    const googleBtn = screen.getByText('Continue with Google');
-    fireEvent.click(googleBtn);
-    expect(signInWithGoogleMock).toHaveBeenCalled();
+    const hsk2Btn = screen.getByRole('button', { name: 'HSK 2' });
+    fireEvent.click(hsk2Btn);
+
+    expect(setHSKLevelMock).toHaveBeenCalledWith(2);
   });
 });

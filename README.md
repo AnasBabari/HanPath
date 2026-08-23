@@ -24,7 +24,7 @@
 - 📖 **16 Graded Stories:** 8 coherent narrative stories per level with tokenized glosses, character popups, and pinyin assistance.
 - 🤖 **Pedagogical AI Language Buddy:** Serverless OpenRouter proxy with fallback routing, strict server-authored system prompts, and context isolation.
 - ⚡ **Optimistic Concurrency & Local-First Sync:** Version-conditioned atomic cloud sync with guest-to-cloud merge, full offline persistence, and export/restore capabilities.
-- 🔐 **Dual Auth Flows:** 6-digit email One-Time Passcode (OTP) and Google OAuth with PKCE redirection (`/auth/callback`).
+- 🔐 **Local-First & Cloud Auth:** Automatic local device/browser storage persistence with optional 6-digit email One-Time Passcode (OTP) for multi-device sync.
 - ⚡ **Ultra-Fast Performance:** Initial page-load bundle budget strictly enforced at **<= 130 KB gzip** with dynamic code-splitting.
 - ♿ **Accessibility (a11y):** Accessible UI designed according to WCAG 2.2 AA standards and tested with axe-core audits and keyboard navigation.
 
@@ -46,7 +46,7 @@ Browser Client (React 19 + Vite 8 + Zustand)
 ### Key Technical Systems
 
 1. **Authentication & Session Identity**
-   - **Signed-in Users:** Authenticate via Supabase 6-digit email OTP or Google OAuth PKCE. Verified server-side via Bearer JWT tokens.
+   - **Signed-in Users:** Authenticate via Supabase 6-digit email OTP. Verified server-side via Bearer JWT tokens.
    - **Guest Users:** Stateless signed HMAC-SHA256 cookies (`hanpath_guest_id`) ensure tamper-proof identity tracking and rate limiting without requiring early database writes.
    - **Fail-Closed Security:** Malformed or expired Bearer tokens return HTTP 401 without silent fallback to guest access.
 

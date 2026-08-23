@@ -49,12 +49,12 @@ describe('Page Components Render and Interaction Tests', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Scholar (Guest)')).toBeInTheDocument();
-    expect(screen.getByText('Guest Local Mode')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Profile' })).toBeInTheDocument();
+    expect(screen.getByText('Local Storage Active')).toBeInTheDocument();
     expect(screen.getByText('Export Progress (JSON)')).toBeInTheDocument();
 
     // Change study goal via select dropdown
-    const select = screen.getByLabelText('Daily study goal');
+    const select = screen.getByLabelText('Daily study goal minutes');
     fireEvent.change(select, { target: { value: '30' } });
     expect(useStore.getState().snapshot.preferences.dailyGoalMinutes).toBe(30);
   });

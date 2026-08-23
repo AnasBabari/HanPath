@@ -96,12 +96,12 @@ interface AppState {
   verifyEmailOtp: (email: string, token: string) => Promise<{ success: boolean; error?: string }>;
   resendEmailOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
   signInWithOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
-  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<{ success: boolean; error?: string }>;
   performSync: () => Promise<void>;
   exportProgressJSON: () => string;
   importProgressJSON: (jsonStr: string) => { success: boolean; error?: string };
+  resetLocalProgress: () => void;
 }
 
 export function deriveUserStats(snapshot: ProgressSnapshotV4, currentHskLevel: 1 | 2): UserStats {
@@ -567,23 +567,6 @@ export const useStore = create<AppState>((set, get) => ({
     return get().requestEmailOtp(email);
   },
 
-  signInWithGoogle: async () => {
-    const supabase = await getSupabaseClientAsync();
-    if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-    return { success: true };
-  },
-
   signOut: async () => {
     const supabase = await getSupabaseClientAsync();
     if (supabase) {
@@ -715,5 +698,17 @@ export const useStore = create<AppState>((set, get) => ({
     } catch {
       return { success: false, error: 'Failed to parse JSON file' };
     }
+  },
+
+  resetLocalProgress: () => {
+    const init = createDefaultProgressSnapshotV4();
+    saveSnapshotToStorage(GUEST_STORAGE_KEY, init);
+    set({
+      snapshot: init,
+      hskLevel: 1,
+      stats: deriveUserStats(init, 1),
+      isDirty: false,
+      chatHistory: [],
+    });
   },
 }));

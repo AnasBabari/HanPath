@@ -7,150 +7,38 @@ import {
   BookOpen,
   Trophy,
   Layers,
-  CloudCheck,
-  CloudOff,
-  RefreshCw,
-  LogOut,
+  HardDrive,
   Download,
   Upload,
-  Trash2,
-  Mail,
+  RotateCcw,
   ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
   Eye,
   Clock,
   Target,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { ACHIEVEMENTS } from '../data/achievements';
-import { useEffect } from 'react';
 
 export default function ProfilePage() {
   const {
     stats,
     hskLevel,
     setHSKLevel,
-    authSession,
-    syncStatus,
-    lastSyncTime,
-    performSync,
-    requestEmailOtp,
-    verifyEmailOtp,
-    resendEmailOtp,
-    signInWithGoogle,
-    signOut,
-    deleteAccount,
     exportProgressJSON,
     importProgressJSON,
+    resetLocalProgress,
     setRevealPinyin,
     setDailyGoalMinutes,
     setToast,
   } = useStore();
 
-  const [authStep, setAuthStep] = useState<'email' | 'code'>('email');
-  const [emailInput, setEmailInput] = useState('');
-  const [otpCode, setOtpCode] = useState('');
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authMsg, setAuthMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [resendTimer, setResendTimer] = useState(0);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 60-second cooldown timer for OTP resend
-  useEffect(() => {
-    if (resendTimer <= 0) return;
-    const interval = setInterval(() => {
-      setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [resendTimer]);
 
   const unlockedCount = ACHIEVEMENTS.filter(
     (a) => (stats.unlockedAchievements || []).includes(a.id) || a.check(stats)
   ).length;
-
-  const handleSendCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!emailInput.trim()) return;
-    setAuthLoading(true);
-    setAuthMsg(null);
-
-    const res = await requestEmailOtp(emailInput.trim());
-    setAuthLoading(false);
-    if (res.success) {
-      setAuthStep('code');
-      setResendTimer(60);
-      setAuthMsg({
-        type: 'success',
-        text: `We've sent a 6-digit verification code to ${emailInput.trim()}. Please enter it below.`,
-      });
-    } else {
-      setAuthMsg({ type: 'error', text: res.error || 'Failed to send verification code. Please try again.' });
-    }
-  };
-
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanCode = otpCode.trim().replace(/\D/g, '');
-    if (cleanCode.length !== 6) {
-      setAuthMsg({ type: 'error', text: 'Please enter a valid 6-digit verification code.' });
-      return;
-    }
-
-    setAuthLoading(true);
-    setAuthMsg(null);
-
-    const res = await verifyEmailOtp(emailInput.trim(), cleanCode);
-    setAuthLoading(false);
-    if (res.success) {
-      setAuthMsg(null);
-      setToast('Successfully signed in! Your progress is now synced to the cloud.');
-      setAuthStep('email');
-      setOtpCode('');
-    } else {
-      setAuthMsg({
-        type: 'error',
-        text: res.error || 'Invalid or expired verification code. Please check and try again.',
-      });
-    }
-  };
-
-  const handleResendCode = async () => {
-    if (resendTimer > 0 || !emailInput.trim()) return;
-    setAuthLoading(true);
-    setAuthMsg(null);
-
-    const res = await resendEmailOtp(emailInput.trim());
-    setAuthLoading(false);
-    if (res.success) {
-      setResendTimer(60);
-      setAuthMsg({
-        type: 'success',
-        text: `A new 6-digit code was sent to ${emailInput.trim()}.`,
-      });
-    } else {
-      setAuthMsg({ type: 'error', text: res.error || 'Failed to resend code.' });
-    }
-  };
-
-  const handleChangeEmail = () => {
-    setAuthStep('email');
-    setOtpCode('');
-    setAuthMsg(null);
-  };
-
-  const handleGoogleLogin = async () => {
-    setAuthLoading(true);
-    setAuthMsg(null);
-    const res = await signInWithGoogle();
-    setAuthLoading(false);
-    if (!res.success) {
-      setAuthMsg({ type: 'error', text: res.error || 'Google sign-in error.' });
-    }
-  };
 
   const handleExport = () => {
     const json = exportProgressJSON();
@@ -159,41 +47,39 @@ export default function ProfilePage() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `hanpath-progress-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    setToast('Progress backup exported successfully!');
+    setToast('Progress backup downloaded successfully!');
   };
 
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
-      if (content) {
-        const res = importProgressJSON(content);
-        if (res.success) {
-          setToast('Progress restored successfully!');
-        } else {
-          setToast(`Import failed: ${res.error}`);
-        }
+    reader.onload = (evt) => {
+      const content = evt.target?.result as string;
+      if (!content) return;
+      const res = importProgressJSON(content);
+      if (res.success) {
+        setToast('Progress restored successfully!');
+      } else {
+        setToast(res.error || 'Failed to restore backup.');
       }
     };
     reader.readAsText(file);
-    e.target.value = '';
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText.trim().toLowerCase() !== 'delete') return;
-    setIsDeleting(true);
-    const res = await deleteAccount();
-    setIsDeleting(false);
-    if (res.success) {
-      setShowDeleteModal(false);
-    } else {
-      setToast(res.error || 'Failed to delete account.');
-    }
+  const handleResetProgress = () => {
+    if (resetConfirmText.trim().toLowerCase() !== 'reset') return;
+    resetLocalProgress();
+    setShowResetModal(false);
+    setResetConfirmText('');
+    setToast('Progress has been reset to starting state.');
   };
 
   return (
@@ -214,190 +100,27 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h1 className="text-2xl font-bold font-display text-on-surface">
-                  {authSession.user?.email ? authSession.user.email.split('@')[0] : 'Scholar (Guest)'}
+                  Profile
                 </h1>
                 <p className="text-xs text-on-surface-variant">
                   Level {stats.level} • {stats.wordsLearned} Words Mastered
                 </p>
               </div>
 
-              {/* Sync Status Badge */}
+              {/* Local Storage Badge */}
               <div className="flex items-center justify-center sm:justify-start gap-2">
-                <div
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                    authSession.user
-                      ? syncStatus === 'error'
-                        ? 'bg-red-50 text-red-accessible border border-red-200'
-                        : 'bg-green-50 text-green-accessible border border-green-200'
-                      : 'bg-surface-container text-on-surface-variant border border-border'
-                  }`}
-                >
-                  {syncStatus === 'synced' ? (
-                    <CloudCheck className="w-4 h-4" />
-                  ) : syncStatus === 'syncing' ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : syncStatus === 'error' ? (
-                    <AlertCircle className="w-4 h-4" />
-                  ) : (
-                    <CloudOff className="w-4 h-4" />
-                  )}
-                  <span>
-                    {authSession.user
-                      ? syncStatus === 'syncing'
-                        ? 'Syncing...'
-                        : syncStatus === 'error'
-                        ? 'Sync Error'
-                        : 'Cloud Synced'
-                      : 'Guest Local Mode'}
-                  </span>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-accessible border border-green-200">
+                  <HardDrive className="w-4 h-4" />
+                  <span>Local Storage Active</span>
                 </div>
-
-                {authSession.user && (
-                  <button
-                    type="button"
-                    onClick={() => void performSync()}
-                    className="touch-target p-1.5 rounded-xl border border-border text-on-surface-variant hover:text-primary transition-colors"
-                    title="Manual Cloud Sync"
-                    aria-label="Manual Cloud Sync"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </button>
-                )}
               </div>
             </div>
 
-            {lastSyncTime && authSession.user && (
-              <p className="text-[11px] text-outline">Last synchronized at {lastSyncTime}</p>
-            )}
+            <p className="text-xs text-on-surface-variant leading-relaxed">
+              Your learning progress, flashcard SRS intervals, daily streak, and unlocked achievements are automatically saved directly to this browser and device.
+            </p>
           </div>
         </section>
-
-        {/* Authentication Card (If Guest) */}
-        {!authSession.user ? (
-          <section className="bg-primary-light/50 border border-primary/20 rounded-3xl p-6 space-y-4 shadow-xs">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-primary text-on-primary flex items-center justify-center shrink-0">
-                <Mail className="w-5 h-5" />
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-lg font-bold font-display text-primary">Enable Cloud Sync & 10x AI Quota</h2>
-                <p className="text-xs text-on-surface-variant leading-relaxed">
-                  Sign in with a 6-digit email code to automatically back up your learning progress across devices and
-                  increase your AI Language Tutor quota from 5 to 50 requests/day. Guest progress is safely merged!
-                </p>
-              </div>
-            </div>
-
-            {authMsg && (
-              <div
-                className={`p-3 rounded-2xl text-xs font-bold flex items-center gap-2 ${
-                  authMsg.type === 'success'
-                    ? 'bg-green-50 text-green-accessible border border-green-200'
-                    : 'bg-red-50 text-red-accessible border border-red-200'
-                }`}
-                role="alert"
-              >
-                {authMsg.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
-                <span>{authMsg.text}</span>
-              </div>
-            )}
-
-            {authStep === 'email' ? (
-              <form onSubmit={handleSendCode} className="flex flex-col sm:flex-row gap-2 pt-2">
-                <input
-                  type="email"
-                  required
-                  placeholder="Enter your email for 6-digit code..."
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  className="flex-1 bg-surface-card border border-border rounded-2xl px-4 py-3 text-sm focus:border-primary"
-                  aria-label="Email address for sign-in"
-                />
-                <button
-                  type="submit"
-                  disabled={authLoading || !emailInput.trim()}
-                  className="touch-target px-6 py-3 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark transition-all disabled:opacity-50"
-                >
-                  {authLoading ? 'Sending Code...' : 'Send Verification Code'}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyCode} className="space-y-3 pt-2">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    autoComplete="one-time-code"
-                    maxLength={6}
-                    required
-                    placeholder="Enter 6-digit code (e.g. 123456)"
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="flex-1 bg-surface-card border border-border rounded-2xl px-4 py-3 text-base font-mono tracking-widest text-center sm:text-left focus:border-primary"
-                    aria-label="6-digit verification code"
-                  />
-                  <button
-                    type="submit"
-                    disabled={authLoading || otpCode.trim().length !== 6}
-                    className="touch-target px-6 py-3 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-dark transition-all disabled:opacity-50"
-                  >
-                    {authLoading ? 'Verifying...' : 'Verify & Sign In'}
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between text-xs pt-1">
-                  <button
-                    type="button"
-                    onClick={handleChangeEmail}
-                    className="text-primary font-bold hover:underline"
-                  >
-                    Change Email ({emailInput})
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={resendTimer > 0 || authLoading}
-                    onClick={() => void handleResendCode()}
-                    className="text-on-surface-variant font-bold hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {resendTimer > 0 ? `Resend code in ${resendTimer}s` : 'Resend Code'}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            <div className="flex items-center gap-3 pt-2">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-[11px] font-bold text-outline uppercase">or</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={authLoading}
-              className="touch-target w-full py-3 bg-surface-card border border-border rounded-2xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center justify-center gap-2 shadow-xs"
-            >
-              <span>Continue with Google</span>
-            </button>
-          </section>
-        ) : (
-          <section className="bg-surface-card rounded-3xl p-6 border border-border shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold text-on-surface">Signed in as {authSession.user.email}</h2>
-              <p className="text-xs text-on-surface-variant">Cloud sync is active. 50 AI requests/day enabled.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="touch-target px-4 py-2.5 rounded-2xl border border-border font-bold text-xs text-on-surface-variant hover:text-primary flex items-center gap-1.5"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </button>
-          </section>
-        )}
 
         {/* Stats Grid */}
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -479,8 +202,8 @@ export default function ProfilePage() {
                 className="bg-surface-container border border-border rounded-xl px-3 py-1.5 text-xs font-bold text-on-surface"
                 aria-label="Pinyin display preference"
               >
-                <option value="always">Always Show</option>
-                <option value="peek">Tap to Peek</option>
+                <option value="always">Always Visible</option>
+                <option value="peek">Tap to Reveal (Peek)</option>
               </select>
             </div>
 
@@ -489,17 +212,16 @@ export default function ProfilePage() {
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-primary" />
                 <div>
-                  <div className="text-sm font-bold text-on-surface">Daily Study Target</div>
-                  <div className="text-xs text-on-surface-variant">Commitment goal per calendar day</div>
+                  <div className="text-sm font-bold text-on-surface">Daily Study Goal</div>
+                  <div className="text-xs text-on-surface-variant">Target practice time per day</div>
                 </div>
               </div>
               <select
                 value={stats.dailyGoalMinutes}
                 onChange={(e) => setDailyGoalMinutes(Number(e.target.value))}
                 className="bg-surface-container border border-border rounded-xl px-3 py-1.5 text-xs font-bold text-on-surface"
-                aria-label="Daily study goal"
+                aria-label="Daily study goal minutes"
               >
-                <option value={5}>5 Minutes</option>
                 <option value={10}>10 Minutes</option>
                 <option value={15}>15 Minutes</option>
                 <option value={20}>20 Minutes</option>
@@ -511,7 +233,7 @@ export default function ProfilePage() {
 
         {/* Data Rights & Progress Management */}
         <section className="bg-surface-card rounded-3xl p-6 border border-border shadow-xs space-y-4">
-          <h2 className="text-lg font-bold font-display text-primary">Data Management & Privacy</h2>
+          <h2 className="text-lg font-bold font-display text-primary">Data Management & Backup</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
@@ -557,16 +279,14 @@ export default function ProfilePage() {
               <span>Attribution & Open Source Licenses</span>
             </NavLink>
 
-            {authSession.user && (
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(true)}
-                className="text-xs font-bold text-red-accessible hover:underline flex items-center gap-1.5"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Delete Account & Data</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowResetModal(true)}
+              className="text-xs font-bold text-red-accessible hover:underline flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Reset Local Progress</span>
+            </button>
           </div>
         </section>
 
@@ -604,50 +324,49 @@ export default function ProfilePage() {
         </section>
       </main>
 
-      {/* Account Deletion Confirmation Modal */}
-      {showDeleteModal && (
+      {/* Progress Reset Confirmation Modal */}
+      {showResetModal && (
         <div
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="delete-dialog-title"
+          aria-labelledby="reset-dialog-title"
         >
           <div className="bg-surface-card rounded-3xl p-6 max-w-md w-full border border-border shadow-2xl space-y-4">
             <div className="flex items-center gap-3 text-red-accessible">
-              <Trash2 className="w-6 h-6" />
-              <h3 id="delete-dialog-title" className="text-xl font-bold font-display">
-                Delete Account & Progress?
+              <RotateCcw className="w-6 h-6" />
+              <h3 id="reset-dialog-title" className="text-xl font-bold font-display">
+                Reset Local Progress?
               </h3>
             </div>
             <p className="text-xs text-on-surface-variant leading-relaxed">
-              This action is permanent and irreversible. It will immediately purge your cloud account, progress
-              snapshots, and AI quota history.
+              This will reset your completed lessons, SRS flashcards, XP, and streak back to the initial state. You can export a backup first if you want to keep your data.
             </p>
             <p className="text-xs font-bold text-on-surface">
-              Type <span className="font-mono text-red-accessible">DELETE</span> below to confirm:
+              Type <span className="font-mono text-red-accessible">RESET</span> below to confirm:
             </p>
             <input
               type="text"
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder="DELETE"
+              value={resetConfirmText}
+              onChange={(e) => setResetConfirmText(e.target.value)}
+              placeholder="RESET"
               className="w-full bg-surface-container border border-border rounded-xl px-4 py-2.5 text-sm font-mono"
             />
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setShowDeleteModal(false)}
+                onClick={() => setShowResetModal(false)}
                 className="touch-target flex-1 py-2.5 rounded-xl border border-border font-bold text-xs text-on-surface-variant"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                disabled={deleteConfirmText.trim().toLowerCase() !== 'delete' || isDeleting}
-                onClick={() => void handleDeleteAccount()}
+                disabled={resetConfirmText.trim().toLowerCase() !== 'reset'}
+                onClick={handleResetProgress}
                 className="touch-target flex-1 py-2.5 rounded-xl bg-red-accessible text-white font-bold text-xs shadow-md disabled:opacity-50"
               >
-                {isDeleting ? 'Deleting...' : 'Permanently Delete'}
+                Reset Progress
               </button>
             </div>
           </div>

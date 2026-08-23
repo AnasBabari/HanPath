@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { path: '/practice', label: 'Practice Hub', icon: Dumbbell },
   { path: '/stories', label: 'Graded Stories', icon: BookOpen },
   { path: '/chat', label: 'AI Language Tutor', icon: Sparkles },
-  { path: '/profile', label: 'Scholar Profile', icon: User },
+  { path: '/profile', label: 'Profile', icon: User },
 ];
 
 export default function SidebarNav() {

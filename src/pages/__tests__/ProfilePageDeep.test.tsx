@@ -34,48 +34,22 @@ describe('ProfilePage Deep Feature Coverage', () => {
     });
   });
 
-  it('handles email OTP submit', async () => {
-    const requestEmailOtpMock = vi.fn().mockResolvedValue({ success: true });
-    useStore.setState({
-      requestEmailOtp: requestEmailOtpMock,
-    });
-
+  it('changes daily study goal minutes', () => {
     render(
       <MemoryRouter>
         <ProfilePage />
       </MemoryRouter>
     );
 
-    // Type email and submit
-    const emailInput = screen.getByLabelText('Email address for sign-in');
-    fireEvent.change(emailInput, { target: { value: 'learner@example.com' } });
-
-    const sendBtn = screen.getByText('Send Verification Code');
-    fireEvent.click(sendBtn);
-
-    expect(requestEmailOtpMock).toHaveBeenCalledWith('learner@example.com');
-  });
-
-  it('toggles sound effects and daily study goal', () => {
-    render(
-      <MemoryRouter>
-        <ProfilePage />
-      </MemoryRouter>
-    );
-
-    const goalSelect = screen.getByLabelText('Daily study goal');
+    const goalSelect = screen.getByLabelText('Daily study goal minutes');
     fireEvent.change(goalSelect, { target: { value: '20' } });
 
     expect(useStore.getState().snapshot.preferences.dailyGoalMinutes).toBe(20);
   });
 
-  it('triggers delete account modal and handles cancellation for authenticated user', () => {
-    useStore.setState({
-      authSession: {
-        user: { id: 'test-user-uuid', email: 'user@example.com' },
-        token: 'mock-jwt-token',
-      },
-    });
+  it('changes pinyin visibility preference', () => {
+    const setRevealPinyinMock = vi.fn();
+    useStore.setState({ setRevealPinyin: setRevealPinyinMock });
 
     render(
       <MemoryRouter>
@@ -83,14 +57,27 @@ describe('ProfilePage Deep Feature Coverage', () => {
       </MemoryRouter>
     );
 
-    const deleteBtn = screen.getByText('Delete Account & Data');
-    fireEvent.click(deleteBtn);
+    const pinyinSelect = screen.getByLabelText('Pinyin display preference');
+    fireEvent.change(pinyinSelect, { target: { value: 'peek' } });
 
-    expect(screen.getByText('Delete Account & Progress?')).toBeInTheDocument();
+    expect(setRevealPinyinMock).toHaveBeenCalledWith('peek');
+  });
+
+  it('triggers reset progress modal and handles cancellation', () => {
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    );
+
+    const resetBtn = screen.getByText('Reset Local Progress');
+    fireEvent.click(resetBtn);
+
+    expect(screen.getByText('Reset Local Progress?')).toBeInTheDocument();
 
     const cancelBtn = screen.getByText('Cancel');
     fireEvent.click(cancelBtn);
 
-    expect(screen.queryByText('Delete Account & Progress?')).not.toBeInTheDocument();
+    expect(screen.queryByText('Reset Local Progress?')).not.toBeInTheDocument();
   });
 });
