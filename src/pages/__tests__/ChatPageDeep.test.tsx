@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ChatPage from '../ChatPage';
 import { useStore, deriveUserStats } from '../../store/useStore';
@@ -59,11 +59,13 @@ describe('ChatPage Deep Messaging Coverage', () => {
       </MemoryRouter>
     );
 
-    useStore.setState({
-      chatHistory: [
-        { id: 'm1', role: 'user', content: 'Question' },
-        { id: 'm2', role: 'model', content: 'Answer' },
-      ],
+    act(() => {
+      useStore.setState({
+        chatHistory: [
+          { id: 'm1', role: 'user', content: 'Question' },
+          { id: 'm2', role: 'model', content: 'Answer' },
+        ],
+      });
     });
 
     const clearBtn = await screen.findByTitle('Clear Chat History');

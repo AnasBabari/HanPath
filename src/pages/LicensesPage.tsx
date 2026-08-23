@@ -32,10 +32,12 @@ export default function LicensesPage() {
             <h2 className="text-xl font-bold font-display">HSK 3.0 Curriculum Attribution</h2>
           </div>
           <p className="text-on-surface-variant text-sm leading-relaxed">
-            HànPath curriculum aligns with the <strong>2021 HSK 3.0 Proficiency Standards</strong> referencing the syllabus from Chinese Testing International (CTI / CLEC).
+            HànPath uses a <strong>community-curated, HSK 3.0-aligned vocabulary build</strong> based on the pinned upstream v1.4 release and HanPath pedagogical corrections. It is not an official CTI/CLEC publication.
           </p>
           <div className="bg-surface-container rounded-xl p-4 text-xs font-mono space-y-2 text-on-surface-variant">
             <div><strong>Standard:</strong> {meta.standard} (Levels 1–2)</div>
+            <div><strong>Dataset status:</strong> {meta.datasetStatus}</div>
+            <div><strong>Upstream release:</strong> {meta.upstreamRelease}</div>
             <div><strong>HSK 1 Vocabulary:</strong> {meta.counts.hsk1} words</div>
             <div><strong>HSK 2 Vocabulary:</strong> {meta.counts.hsk2} words</div>
             <div><strong>Cumulative Words:</strong> {meta.counts.cumulative} words</div>
@@ -54,6 +56,7 @@ export default function LicensesPage() {
               drkameleon/complete-hsk-vocabulary <ExternalLink className="w-3 h-3" />
             </a>.
           </p>
+          <p className="text-xs text-on-surface-variant">{meta.provenanceNotice}</p>
         </section>
 
         {/* Open Source Licenses */}

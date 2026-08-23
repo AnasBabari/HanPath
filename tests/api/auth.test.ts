@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { resolveIdentity } from './_lib/auth';
-import { signGuestId, verifyGuestId } from './_lib/guest';
+import { resolveIdentity } from '../../api/_lib/auth.js';
+import { signGuestId, verifyGuestId } from '../../api/_lib/guest.js';
 
-vi.mock('./_lib/supabaseAdmin', () => ({
+vi.mock('../../api/_lib/supabaseAdmin.js', () => ({
   getSupabaseAdmin: vi.fn(),
 }));
 
-import { getSupabaseAdmin } from './_lib/supabaseAdmin';
+import { getSupabaseAdmin } from '../../api/_lib/supabaseAdmin.js';
 
 describe('Authentication & Guest Identity Boundary', () => {
   const originalEnv = { ...process.env };
@@ -57,7 +57,25 @@ describe('Authentication & Guest Identity Boundary', () => {
       const identity = await resolveIdentity('Bearer expired-or-invalid-token', null);
       expect(identity.type).toBe('unauthorized');
       expect(identity.userId).toBeNull();
-      expect(identity.error).toContain('JWT expired');
+      expect(identity.error).toBe('Invalid or expired bearer token');
+    });
+
+    it('returns unavailable when the authentication client is not configured', async () => {
+      vi.mocked(getSupabaseAdmin).mockReturnValue(null);
+
+      const identity = await resolveIdentity('Bearer valid-looking-token', null);
+      expect(identity.type).toBe('unavailable');
+      expect(identity.error).toBe('Authentication service is temporarily unavailable');
+    });
+
+    it('returns unavailable without exposing provider errors when verification throws', async () => {
+      vi.mocked(getSupabaseAdmin).mockReturnValue({
+        auth: { getUser: vi.fn().mockRejectedValue(new Error('private provider detail')) },
+      } as any);
+
+      const identity = await resolveIdentity('Bearer valid-looking-token', null);
+      expect(identity.type).toBe('unavailable');
+      expect(identity.error).not.toContain('private provider detail');
     });
 
     it('resolves authenticated user identity when valid bearer token is provided', async () => {
@@ -105,6 +123,18 @@ describe('Authentication & Guest Identity Boundary', () => {
 
       process.env.GUEST_COOKIE_SECRET = 'too-short-secret';
       expect(() => signGuestId('test-uuid')).toThrowError(/at least 32 characters/);
+    });
+
+    it('derives a stable, opaque network fingerprint only when an IP is available', async () => {
+      process.env.GUEST_COOKIE_SECRET = 'a-secure-test-secret-that-is-long-enough';
+      const first = await resolveIdentity(null, null, '203.0.113.42', 'test-agent');
+      const sameSubnet = await resolveIdentity(null, null, '203.0.113.99', 'test-agent');
+      const noIp = await resolveIdentity(null, null, null, 'test-agent');
+
+      expect(first.fingerprint).toMatch(/^[a-f0-9]{64}$/);
+      expect(sameSubnet.fingerprint).toBe(first.fingerprint);
+      expect(noIp.fingerprint).toBeUndefined();
+      expect(first.fingerprint).not.toContain('203.0.113');
     });
   });
 });

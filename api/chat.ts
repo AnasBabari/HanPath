@@ -10,6 +10,10 @@ import type {
 import { resolveIdentity } from './_lib/auth.js';
 import { checkAndRecordQuota, QuotaStoreUnavailableError } from './_lib/quota.js';
 import { callOpenRouterWithFallback } from './_lib/openRouter.js';
+import { isAllowedOrigin } from './_lib/origin.js';
+import { isJsonContentType } from './_lib/contentType.js';
+
+export { isAllowedOrigin } from './_lib/origin.js';
 
 const MAX_MESSAGES = 10;
 const MAX_MSG_CHARS = 1000;
@@ -39,26 +43,6 @@ function readBody(req: IncomingMessage): Promise<string> {
     req.on('end', () => resolve(body));
     req.on('error', reject);
   });
-}
-
-export function isAllowedOrigin(origin?: string | null): boolean {
-  if (!origin) return true; // Server-side tests, local runners, curl
-
-  if (process.env.APP_ORIGIN && origin === process.env.APP_ORIGIN) {
-    return true;
-  }
-
-  // Allow localhost & 127.0.0.1 on any port
-  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-    return true;
-  }
-
-  // Allow specific HanPath production and preview domains
-  if (/^https:\/\/(hanpath|han-path)(-[a-zA-Z0-9_-]+)?\.vercel\.app$/.test(origin)) {
-    return true;
-  }
-
-  return false;
 }
 
 export function validateChatPayload(raw: unknown): {
@@ -204,8 +188,7 @@ export default async function handler(
   }
 
   // Content-Type validation (must be present and must be application/json)
-  const contentType = req.headers['content-type'];
-  if (!contentType || !contentType.toLowerCase().includes('application/json')) {
+  if (!isJsonContentType(req.headers['content-type'])) {
     res.statusCode = 415;
     const err: ChatErrorResponse = {
       error: { code: 'unsupported_media_type', message: 'Content-Type must be application/json', retryable: false },
@@ -309,10 +292,6 @@ export default async function handler(
 
     identityType = identity.type;
 
-    if (identity.fingerprint) {
-      res.setHeader('x-client-fp', identity.fingerprint);
-    }
-
     if (identity.type === 'unauthorized') {
       res.statusCode = 401;
       const err: ChatErrorResponse = {
@@ -335,6 +314,28 @@ export default async function handler(
       return;
     }
 
+    if (identity.type === 'unavailable') {
+      res.statusCode = 503;
+      const err: ChatErrorResponse = {
+        error: {
+          code: 'service_unavailable',
+          message: 'Authentication service is temporarily unavailable.',
+          retryable: true,
+        },
+        requestId,
+      };
+      logStructured({
+        requestId,
+        endpoint: '/api/chat',
+        identityType,
+        status: 503,
+        latencyMs: Date.now() - startTime,
+        errorCode: 'service_unavailable',
+      });
+      res.end(JSON.stringify(err));
+      return;
+    }
+
     if (identity.guestCookieHeader) {
       res.setHeader('Set-Cookie', identity.guestCookieHeader);
     }
@@ -343,7 +344,7 @@ export default async function handler(
     const isGuest = identity.type === 'guest';
     let quota;
     try {
-      quota = await checkAndRecordQuota(identity.identifier, isGuest);
+      quota = await checkAndRecordQuota(identity.identifier, isGuest, identity.fingerprint);
     } catch (quotaErr: unknown) {
       if (quotaErr instanceof QuotaStoreUnavailableError) {
         res.statusCode = 503;

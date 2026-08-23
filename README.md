@@ -2,7 +2,7 @@
   <img src="public/favicon.svg" alt="HànPath Logo" width="80" height="80" />
   <h1>汉路 HànPath</h1>
   
-  <p><strong>A modern, production-hardened Chinese learning platform with official HSK 3.0 curriculum, spaced repetition (SRS), graded stories, and pedagogical AI tutoring.</strong></p>
+  <p><strong>A modern Chinese learning platform with community-curated HSK 3.0-aligned vocabulary, spaced repetition (SRS), graded stories, and pedagogical AI tutoring.</strong></p>
 
   <p>
     <a href="https://han-path.vercel.app">🚀 View Live App</a> •
@@ -20,13 +20,13 @@
 
 **HànPath** is built for learners mastering Mandarin Chinese with structural rigor, high performance, and offline resilience.
 
-- 📚 **HSK 3.0 Standard (2021):** 500 HSK 1 words and 750 HSK 2 words (1,250 cumulative vocabulary items) pre-bundled with pinyin, English definitions, and interactive stroke order animations referencing the CTI syllabus and normalized under MIT License.
+- 📚 **HSK 3.0-aligned vocabulary:** all 506 level-1 and 750 level-2 entries (1,256 cumulative) from the pinned upstream v1.4 lists, with HanPath pedagogical corrections, pinyin, English definitions, and stroke-order practice.
 - 📖 **16 Graded Stories:** 8 coherent narrative stories per level with tokenized glosses, character popups, and pinyin assistance.
 - 🤖 **Pedagogical AI Language Buddy:** Serverless OpenRouter proxy with fallback routing, strict server-authored system prompts, and context isolation.
 - ⚡ **Optimistic Concurrency & Local-First Sync:** Version-conditioned atomic cloud sync with guest-to-cloud merge, full offline persistence, and export/restore capabilities.
 - 🔐 **Local-First & Cloud Auth:** Automatic local device/browser storage persistence with optional 6-digit email One-Time Passcode (OTP) for multi-device sync.
 - ⚡ **Ultra-Fast Performance:** Initial page-load bundle budget strictly enforced at **<= 130 KB gzip** with dynamic code-splitting.
-- ♿ **Accessibility (a11y):** Accessible UI designed according to WCAG 2.2 AA standards and tested with axe-core audits and keyboard navigation.
+- ♿ **Accessibility (a11y):** Automated jsdom and real-browser axe-core checks plus keyboard-navigation coverage. These checks reduce risk but are not a formal WCAG conformance certification.
 
 ---
 
@@ -39,7 +39,7 @@ Browser Client (React 19 + Vite 8 + Zustand)
   ├─ Local Storage (Strict ProgressSnapshotV4 & SRS Scheduling)
   ├─ /api/chat     ──> Serverless Vercel Function ──> OpenRouter Free Model Fallbacks
   ├─ /api/progress ──> Serverless Vercel Function ──> Supabase Postgres (RPC version predicate)
-  ├─ /api/account  ──> Serverless Vercel Function ──> Supabase Admin API (Atomic user deletion)
+  ├─ /api/account  ──> Serverless Vercel Function ──> Supabase Auth + PostgreSQL FK cascades
   └─ /api/health   ──> Serverless Vercel Function ──> Health & Readiness Probe
 ```
 
@@ -52,12 +52,12 @@ Browser Client (React 19 + Vite 8 + Zustand)
 
 2. **Atomic Cloud Sync & Version Predicate**
    - Progress uses a strict, versioned snapshot schema (`ProgressSnapshotV4`).
-   - Mutations are committed locally immediately, then synchronized via `POST /api/progress` using version-conditioned atomic updates (`WHERE version = :expected_version`).
+   - Mutations are committed locally immediately, then synchronized via `PUT /api/progress` using a version-conditioned PostgreSQL RPC.
    - Conflicts return HTTP 409 with the current server envelope, enabling seamless client-side merging.
 
 3. **Secured AI Chat Proxy**
    - Browser client never holds OpenRouter API keys.
-   - 100% server-authored pedagogical system prompts prevent prompt injection.
+   - Server-authored pedagogical system prompts and constrained context reduce prompt-injection exposure.
    - Untrusted exercise context is segregated into dedicated structured messages.
    - 15-second total timeout deadline across all fallback models (`qwen3-4b`, `qwen3-coder`, `llama-3.2-3b`, `trinity-large`).
    - Strict origin validation, `application/json` Content-Type enforcement, and payload size bounds (max 10 messages, max 6,000 total characters).
@@ -65,25 +65,25 @@ Browser Client (React 19 + Vite 8 + Zustand)
 4. **Distributed Quota Management**
    - Guests: 5 requests / day.
    - Authenticated: 50 requests / day.
-   - Backed by atomic Postgres RPC `increment_ai_quota`. In production, failures fail closed (HTTP 503) to protect upstream providers.
+   - Backed by the atomic Postgres RPC `record_and_check_ai_quota`. Guests also receive a privacy-preserving subnet/user-agent HMAC quota bucket to limit cookie rotation. Production storage failures fail closed with HTTP 503.
 
 ---
 
 ## 📚 Curriculum & Stories Provenance
 
-- **Curriculum Standard:** Ministry of Education PRC GF0025-2021 Standard (*Chinese Proficiency Grading Standards for International Chinese Language Education*), referencing Chinese Testing International ([CTI HSK Syllabus](https://www.chinesetest.cn/HSK)).
-- **Normalized Dataset Source:** Curated via `drkameleon/complete-hsk-vocabulary` (pinned release commit `7ac65bf1a6387d35f1ade478906172a19311c7f9`) with custom HanPath pedagogical beginner overrides.
-- **Exact Counts:** Exactly **500 HSK 1** words and **750 HSK 2** words (1,250 cumulative).
-- **Integrity Checksum:** Validated against canonical SHA-256 hash `d849d1b2fa9e5afb6893db185507e68d205177e90a7aae66ce689d4f6c399acc`.
+- **Status:** Community-curated, HSK 3.0-aligned learning content—not an official CTI/CLEC publication or certification.
+- **Normalized Dataset Source:** `drkameleon/complete-hsk-vocabulary` release v1.4, pinned to commit `7ac65bf1a6387d35f1ade478906172a19311c7f9`, with HanPath pedagogical overrides. The upstream release describes these lists as aligned to the 2026 examination syllabus; GF0025-2021 and the [CTI HSK site](https://www.chinesetest.cn/HSK) are reference standards.
+- **Exact Pinned Counts:** **506 level-1** entries and **750 level-2** entries (1,256 cumulative); the generator fails if the immutable source does not match.
+- **Integrity Checksum:** A deterministic SHA-256 checksum is embedded in and verified against the generated artifact.
 - **License:** MIT License.
-- **Graded Stories:** 8 original stories for HSK 1 and 8 original stories for HSK 2 (16 total), structurally validated with automated tokenization and HSK-level vocabulary bounds.
+- **Graded Stories:** 8 stories per level (16 total), with curriculum words verified against the generated artifact and a bounded set of explicitly marked, individually glossed support words. Automated review metadata does not imply external human editorial certification.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js `20.x` or later
+- Node.js `24.x`
 - npm `10.x` or later
 
 ### 1. Installation & Local Development
@@ -118,7 +118,7 @@ APP_ORIGIN=https://your-production-app.vercel.app
 
 ## 🧪 Testing & Quality Gates
 
-The project maintains 100% passing quality gates across all functional and security vectors:
+The required CI gates cover linting, type checks, unit/API tests, coverage, build and bundle budgets, PostgreSQL migration execution, browser E2E, accessibility smoke checks, and dependency audit:
 
 ```bash
 # Run all quality checks (TypeScript, lint, all test suites, bundle budget)
@@ -133,6 +133,12 @@ npm run test:coverage
 # Run axe-core accessibility tests
 npm run test:a11y
 
+# Run API-focused tests
+npm run test:api
+
+# Build and run real-browser journeys
+npm run test:e2e
+
 # Run production bundle size audit (Budget: <= 130 KB gzip initial JS)
 npm run check:bundle
 ```
@@ -143,7 +149,9 @@ npm run check:bundle
 
 Database schemas and stored procedures are organized in `supabase/migrations/`:
 1. `20260822000001_initial_schema.sql`: Initial `user_progress` and `ai_usage` tables with Row Level Security.
-2. `20260822000002_atomic_progress_and_deletion.sql`: Atomic version-conditioned updates, RPC quota counters, and cascade deletion policies.
+2. `20260822000002_atomic_progress_and_deletion.sql`: Version-conditioned progress and legacy deletion functions.
+3. `20260822140000_secure_user_functions.sql`: Fixed search paths and service-role-only stored procedures.
+4. `20260822160000_atomic_auth_cascade_deletion.sql`: Validated Auth foreign-key cascades, authenticated quota ownership, and removal of the unsafe two-step deletion function.
 
 ---
 

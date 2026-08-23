@@ -92,6 +92,74 @@ describe('ExerciseRunner Full Exercise Types Coverage', () => {
     fireEvent.click(continueBtn);
 
     // Pinyin typing exercise mounts
-    expect(await screen.findByPlaceholderText(/Type Pinyin/i)).toBeInTheDocument();
+    const pinyinInput = await screen.findByPlaceholderText(/Type Pinyin/i);
+    fireEvent.change(pinyinInput, { target: { value: 'ni' } });
+    fireEvent.keyDown(pinyinInput, { key: 'Enter' });
+    expect(await screen.findByText('Excellent! 🎉')).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: ' ' });
+
+    // Complete the tile builder in answer order and finish the lesson.
+    const niTile = await screen.findByRole('button', { name: '你' });
+    fireEvent.click(niTile);
+    fireEvent.click(screen.getByRole('button', { name: '好' }));
+    fireEvent.click(screen.getByText('Check Answer'));
+    fireEvent.click(await screen.findByText('Continue'));
+
+    expect(onWordResult).toHaveBeenCalledWith('hsk1-1', true);
+    expect(onComplete).toHaveBeenCalledWith(2, 3);
+  });
+
+  it('handles a correct reading choice, keyboard advance, and explicit exit', async () => {
+    const onComplete = vi.fn();
+    const onExit = vi.fn();
+    const lesson: Lesson = {
+      ...fullLesson,
+      exercises: [{
+        id: 'reading',
+        type: 'reading-meaning',
+        prompt: '你',
+        options: ['you', 'me'],
+        answer: 'you',
+        wordId: 'hsk1-1',
+      }],
+    };
+
+    render(<ExerciseRunner lesson={lesson} onComplete={onComplete} onExit={onExit} />);
+    fireEvent.click(screen.getByLabelText('Exit exercise'));
+    expect(onExit).toHaveBeenCalled();
+
+    fireEvent.keyDown(window, { key: '1' });
+    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.click(await screen.findByText('Continue'));
+    expect(onComplete).toHaveBeenCalledWith(1, 1);
+  });
+
+  it('clears pending feedback timers when the runner unmounts', () => {
+    vi.useFakeTimers();
+    try {
+      const lesson: Lesson = {
+        ...fullLesson,
+        exercises: [{
+          id: 'reading-timer-cleanup',
+          type: 'reading-meaning',
+          prompt: '你',
+          options: ['you', 'me'],
+          answer: 'you',
+          wordId: 'hsk1-1',
+        }],
+      };
+
+      const { unmount } = render(
+        <ExerciseRunner lesson={lesson} onComplete={vi.fn()} onExit={vi.fn()} />
+      );
+      fireEvent.click(screen.getByText('you'));
+      fireEvent.click(screen.getByRole('button', { name: 'Check Answer' }));
+
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+      unmount();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

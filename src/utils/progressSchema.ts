@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { ProgressSnapshotV4 } from '../types';
+import type { ProgressSnapshotV4 } from '../types/index.js';
 
 export const WordAccuracySchema = z
   .object({

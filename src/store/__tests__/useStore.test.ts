@@ -69,6 +69,9 @@ describe('Zustand App State Store (v4 Progress Architecture)', () => {
     expect(state.stats.totalCorrect).toBe(5);
     expect(state.stats.totalAttempted).toBe(5);
     expect(state.stats.totalXP).toBe(5 * 10 + 25); // 75 XP
+    expect(Object.keys(state.snapshot.wordSRS)).toEqual(['w1', 'w2']);
+    expect(state.snapshot.wordSRS.w1.nextReviewDate).toBe(new Date().toISOString().split('T')[0]);
+    expect(state.snapshot.wordSRS.w1.repetitions).toBe(0);
     expect(state.isDirty).toBe(true);
   });
 

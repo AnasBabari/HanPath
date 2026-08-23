@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import handler from './progress.js';
-import * as authLib from './_lib/auth.js';
-import * as dbLib from './_lib/supabaseAdmin.js';
+import handler from '../../api/progress.js';
+import * as authLib from '../../api/_lib/auth.js';
+import * as dbLib from '../../api/_lib/supabaseAdmin.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
 
@@ -11,7 +11,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-import { createDefaultProgressSnapshotV4 } from '../src/utils/progressSchema.js';
+import { createDefaultProgressSnapshotV4 } from '../../src/utils/progressSchema.js';
 
 const sampleSnapshot = createDefaultProgressSnapshotV4();
 sampleSnapshot.hskLevelProgress[1].completedLessons = ['hsk1-l1'];
@@ -79,6 +79,22 @@ describe('API /api/progress Integration Suite', () => {
     expect(res.statusCode).toBe(401);
     const parsed = JSON.parse(getResponseData());
     expect(parsed.error).toContain('Unauthorized');
+  });
+
+  it('returns 503 when authentication infrastructure is unavailable', async () => {
+    vi.spyOn(authLib, 'resolveIdentity').mockResolvedValue({
+      type: 'unavailable',
+      userId: null,
+      identifier: '',
+      guestCookieHeader: null,
+      error: 'Authentication service is temporarily unavailable',
+    });
+
+    const { runPromise, res, getResponseData } = createMockReqRes('GET');
+    await runPromise;
+
+    expect(res.statusCode).toBe(503);
+    expect(JSON.parse(getResponseData()).error).toContain('temporarily unavailable');
   });
 
   it('returns 503 when Supabase administrator client is unavailable', async () => {

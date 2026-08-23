@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import handler, { validateChatPayload, isAllowedOrigin } from './chat.js';
-import { signGuestId } from './_lib/guest.js';
+import handler, { validateChatPayload, isAllowedOrigin } from '../../api/chat.js';
+import { signGuestId } from '../../api/_lib/guest.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
 
@@ -57,12 +57,19 @@ describe('POST /api/chat Serverless Handler', () => {
     expect(isAllowedOrigin(null)).toBe(true);
     expect(isAllowedOrigin('http://localhost:5173')).toBe(true);
     expect(isAllowedOrigin('http://127.0.0.1:4173')).toBe(true);
+    expect(isAllowedOrigin('https://hanpath.vercel.app')).toBe(false);
+    vi.stubEnv('APP_ORIGIN', 'https://hanpath.vercel.app');
+    vi.stubEnv('VERCEL_URL', 'hanpath-preview-123.vercel.app');
     expect(isAllowedOrigin('https://hanpath.vercel.app')).toBe(true);
-    expect(isAllowedOrigin('https://han-path.vercel.app')).toBe(true);
     expect(isAllowedOrigin('https://hanpath-preview-123.vercel.app')).toBe(true);
-    expect(isAllowedOrigin('https://han-path-preview-123.vercel.app')).toBe(true);
+    expect(isAllowedOrigin('https://hanpath-attacker-preview.vercel.app')).toBe(false);
     expect(isAllowedOrigin('https://malicious-app.vercel.app')).toBe(false);
     expect(isAllowedOrigin('https://evil.com')).toBe(false);
+  });
+
+  it('does not allow localhost origins in production', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    expect(isAllowedOrigin('http://localhost:5173')).toBe(false);
   });
 
   it('rejects requests with missing Content-Type header with 415', async () => {
@@ -140,6 +147,7 @@ describe('POST /api/chat Serverless Handler', () => {
     expect(res.statusCode).toBe(200);
     expect(headersMap['set-cookie']).toBeDefined();
     expect(headersMap['set-cookie']).toContain('hanpath_guest_id=');
+    expect(headersMap['x-client-fp']).toBeUndefined();
 
     const response = JSON.parse(getResponseData());
     expect(response.message).toBe('你好！(nǐ hǎo - Hello!)');

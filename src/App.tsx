@@ -129,6 +129,15 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-surface text-on-surface">
+      {showChrome && (
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-on-primary focus:rounded-xl focus:shadow-lg focus:font-bold text-sm"
+        >
+          Skip to main content
+        </a>
+      )}
+
       {toast && <AchievementToast id={toast} onDone={() => setToast(null)} />}
 
       {/* Desktop Sidebar Navigation */}

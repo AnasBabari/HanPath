@@ -215,10 +215,26 @@ export const useStore = create<AppState>((set, get) => ({
 
   clearChatHistory: () => set({ chatHistory: [] }),
 
-  completeLesson: (lessonId, correct, total = 10) => {
+  completeLesson: (lessonId, correct, total = 10, flatLessons = []) => {
     const state = get();
     const currentHsk = state.hskLevel;
-    const todayStr = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const completedLesson = flatLessons.find((lesson) => lesson.id === lessonId);
+    const seededWordSRS = { ...state.snapshot.wordSRS };
+
+    for (const word of completedLesson?.vocab || []) {
+      if (!seededWordSRS[word.id]) {
+        seededWordSRS[word.id] = {
+          wordId: word.id,
+          easeFactor: 2.5,
+          interval: 0,
+          repetitions: 0,
+          nextReviewDate: todayStr,
+          updatedAt: now.toISOString(),
+        };
+      }
+    }
 
     const currentLessons = state.snapshot.hskLevelProgress[currentHsk]?.completedLessons || [];
     const isNewLesson = !currentLessons.includes(lessonId);
@@ -234,6 +250,7 @@ export const useStore = create<AppState>((set, get) => ({
         [currentHsk]: { completedLessons: updatedLessons },
       },
       studyDays,
+      wordSRS: seededWordSRS,
       stats: {
         ...state.snapshot.stats,
         totalXP: (state.snapshot.stats.totalXP || 0) + xpEarned,

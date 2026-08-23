@@ -7,14 +7,6 @@ export default function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-border px-4 py-3">
-      {/* Skip to Main Content Link for A11y */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-on-primary focus:rounded-xl focus:shadow-lg focus:font-bold text-sm"
-      >
-        Skip to main content
-      </a>
-
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         {/* Mobile Logo / Brand */}
         <div className="flex md:hidden items-center gap-2">

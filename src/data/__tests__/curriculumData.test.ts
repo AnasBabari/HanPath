@@ -15,6 +15,9 @@ interface SentenceItem {
 
 interface CurriculumArtifact {
   standard: string;
+  datasetStatus: string;
+  upstreamRelease: string;
+  provenanceNotice: string;
   syllabusReference: string;
   normalizedDatasetSource: string;
   pinnedCommit: string;
@@ -42,13 +45,16 @@ describe('Curriculum Data Integrity & Provenance Validation', () => {
     const raw = fs.readFileSync(filePath, 'utf8');
     const artifact = JSON.parse(raw) as CurriculumArtifact;
 
-    expect(artifact.standard).toBe('HSK-3.0-2021');
+    expect(artifact.standard).toBe('HSK-3.0-aligned-v1.4');
+    expect(artifact.datasetStatus).toBe('community-curated');
+    expect(artifact.upstreamRelease).toBe('v1.4');
+    expect(artifact.provenanceNotice).toContain('not an official');
     expect(artifact.syllabusReference).toBe('https://www.chinesetest.cn/HSK');
     expect(artifact.pinnedCommit).toBe('7ac65bf1a6387d35f1ade478906172a19311c7f9');
     expect(artifact.license).toBe('MIT');
-    expect(artifact.counts.hsk1).toBe(500);
+    expect(artifact.counts.hsk1).toBe(506);
     expect(artifact.counts.hsk2).toBe(750);
-    expect(artifact.counts.cumulative).toBe(1250);
+    expect(artifact.counts.cumulative).toBe(1256);
 
     // Validate SHA256 integrity
     const copy = { ...artifact, sha256: undefined };
@@ -156,6 +162,15 @@ describe('Curriculum Data Integrity & Provenance Validation', () => {
     const dou = findWord('都');
     expect(dou).toBeDefined();
     expect(dou?.pinyin).toBe('dōu');
+
+    expect(findWord('考')?.meanings[0]).toContain('test');
+    expect(findWord('腿')?.meanings).toContain('leg');
+    expect(findWord('药')?.meanings[0]).toContain('medicine');
+
+    const unsuitable = /(hip bone|leaf of the iris|official responsible for arranging audiences|erhua variant|abbr\. for|variant of|euphemism|\(vulgar\)|\bvulgar\b|\(archaic\)|\(old\))/i;
+    for (const w of allWords) {
+      expect(w.meanings.join(' '), `${w.hanzi} should not expose an obscure beginner definition`).not.toMatch(unsuitable);
+    }
 
     // Ensure none of the beginner words have accidental surname-first meanings
     for (const w of allWords) {

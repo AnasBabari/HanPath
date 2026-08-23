@@ -167,6 +167,9 @@ export default function StoriesPage() {
                       <div className="text-xs p-1">
                         <div className="font-bold text-primary text-sm">{token.pinyin_hint}</div>
                         <div className="text-on-surface text-xs mt-0.5">{token.meaning}</div>
+                        {token.is_support && (
+                          <div className="text-[10px] font-bold text-on-surface-variant mt-1">Glossed support word</div>
+                        )}
                       </div>
                     }
                   >
@@ -186,7 +189,7 @@ export default function StoriesPage() {
                           speak(token.token);
                         }
                       }}
-                      aria-label={`${token.token}, ${token.pinyin_hint}: ${token.meaning}`}
+                      aria-label={`${token.token}, ${token.pinyin_hint}: ${token.meaning}${token.is_support ? ', glossed support word' : ''}`}
                     >
                       <div
                         className={`text-xs text-outline font-medium transition-opacity duration-200 tracking-wider mb-[-6px] ${

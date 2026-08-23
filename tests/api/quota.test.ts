@@ -1,11 +1,11 @@
 ﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { checkAndRecordQuota, QuotaStoreUnavailableError, QUOTA_LIMITS } from './_lib/quota';
+import { checkAndRecordQuota, QuotaStoreUnavailableError, QUOTA_LIMITS } from '../../api/_lib/quota.js';
 
-vi.mock('./_lib/supabaseAdmin', () => ({
+vi.mock('../../api/_lib/supabaseAdmin.js', () => ({
   getSupabaseAdmin: vi.fn(),
 }));
 
-import { getSupabaseAdmin } from './_lib/supabaseAdmin';
+import { getSupabaseAdmin } from '../../api/_lib/supabaseAdmin.js';
 
 describe('Quota Rate-Limiting & Production Fail-Closed Boundary', () => {
   const originalEnv = { ...process.env };
@@ -59,6 +59,30 @@ describe('Quota Rate-Limiting & Production Fail-Closed Boundary', () => {
       p_identifier: 'user:test-user-1',
       p_max_daily: 50,
       p_max_minute: 10,
+    });
+  });
+
+  it('enforces a second network quota bucket for guest identity rotation', async () => {
+    const mockRpc = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: { allowed: true, remaining_daily: 4 },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: { allowed: false, remaining_daily: 0, retry_after_seconds: 30 },
+        error: null,
+      });
+
+    vi.mocked(getSupabaseAdmin).mockReturnValue({ rpc: mockRpc } as any);
+
+    const result = await checkAndRecordQuota('guest:rotated-id', true, 'opaque-network-hash');
+    expect(result.allowed).toBe(false);
+    expect(result.limit).toBe(QUOTA_LIMITS.guest.daily);
+    expect(mockRpc).toHaveBeenNthCalledWith(2, 'record_and_check_ai_quota', {
+      p_identifier: 'network:opaque-network-hash',
+      p_max_daily: QUOTA_LIMITS.guestNetwork.daily,
+      p_max_minute: QUOTA_LIMITS.guestNetwork.minute,
     });
   });
 

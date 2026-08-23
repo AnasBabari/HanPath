@@ -129,6 +129,14 @@ export async function callOpenRouterWithFallback(
             modelUsed: model,
           };
         }
+
+        lastError = {
+          code: 'invalid_upstream_response',
+          message: 'AI provider returned an empty response.',
+          status: 502,
+          retryable: true,
+        };
+        continue;
       }
 
       if (response.status === 429) {

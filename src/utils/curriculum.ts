@@ -256,7 +256,7 @@ export function buildCurriculum(
       hskLevel: hsk,
       index: unitIndex,
       title: `Unit ${unitIndex + 1}: ${UNIT_NAMES[unitIndex % UNIT_NAMES.length]}`,
-      description: `${allUnitWords.length} words · 5 lessons + 1 checkpoint`,
+      description: `${allUnitWords.length} words · ${unitVocabGroups.length} vocab ${unitVocabGroups.length === 1 ? 'lesson' : 'lessons'} + 1 checkpoint`,
       lessons,
     });
 

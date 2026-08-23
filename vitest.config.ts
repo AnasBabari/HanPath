@@ -10,7 +10,7 @@ export default defineConfig({
     include: [
       'src/**/*.{test,spec}.{js,jsx,ts,tsx}',
       'scripts/**/*.{test,spec}.{js,mjs,ts}',
-      'api/**/*.{test,spec}.{js,ts}',
+      'tests/api/**/*.{test,spec}.{js,ts}',
     ],
     coverage: {
       provider: 'v8',
@@ -22,14 +22,13 @@ export default defineConfig({
         'src/vite-env.d.ts',
         'src/main.tsx',
         'scripts/**',
-        'api/**/*.test.ts',
+        'tests/api/**/*.test.ts',
         'e2e/**',
       ],
       thresholds: {
-        lines: 75,
-        functions: 70,
-        branches: 60,
-        statements: 74,
+        lines: 80,
+        functions: 75,
+        branches: 70,
       },
     },
   },
