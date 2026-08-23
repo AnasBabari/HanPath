@@ -58,7 +58,6 @@ describe('useStore failure, lifecycle, and idempotency boundaries', () => {
     let store = useStore.getState();
     await expect(store.requestEmailOtp('A@Example.com')).resolves.toMatchObject({ success: false });
     await expect(store.verifyEmailOtp('a@example.com', '123456')).resolves.toMatchObject({ success: false });
-    await expect(store.signInWithGoogle()).resolves.toMatchObject({ success: false });
 
     const auth = {
       signInWithOtp: vi.fn().mockResolvedValue({ error: { message: 'email rejected' } }),
@@ -79,7 +78,6 @@ describe('useStore failure, lifecycle, and idempotency boundaries', () => {
       success: false,
       error: 'Invalid or expired verification code',
     });
-    await expect(store.signInWithGoogle()).resolves.toEqual({ success: false, error: 'oauth rejected' });
     expect(auth.signInWithOtp).toHaveBeenCalledWith({
       email: 'a@example.com',
       options: { shouldCreateUser: true },

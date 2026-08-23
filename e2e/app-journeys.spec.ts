@@ -113,29 +113,17 @@ test.describe('HànPath Core User Journeys (E2E)', () => {
   test('Journey 4: Profile settings, daily goals, data backup and licenses navigation', async ({ page }) => {
     await page.goto('/profile');
 
-<<<<<<< HEAD
-    await expect(page.locator('h1:has-text("Profile")').first()).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Profile' })).toBeVisible();
     await expect(page.locator('text=Local Storage Active').first()).toBeVisible();
 
     // Check daily study goal selector and adjust
-    const goalSelect = page.locator('select[aria-label="Daily study goal minutes"]');
-    await expect(goalSelect).toBeVisible();
-    await goalSelect.selectOption('20');
-
-    // Verify Export Progress button is present and accessible
-    const exportBtn = page.locator('button:has-text("Export Progress (JSON)")').first();
-=======
-    await expect(page.getByRole('heading', { name: 'Scholar (Guest)' })).toBeVisible();
-
-    // Check daily study goal selector and adjust
-    const dailyGoal = page.getByLabel('Daily study goal');
+    const dailyGoal = page.getByLabel('Daily study goal minutes');
     await expect(dailyGoal).toHaveValue('15');
     await dailyGoal.selectOption('20');
     await expect(dailyGoal).toHaveValue('20');
 
     // Export and verify a real backup download, not only button visibility.
     const exportBtn = page.getByRole('button', { name: /Export Progress \(JSON\)/ });
->>>>>>> origin/master
     await expect(exportBtn).toBeVisible();
     const [download] = await Promise.all([
       page.waitForEvent('download'),
