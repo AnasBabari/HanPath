@@ -23,13 +23,8 @@ describe('ProfilePage Deep Feature Coverage', () => {
       toast: null,
       adminMode: false,
       chatHistory: [],
-      authSession: { user: null, token: null },
-      syncStatus: 'idle',
-      cloudVersion: 0,
-      lastSyncTime: null,
-      lastSuccessfulSyncTime: null,
-      lastSyncAttemptTime: null,
-      isDirty: false,
+      storageStatus: 'healthy',
+      storageError: null,
       stats: deriveUserStats(snap, 1),
     });
   });
@@ -63,7 +58,7 @@ describe('ProfilePage Deep Feature Coverage', () => {
     expect(setRevealPinyinMock).toHaveBeenCalledWith('peek');
   });
 
-  it('triggers reset progress modal and handles cancellation', () => {
+  it('triggers reset progress modal and handles cancellation & Escape key', () => {
     render(
       <MemoryRouter>
         <ProfilePage />
@@ -75,9 +70,15 @@ describe('ProfilePage Deep Feature Coverage', () => {
 
     expect(screen.getByText('Reset Local Progress?')).toBeInTheDocument();
 
+    // Dismiss with Escape key
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByText('Reset Local Progress?')).not.toBeInTheDocument();
+
+    // Reopen and cancel with button
+    fireEvent.click(resetBtn);
+    expect(screen.getByText('Reset Local Progress?')).toBeInTheDocument();
     const cancelBtn = screen.getByText('Cancel');
     fireEvent.click(cancelBtn);
-
     expect(screen.queryByText('Reset Local Progress?')).not.toBeInTheDocument();
   });
 });

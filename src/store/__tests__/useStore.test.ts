@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useStore } from '../useStore';
+import { useStore, INITIAL_CHAT_HISTORY } from '../useStore';
 import { createDefaultProgressSnapshotV4 } from '../../utils/progressSchema';
 import type { Lesson } from '../../types';
 
-describe('Zustand App State Store (v4 Progress Architecture)', () => {
+describe('Zustand App State Store (Local-First Progress Architecture)', () => {
   beforeEach(() => {
+    localStorage.clear();
     const defaultSnap = createDefaultProgressSnapshotV4();
     useStore.setState({
       snapshot: defaultSnap,
@@ -15,10 +16,9 @@ describe('Zustand App State Store (v4 Progress Architecture)', () => {
       error: null,
       toast: null,
       adminMode: false,
-      chatHistory: [],
-      syncStatus: 'idle',
-      cloudVersion: 0,
-      isDirty: false,
+      chatHistory: INITIAL_CHAT_HISTORY,
+      storageStatus: 'healthy',
+      storageError: null,
       stats: {
         totalXP: 0,
         level: 1,
@@ -68,11 +68,11 @@ describe('Zustand App State Store (v4 Progress Architecture)', () => {
     expect(state.stats.completedLessons).toContain('unit1-lesson1');
     expect(state.stats.totalCorrect).toBe(5);
     expect(state.stats.totalAttempted).toBe(5);
-    expect(state.stats.totalXP).toBe(5 * 10 + 25); // 75 XP
+    expect(state.stats.totalXP).toBe(5 * 10 + 50); // 100 XP for first completion
     expect(Object.keys(state.snapshot.wordSRS)).toEqual(['w1', 'w2']);
     expect(state.snapshot.wordSRS.w1.nextReviewDate).toBe(new Date().toISOString().split('T')[0]);
     expect(state.snapshot.wordSRS.w1.repetitions).toBe(0);
-    expect(state.isDirty).toBe(true);
+    expect(state.storageStatus).toBe('healthy');
   });
 
   it('updates word accuracy when practicing exercises', () => {

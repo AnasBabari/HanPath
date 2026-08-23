@@ -57,13 +57,8 @@ describe('ReviewPage Deep Feature Coverage', () => {
       toast: null,
       adminMode: false,
       chatHistory: [],
-      authSession: { user: null, token: null },
-      syncStatus: 'idle',
-      cloudVersion: 0,
-      lastSyncTime: null,
-      lastSuccessfulSyncTime: null,
-      lastSyncAttemptTime: null,
-      isDirty: false,
+      storageStatus: 'healthy',
+      storageError: null,
       stats: deriveUserStats(snap, 1),
     });
   });

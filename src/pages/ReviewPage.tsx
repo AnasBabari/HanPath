@@ -7,7 +7,7 @@ import { speak } from '../utils/tts';
 import { useStore } from '../store/useStore';
 
 export default function ReviewPage() {
-  const { units, stats, rateWord, setFullScreen, setToast, authSession } = useStore();
+  const { units, stats, rateWord, setFullScreen, setToast } = useStore();
   const navigate = useNavigate();
 
   const cards = useMemo(() => {
@@ -86,7 +86,6 @@ export default function ReviewPage() {
             hskLevel: card.hskLevel === 2 ? 2 : 1,
             targetWord: `${card.hanzi} (${card.pinyin}: ${card.meaning})`,
           },
-          authToken: authSession.token || undefined,
         }
       );
       setMnemonic(response);

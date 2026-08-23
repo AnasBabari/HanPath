@@ -6,10 +6,8 @@ import StoriesPage from '../StoriesPage';
 import ChatPage from '../ChatPage';
 import ReviewPage from '../ReviewPage';
 import LicensesPage from '../LicensesPage';
-import AuthCallbackPage from '../AuthCallbackPage';
 import { useStore } from '../../store/useStore';
 import { buildCurriculum } from '../../utils/curriculum';
-import * as supabaseLib from '../../utils/supabase';
 
 describe('Page Components Rendering & Interactions', () => {
   beforeEach(() => {
@@ -111,16 +109,5 @@ describe('Page Components Rendering & Interactions', () => {
 
     expect(screen.getByText(/About & Licenses/i)).toBeInTheDocument();
     expect(screen.getAllByText(/MIT License/i).length).toBeGreaterThan(0);
-  });
-
-  it('renders AuthCallbackPage with loading state', () => {
-    vi.spyOn(supabaseLib, 'getSupabaseClientAsync').mockReturnValue(new Promise(() => {}));
-    render(
-      <BrowserRouter>
-        <AuthCallbackPage />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText(/Verifying Authentication/i)).toBeInTheDocument();
   });
 });

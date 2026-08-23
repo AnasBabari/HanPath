@@ -2,7 +2,7 @@
   <img src="public/favicon.svg" alt="HànPath Logo" width="80" height="80" />
   <h1>汉路 HànPath</h1>
   
-  <p><strong>A modern Chinese learning platform with community-curated HSK 3.0-aligned vocabulary, spaced repetition (SRS), graded stories, and pedagogical AI tutoring.</strong></p>
+  <p><strong>A modern, local-first Chinese learning platform with community-curated HSK 3.0-aligned vocabulary, spaced repetition (SRS), graded stories, and pedagogical AI tutoring.</strong></p>
 
   <p>
     <a href="https://han-path.vercel.app">🚀 View Live App</a> •
@@ -18,72 +18,67 @@
 
 ## 🌟 Overview
 
-**HànPath** is built for learners mastering Mandarin Chinese with structural rigor, high performance, and offline resilience.
+**HànPath** is built for learners mastering Mandarin Chinese with pedagogical rigor, offline resilience, and immediate zero-friction local-first persistence.
 
-- 📚 **HSK 3.0-aligned vocabulary:** all 506 level-1 and 750 level-2 entries (1,256 cumulative) from the pinned upstream v1.4 lists, with HanPath pedagogical corrections, pinyin, English definitions, and stroke-order practice.
+- 📚 **HSK 3.0-Aligned Vocabulary:** All 506 level-1 and 750 level-2 entries (1,256 cumulative) from pinned upstream v1.4 lists, with HanPath pedagogical definitions, pinyin, audio pronunciation, and interactive stroke-order canvas practice.
 - 📖 **16 Graded Stories:** 8 coherent narrative stories per level with tokenized glosses, character popups, and pinyin assistance.
-- 🤖 **Pedagogical AI Language Buddy:** Serverless OpenRouter proxy with fallback routing, strict server-authored system prompts, and context isolation.
-- ⚡ **Optimistic Concurrency & Local-First Sync:** Version-conditioned atomic cloud sync with guest-to-cloud merge, full offline persistence, and export/restore capabilities.
-- 🔐 **Local-First & Cloud Auth:** Automatic local device/browser storage persistence with optional 6-digit email One-Time Passcode (OTP) for multi-device sync.
-- ⚡ **Ultra-Fast Performance:** Initial page-load bundle budget strictly enforced at **<= 130 KB gzip** with dynamic code-splitting.
-- ♿ **Accessibility (a11y):** Automated jsdom and real-browser axe-core checks plus keyboard-navigation coverage. These checks reduce risk but are not a formal WCAG conformance certification.
+- 🤖 **Pedagogical AI Language Buddy:** Secured serverless OpenRouter proxy with fallback routing, strict pedagogical system prompts, and context isolation.
+- 💾 **Robust Local-First Persistence:** Authoritative browser storage using a versioned schema (`ProgressSnapshotV4`), real-time storage write health detection, and JSON export/restore with preview confirmation.
+- ⚡ **Ultra-Fast Performance:** Initial page-load bundle budget strictly enforced at **<= 130 KB gzip** with dynamic code-splitting and PWA offline caching.
+- ♿ **Accessibility (a11y):** Keyboard navigation, accessible dialog focus trapping, live regions, and automated axe-core accessibility testing.
 
 ---
 
 ## 🛠️ Architecture & Infrastructure
 
-HànPath is designed natively for deployment on **Vercel** with serverless backend endpoints and a local-first **React 19 SPA**.
+HànPath is designed with a **local-first frontend architecture** coupled with a lightweight **serverless AI proxy backend**:
 
 ```text
 Browser Client (React 19 + Vite 8 + Zustand)
-  ├─ Local Storage (Strict ProgressSnapshotV4 & SRS Scheduling)
-  ├─ /api/chat     ──> Serverless Vercel Function ──> OpenRouter Free Model Fallbacks
-  ├─ /api/progress ──> Serverless Vercel Function ──> Supabase Postgres (RPC version predicate)
-  ├─ /api/account  ──> Serverless Vercel Function ──> Supabase Auth + PostgreSQL FK cascades
-  └─ /api/health   ──> Serverless Vercel Function ──> Health & Readiness Probe
+  ├── Learning Engine (Lessons, Exercises, Stroke Order, SRS Scheduler)
+  ├── Local-First Storage (Validated ProgressSnapshotV4 & Health Detection)
+  ├── Data Portability (JSON Export & Interactive Restore Confirmation)
+  ├── PWA Offline Caching (Service Worker & Static Curriculum Cache)
+  │
+  └── Backend Serverless API (Vercel Edge/Node Functions)
+        ├── /api/chat   ──> Signed Guest HMAC Identity + Distributed Quotas + OpenRouter Fallback
+        └── /api/health ──> Service Health & Readiness Probe
 ```
 
 ### Key Technical Systems
 
-1. **Authentication & Session Identity**
-   - **Signed-in Users:** Authenticate via Supabase 6-digit email OTP. Verified server-side via Bearer JWT tokens.
-   - **Guest Users:** Stateless signed HMAC-SHA256 cookies (`hanpath_guest_id`) ensure tamper-proof identity tracking and rate limiting without requiring early database writes.
-   - **Fail-Closed Security:** Malformed or expired Bearer tokens return HTTP 401 without silent fallback to guest access.
+1. **Local-First State & Storage Health**
+   - Authoritative learning progress is stored directly in browser storage using `ProgressSnapshotV4` (Zod validated).
+   - `saveSnapshotToStorage` monitors storage write health and displays real-time status in the user Profile if browser storage quotas or private-browsing restrictions trigger an error.
+   - Built-in data portability allows learners to export full JSON snapshots and restore them across devices with schema validation and candidate confirmation previews.
 
-2. **Atomic Cloud Sync & Version Predicate**
-   - Progress uses a strict, versioned snapshot schema (`ProgressSnapshotV4`).
-   - Mutations are committed locally immediately, then synchronized via `PUT /api/progress` using a version-conditioned PostgreSQL RPC.
-   - Conflicts return HTTP 409 with the current server envelope, enabling seamless client-side merging.
+2. **Secured Serverless AI Tutor Proxy**
+   - The browser client never touches OpenRouter API keys.
+   - Server-authored pedagogical system prompts enforce helpful language instruction tailored to HSK 1 and 2 levels.
+   - Total 15-second deadline with automatic multi-model fallback (`qwen3-4b`, `qwen3-coder`, `llama-3.2-3b`, `trinity-large`).
+   - Strict origin validation, JSON content-type enforcement, 32 KB body bounds, and prompt injection mitigations.
 
-3. **Secured AI Chat Proxy**
-   - Browser client never holds OpenRouter API keys.
-   - Server-authored pedagogical system prompts and constrained context reduce prompt-injection exposure.
-   - Untrusted exercise context is segregated into dedicated structured messages.
-   - 15-second total timeout deadline across all fallback models (`qwen3-4b`, `qwen3-coder`, `llama-3.2-3b`, `trinity-large`).
-   - Strict origin validation, `application/json` Content-Type enforcement, and payload size bounds (max 10 messages, max 6,000 total characters).
-
-4. **Distributed Quota Management**
-   - Guests: 5 requests / day.
-   - Authenticated: 50 requests / day.
-   - Backed by the atomic Postgres RPC `record_and_check_ai_quota`. Guests also receive a privacy-preserving subnet/user-agent HMAC quota bucket to limit cookie rotation. Production storage failures fail closed with HTTP 503.
+3. **Stateless Identity & Distributed Quota Enforcement**
+   - Anonymous learners receive tamper-proof HMAC-SHA256 signed cookies (`hanpath_guest_id`).
+   - Quotas (5 requests / day) are tracked atomically via PostgreSQL RPC, backed by a secondary subnet/user-agent HMAC bucket to prevent trivial cookie-clearing abuse.
+   - Production quota storage fails closed with HTTP 503 rather than silently bypassing rate limits.
 
 ---
 
 ## 📚 Curriculum & Stories Provenance
 
 - **Status:** Community-curated, HSK 3.0-aligned learning content—not an official CTI/CLEC publication or certification.
-- **Normalized Dataset Source:** `drkameleon/complete-hsk-vocabulary` release v1.4, pinned to commit `7ac65bf1a6387d35f1ade478906172a19311c7f9`, with HanPath pedagogical overrides. The upstream release describes these lists as aligned to the 2026 examination syllabus; GF0025-2021 and the [CTI HSK site](https://www.chinesetest.cn/HSK) are reference standards.
-- **Exact Pinned Counts:** **506 level-1** entries and **750 level-2** entries (1,256 cumulative); the generator fails if the immutable source does not match.
-- **Integrity Checksum:** A deterministic SHA-256 checksum is embedded in and verified against the generated artifact.
+- **Normalized Dataset Source:** `drkameleon/complete-hsk-vocabulary` release v1.4, pinned to commit `7ac65bf1a6387d35f1ade478906172a19311c7f9`, with HanPath pedagogical overrides.
+- **Exact Pinned Counts:** **506 level-1** entries and **750 level-2** entries (1,256 cumulative); verified deterministically by build-time checksums.
+- **Graded Stories:** 8 stories per level (16 total), with curriculum vocabulary verified against the generated artifacts and bounded support word glosses.
 - **License:** MIT License.
-- **Graded Stories:** 8 stories per level (16 total), with curriculum words verified against the generated artifact and a bounded set of explicitly marked, individually glossed support words. Automated review metadata does not imply external human editorial certification.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js `24.x`
+- Node.js `20.x` or later
 - npm `10.x` or later
 
 ### 1. Installation & Local Development
@@ -92,7 +87,7 @@ Browser Client (React 19 + Vite 8 + Zustand)
 git clone https://github.com/AnasBabari/HanPath.git
 cd HanPath
 
-# Clean dependency installation
+# Install dependencies
 npm ci
 
 # Start the Vite development server
@@ -100,13 +95,8 @@ npm run dev
 ```
 
 ### 2. Environment Configuration
-Create a `.env.local` file for local development:
+Create a `.env.local` file for serverless AI features:
 ```env
-# Client-Side Configuration
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-
-# Serverless API Configuration (Vercel Functions)
 OPENROUTER_API_KEY=sk-or-v1-your-openrouter-key
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
@@ -118,40 +108,30 @@ APP_ORIGIN=https://your-production-app.vercel.app
 
 ## 🧪 Testing & Quality Gates
 
-The required CI gates cover linting, type checks, unit/API tests, coverage, build and bundle budgets, PostgreSQL migration execution, browser E2E, accessibility smoke checks, and dependency audit:
+The automated CI pipeline enforces comprehensive quality verification:
 
 ```bash
-# Run all quality checks (TypeScript, lint, all test suites, bundle budget)
+# Run all quality checks (TypeScript, lint, unit tests, bundle audit)
 npm run check
 
-# Run unit and integration tests
+# Run unit and integration tests (Vitest)
 npm run test:unit
 
-# Run full code coverage report
+# Run full test coverage report (v8)
 npm run test:coverage
 
 # Run axe-core accessibility tests
 npm run test:a11y
 
-# Run API-focused tests
+# Run serverless API tests
 npm run test:api
 
-# Build and run real-browser journeys
+# Run Playwright end-to-end browser journeys
 npm run test:e2e
 
 # Run production bundle size audit (Budget: <= 130 KB gzip initial JS)
 npm run check:bundle
 ```
-
----
-
-## 🗄️ Database Migrations
-
-Database schemas and stored procedures are organized in `supabase/migrations/`:
-1. `20260822000001_initial_schema.sql`: Initial `user_progress` and `ai_usage` tables with Row Level Security.
-2. `20260822000002_atomic_progress_and_deletion.sql`: Version-conditioned progress and legacy deletion functions.
-3. `20260822140000_secure_user_functions.sql`: Fixed search paths and service-role-only stored procedures.
-4. `20260822160000_atomic_auth_cascade_deletion.sql`: Validated Auth foreign-key cascades, authenticated quota ownership, and removal of the unsafe two-step deletion function.
 
 ---
 

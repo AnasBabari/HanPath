@@ -10,7 +10,7 @@ export default function ChatPage() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { chatHistory, addChatMessage, clearChatHistory, hskLevel, authSession } = useStore();
+  const { chatHistory, addChatMessage, clearChatHistory, hskLevel } = useStore();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -29,7 +29,7 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
   }, [chatHistory, loading]);
 
-  const handleSend = async (textToSend?: string) => {
+  const sendNewMessage = async (textToSend?: string) => {
     const text = (textToSend || input).trim();
     if (!text || loading || !isOnline) return;
 
@@ -43,7 +43,7 @@ export default function ChatPage() {
 
     try {
       const history = chatHistory.map((m) => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
+        role: m.role === 'user' ? ('user' as const) : ('assistant' as const),
         content: m.content,
       }));
 
@@ -54,7 +54,6 @@ export default function ChatPage() {
           mode: 'chat',
           hskLevel: hskLevel === 2 ? 2 : 1,
         },
-        authToken: authSession.token || undefined,
       });
 
       addChatMessage({ role: 'model', content: response });
@@ -66,10 +65,35 @@ export default function ChatPage() {
     }
   };
 
-  const handleRetry = () => {
+  const retryLastRequest = async () => {
+    if (loading || !isOnline) return;
+
     const lastUserMsg = [...chatHistory].reverse().find((m) => m.role === 'user');
-    if (lastUserMsg) {
-      void handleSend(lastUserMsg.content);
+    if (!lastUserMsg) return;
+
+    setErrorMsg(null);
+    setLoading(true);
+
+    try {
+      // Reuse existing chat history without adding a duplicate user message
+      const history = chatHistory.map((m) => ({
+        role: m.role === 'user' ? ('user' as const) : ('assistant' as const),
+        content: m.content,
+      }));
+
+      const response = await callOpenRouter(history, {
+        context: {
+          mode: 'chat',
+          hskLevel: hskLevel === 2 ? 2 : 1,
+        },
+      });
+
+      addChatMessage({ role: 'model', content: response });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'AI service temporarily unavailable.';
+      setErrorMsg(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -123,8 +147,12 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 max-w-3xl mx-auto w-full">
+      {/* Messages Area with Live Region for Screen Readers */}
+      <div
+        className="flex-1 overflow-y-auto px-4 py-6 space-y-4 max-w-3xl mx-auto w-full"
+        aria-live="polite"
+        aria-relevant="additions text"
+      >
         {chatHistory.map((m) => {
           const isUser = m.role === 'user';
           return (
@@ -154,7 +182,7 @@ export default function ChatPage() {
         })}
 
         {loading && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" role="status" aria-label="Loading tutor response">
             <div className="w-8 h-8 rounded-full bg-primary-light text-primary flex items-center justify-center shrink-0">
               <Sparkles className="w-4 h-4 animate-spin" />
             </div>
@@ -176,7 +204,7 @@ export default function ChatPage() {
             </div>
             <button
               type="button"
-              onClick={handleRetry}
+              onClick={() => void retryLastRequest()}
               className="touch-target px-3 py-1.5 bg-red-accessible text-white rounded-xl font-bold hover:bg-red-800 transition-colors"
             >
               Retry Message
@@ -192,7 +220,7 @@ export default function ChatPage() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            void handleSend();
+            void sendNewMessage();
           }}
           className="max-w-3xl mx-auto flex items-center gap-2"
         >

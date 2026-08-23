@@ -16,7 +16,6 @@ export interface PedagogicalContext {
 
 export interface AICallOptions {
   context?: PedagogicalContext;
-  authToken?: string;
 }
 
 export interface AIQuotaInfo {
@@ -30,13 +29,11 @@ export async function callOpenRouter(
   options?: AICallOptions | string
 ): Promise<string> {
   let context: PedagogicalContext | undefined;
-  let authToken: string | undefined;
 
   if (typeof options === 'string') {
     context = { mode: 'chat' };
   } else if (options && typeof options === 'object') {
     context = options.context;
-    authToken = options.authToken;
   }
 
   // Sanitize message turns for client submission
@@ -53,16 +50,11 @@ export async function callOpenRouter(
     throw new Error('No valid messages provided to AI.');
   }
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
-  }
-
   const response = await fetch('/api/chat', {
     method: 'POST',
-    headers,
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({
       messages: cleanMessages,
       context,

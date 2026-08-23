@@ -7,9 +7,8 @@ import {
   User,
   ShieldCheck,
   Flame,
-  CloudCheck,
-  CloudOff,
-  RefreshCw,
+  HardDrive,
+  AlertCircle,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import logo from '../../assets/logo.png';
@@ -23,7 +22,7 @@ const NAV_ITEMS = [
 ];
 
 export default function SidebarNav() {
-  const { stats, hskLevel, setHSKLevel, authSession, syncStatus } = useStore();
+  const { stats, hskLevel, setHSKLevel, storageStatus } = useStore();
 
   return (
     <aside
@@ -71,8 +70,8 @@ export default function SidebarNav() {
           </div>
         </div>
 
-        {/* Nav Links */}
-        <nav className="space-y-1">
+        {/* Navigation Links */}
+        <nav className="space-y-1" aria-label="Main Menu">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
@@ -106,18 +105,16 @@ export default function SidebarNav() {
           <div className="font-bold text-primary">{stats.totalXP} XP</div>
         </div>
 
-        {/* Sync Status Indicator */}
+        {/* Storage Health Indicator */}
         <div className="flex items-center justify-between px-3 text-on-surface-variant">
           <div className="flex items-center gap-1.5">
-            {syncStatus === 'synced' ? (
-              <CloudCheck className="w-4 h-4 text-green-accessible" />
-            ) : syncStatus === 'syncing' ? (
-              <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+            {storageStatus === 'healthy' ? (
+              <HardDrive className="w-4 h-4 text-green-accessible" />
             ) : (
-              <CloudOff className="w-4 h-4 text-outline" />
+              <AlertCircle className="w-4 h-4 text-red-accessible" />
             )}
             <span className="font-semibold">
-              {authSession.user ? (syncStatus === 'syncing' ? 'Syncing...' : 'Cloud Synced') : 'Guest Mode'}
+              {storageStatus === 'healthy' ? 'Local Storage' : 'Storage Warning'}
             </span>
           </div>
           <NavLink to="/licenses" className="hover:text-primary" title="About & Licenses" aria-label="About & Licenses">

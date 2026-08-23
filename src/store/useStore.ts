@@ -1,18 +1,15 @@
 import { create } from 'zustand';
 import type { Unit, UserStats, Lesson, ProgressSnapshotV4 } from '../types';
-import { addXP as calcAddXP } from '../utils/gamification';
 import { updateSRS } from '../utils/srs';
 import { createDefaultProgressSnapshotV4, validateProgressSnapshotV4 } from '../utils/progressSchema';
-import { mergeGuestWithCloud, calculateStreakFromStudyDays } from '../utils/progressMerge';
-import { fetchCloudProgress, syncCloudProgress, deleteCloudAccount } from '../utils/cloudProgress';
-import { getSupabaseClientAsync } from '../utils/supabase';
+import { calculateStreakFromStudyDays } from '../utils/progressMerge';
 
-const GUEST_STORAGE_KEY = 'hanpath:guest:progress_v4';
-const getUserStorageKey = (userId: string) => `hanpath:user:${userId}:progress_v4`;
+export const APP_STORAGE_KEY = 'hanpath:progress_v4';
+const LEGACY_GUEST_STORAGE_KEY = 'hanpath:guest:progress_v4';
 
-function loadSnapshotFromStorage(key: string): ProgressSnapshotV4 {
+export function loadSnapshotFromStorage(key: string = APP_STORAGE_KEY): ProgressSnapshotV4 {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(key) || localStorage.getItem(LEGACY_GUEST_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       const val = validateProgressSnapshotV4(parsed);
@@ -26,35 +23,42 @@ function loadSnapshotFromStorage(key: string): ProgressSnapshotV4 {
   return createDefaultProgressSnapshotV4();
 }
 
-function saveSnapshotToStorage(key: string, snapshot: ProgressSnapshotV4): void {
+export function saveSnapshotToStorage(
+  key: string = APP_STORAGE_KEY,
+  snapshot: ProgressSnapshotV4
+): { success: boolean; error?: string } {
   try {
     localStorage.setItem(key, JSON.stringify(snapshot));
+    return { success: true };
   } catch (err) {
+    let errorMsg = 'localStorage write failed (quota exceeded or disabled)';
+    if (err instanceof Error && err.message) {
+      errorMsg = err.message;
+    } else if (err && typeof err === 'object') {
+      const e = err as Record<string, unknown>;
+      if (typeof e.message === 'string' && e.message) {
+        errorMsg = e.message;
+      } else if (typeof e.name === 'string' && e.name) {
+        errorMsg = e.name;
+      }
+    }
     console.warn(`Failed to save snapshot to ${key}:`, err);
+    return { success: false, error: errorMsg };
   }
 }
 
-export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'conflict' | 'error' | 'offline';
+export const INITIAL_CHAT_HISTORY: { id: string; role: 'user' | 'model'; content: string }[] = [
+  {
+    id: 'init-msg-1',
+    role: 'model',
+    content: "你好(nǐ hǎo)！I'm your AI Language Tutor. What would you like to practice today?",
+  },
+];
 
-export interface AuthUser {
-  id: string;
-  email?: string;
-}
-
-export interface AuthSession {
-  user: AuthUser | null;
-  token: string | null;
-}
-
-interface AppState {
-  // Authentication & Cloud Sync
-  authSession: AuthSession;
-  syncStatus: SyncStatus;
-  cloudVersion: number;
-  lastSyncTime: string | null;
-  lastSuccessfulSyncTime: string | null;
-  lastSyncAttemptTime: string | null;
-  isDirty: boolean;
+export interface AppState {
+  // Persistence & Storage Health
+  storageStatus: 'healthy' | 'error';
+  storageError: string | null;
 
   // Domain State
   snapshot: ProgressSnapshotV4;
@@ -90,15 +94,7 @@ interface AppState {
   setRevealPinyin: (pref: 'always' | 'peek') => void;
   setDailyGoalMinutes: (mins: number) => void;
 
-  // Auth & Cloud Sync Actions
-  initAuthSession: () => Promise<void>;
-  requestEmailOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
-  verifyEmailOtp: (email: string, token: string) => Promise<{ success: boolean; error?: string }>;
-  resendEmailOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
-  signInWithOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
-  signOut: () => Promise<void>;
-  deleteAccount: () => Promise<{ success: boolean; error?: string }>;
-  performSync: () => Promise<void>;
+  // Data Management
   exportProgressJSON: () => string;
   importProgressJSON: (jsonStr: string) => { success: boolean; error?: string };
   resetLocalProgress: () => void;
@@ -107,15 +103,12 @@ interface AppState {
 export function deriveUserStats(snapshot: ProgressSnapshotV4, currentHskLevel: 1 | 2): UserStats {
   const levelProgress = snapshot.hskLevelProgress[currentHskLevel] || { completedLessons: [] };
   const completedLessons = levelProgress.completedLessons || [];
-
-  // Derive unique words learned from all active SRS words and unique completed lesson counts
   const wordsLearned = Object.keys(snapshot.wordSRS).length;
 
   const now = new Date();
   const { currentStreak, longestStreak } = calculateStreakFromStudyDays(snapshot.studyDays || [], now);
 
   const xp = snapshot.stats.totalXP || 0;
-  // Calculate level based on XP (Level 1 + sqrt(xp / 50))
   const level = Math.max(1, Math.floor(1 + Math.sqrt(xp / 50)));
 
   return {
@@ -146,16 +139,25 @@ export function deriveUserStats(snapshot: ProgressSnapshotV4, currentHskLevel: 1
   };
 }
 
-const initialSnapshot = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
+const initialSnapshot = loadSnapshotFromStorage(APP_STORAGE_KEY);
+
+function commitStorageUpdate(
+  set: (fn: (state: AppState) => Partial<AppState>) => void,
+  updatedSnapshot: ProgressSnapshotV4,
+  hskLevel: 1 | 2
+): void {
+  const saveRes = saveSnapshotToStorage(APP_STORAGE_KEY, updatedSnapshot);
+  set(() => ({
+    snapshot: updatedSnapshot,
+    stats: deriveUserStats(updatedSnapshot, hskLevel),
+    storageStatus: saveRes.success ? 'healthy' : 'error',
+    storageError: saveRes.success ? null : (saveRes.error || 'Storage write failed'),
+  }));
+}
 
 export const useStore = create<AppState>((set, get) => ({
-  authSession: { user: null, token: null },
-  syncStatus: 'idle',
-  cloudVersion: 0,
-  lastSyncTime: null,
-  lastSuccessfulSyncTime: null,
-  lastSyncAttemptTime: null,
-  isDirty: false,
+  storageStatus: 'healthy',
+  storageError: null,
 
   snapshot: initialSnapshot,
   hskLevel: initialSnapshot.preferences.targetHskLevel || 1,
@@ -165,38 +167,30 @@ export const useStore = create<AppState>((set, get) => ({
   error: null,
   toast: null,
   adminMode: false,
-  chatHistory: [
-    {
-      id: 'init-msg-1',
-      role: 'model',
-      content: "你好(nǐ hǎo)！I'm your AI Language Tutor. What would you like to practice today?",
-    },
-  ],
+  chatHistory: INITIAL_CHAT_HISTORY,
 
   stats: deriveUserStats(initialSnapshot, initialSnapshot.preferences.targetHskLevel || 1),
 
   setHSKLevel: (level: number) => {
     const validLevel: 1 | 2 = level === 2 ? 2 : 1;
-    set((state) => {
-      const updatedSnapshot: ProgressSnapshotV4 = {
-        ...state.snapshot,
-        preferences: {
-          ...state.snapshot.preferences,
-          targetHskLevel: validLevel,
-        },
-      };
-      const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-      saveSnapshotToStorage(activeKey, updatedSnapshot);
+    const state = get();
+    const updatedSnapshot: ProgressSnapshotV4 = {
+      ...state.snapshot,
+      preferences: {
+        ...state.snapshot.preferences,
+        targetHskLevel: validLevel,
+      },
+    };
 
-      return {
-        hskLevel: validLevel,
-        snapshot: updatedSnapshot,
-        units: null, // trigger reload for new level
-        stats: deriveUserStats(updatedSnapshot, validLevel),
-        isDirty: true,
-      };
+    const saveRes = saveSnapshotToStorage(APP_STORAGE_KEY, updatedSnapshot);
+    set({
+      hskLevel: validLevel,
+      snapshot: updatedSnapshot,
+      units: null,
+      stats: deriveUserStats(updatedSnapshot, validLevel),
+      storageStatus: saveRes.success ? 'healthy' : 'error',
+      storageError: saveRes.success ? null : (saveRes.error || 'Storage write failed'),
     });
-    get().performSync();
   },
 
   setUnits: (units) => set({ units }),
@@ -213,7 +207,7 @@ export const useStore = create<AppState>((set, get) => ({
       ],
     })),
 
-  clearChatHistory: () => set({ chatHistory: [] }),
+  clearChatHistory: () => set({ chatHistory: INITIAL_CHAT_HISTORY }),
 
   completeLesson: (lessonId, correct, total = 10, flatLessons = []) => {
     const state = get();
@@ -238,40 +232,35 @@ export const useStore = create<AppState>((set, get) => ({
 
     const currentLessons = state.snapshot.hskLevelProgress[currentHsk]?.completedLessons || [];
     const isNewLesson = !currentLessons.includes(lessonId);
-    const updatedLessons = isNewLesson ? [...currentLessons, lessonId] : currentLessons;
+    const updatedCompleted = isNewLesson ? [...currentLessons, lessonId] : currentLessons;
 
-    const xpEarned = correct * 10 + 25;
-    const studyDays = Array.from(new Set([...(state.snapshot.studyDays || []), todayStr])).slice(-365);
+    const baseXP = correct * 10;
+    const bonusXP = isNewLesson ? 50 : 10;
+    const xpGained = baseXP + bonusXP;
+    const updatedXP = (state.snapshot.stats.totalXP || 0) + xpGained;
+
+    const studyDays = state.snapshot.studyDays || [];
+    const updatedStudyDays = studyDays.includes(todayStr) ? studyDays : [...studyDays, todayStr];
 
     const updatedSnapshot: ProgressSnapshotV4 = {
       ...state.snapshot,
       hskLevelProgress: {
         ...state.snapshot.hskLevelProgress,
-        [currentHsk]: { completedLessons: updatedLessons },
+        [currentHsk]: {
+          completedLessons: updatedCompleted,
+        },
       },
-      studyDays,
-      wordSRS: seededWordSRS,
       stats: {
         ...state.snapshot.stats,
-        totalXP: (state.snapshot.stats.totalXP || 0) + xpEarned,
+        totalXP: updatedXP,
         totalCorrect: (state.snapshot.stats.totalCorrect || 0) + correct,
         totalAttempted: (state.snapshot.stats.totalAttempted || 0) + total,
-        minutesStudiedToday: (state.snapshot.stats.minutesStudiedToday || 0) + 3,
-        dailyDate: todayStr,
-        lastStudyDate: todayStr,
       },
+      wordSRS: seededWordSRS,
+      studyDays: updatedStudyDays,
     };
 
-    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-    saveSnapshotToStorage(activeKey, updatedSnapshot);
-
-    set({
-      snapshot: updatedSnapshot,
-      stats: deriveUserStats(updatedSnapshot, currentHsk),
-      isDirty: true,
-    });
-
-    get().performSync();
+    commitStorageUpdate(set, updatedSnapshot, currentHsk);
   },
 
   updateWordResult: (wordId, correct) => {
@@ -291,14 +280,7 @@ export const useStore = create<AppState>((set, get) => ({
       wordAccuracy: updatedAccuracy,
     };
 
-    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-    saveSnapshotToStorage(activeKey, updatedSnapshot);
-
-    set({
-      snapshot: updatedSnapshot,
-      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
-      isDirty: true,
-    });
+    commitStorageUpdate(set, updatedSnapshot, state.hskLevel);
   },
 
   rateWord: (wordId, rating) => {
@@ -317,37 +299,22 @@ export const useStore = create<AppState>((set, get) => ({
       },
     };
 
-    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-    saveSnapshotToStorage(activeKey, updatedSnapshot);
-
-    set({
-      snapshot: updatedSnapshot,
-      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
-      isDirty: true,
-    });
+    commitStorageUpdate(set, updatedSnapshot, state.hskLevel);
   },
 
   addXP: (amt) => {
     const state = get();
-    const currentStats = deriveUserStats(state.snapshot, state.hskLevel);
-    const updatedStats = calcAddXP(currentStats, amt);
+    const updatedXP = (state.snapshot.stats.totalXP || 0) + amt;
 
     const updatedSnapshot: ProgressSnapshotV4 = {
       ...state.snapshot,
       stats: {
         ...state.snapshot.stats,
-        totalXP: updatedStats.totalXP,
+        totalXP: updatedXP,
       },
     };
 
-    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-    saveSnapshotToStorage(activeKey, updatedSnapshot);
-
-    set({
-      snapshot: updatedSnapshot,
-      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
-      isDirty: true,
-    });
+    commitStorageUpdate(set, updatedSnapshot, state.hskLevel);
   },
 
   unlockAchievement: (id) => {
@@ -359,14 +326,7 @@ export const useStore = create<AppState>((set, get) => ({
       unlockedAchievements: [...state.snapshot.unlockedAchievements, id],
     };
 
-    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-    saveSnapshotToStorage(activeKey, updatedSnapshot);
-
-    set({
-      snapshot: updatedSnapshot,
-      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
-      isDirty: true,
-    });
+    commitStorageUpdate(set, updatedSnapshot, state.hskLevel);
   },
 
   markStoryRead: (storyId) => {
@@ -378,16 +338,7 @@ export const useStore = create<AppState>((set, get) => ({
       readStories: [...state.snapshot.readStories, storyId],
     };
 
-    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-    saveSnapshotToStorage(activeKey, updatedSnapshot);
-
-    set({
-      snapshot: updatedSnapshot,
-      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
-      isDirty: true,
-    });
-
-    get().performSync();
+    commitStorageUpdate(set, updatedSnapshot, state.hskLevel);
   },
 
   setRevealPinyin: (pref) => {
@@ -400,16 +351,7 @@ export const useStore = create<AppState>((set, get) => ({
       },
     };
 
-    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-    saveSnapshotToStorage(activeKey, updatedSnapshot);
-
-    set({
-      snapshot: updatedSnapshot,
-      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
-      isDirty: true,
-    });
-
-    get().performSync();
+    commitStorageUpdate(set, updatedSnapshot, state.hskLevel);
   },
 
   setDailyGoalMinutes: (mins) => {
@@ -422,267 +364,7 @@ export const useStore = create<AppState>((set, get) => ({
       },
     };
 
-    const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-    saveSnapshotToStorage(activeKey, updatedSnapshot);
-
-    set({
-      snapshot: updatedSnapshot,
-      stats: deriveUserStats(updatedSnapshot, state.hskLevel),
-      isDirty: true,
-    });
-
-    get().performSync();
-  },
-
-  // Auth & Cloud Sync Implementation
-  initAuthSession: async () => {
-    const supabase = await getSupabaseClientAsync();
-    if (!supabase) return;
-
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.user?.id && session.access_token) {
-        const user: AuthUser = { id: session.user.id, email: session.user.email };
-        const token = session.access_token;
-        const userKey = getUserStorageKey(user.id);
-
-        let activeSnapshot = loadSnapshotFromStorage(userKey);
-
-        // Fetch cloud progress and merge
-        try {
-          const cloudEnv = await fetchCloudProgress(token);
-          if (cloudEnv) {
-            activeSnapshot = mergeGuestWithCloud(activeSnapshot, cloudEnv.snapshot, false);
-            saveSnapshotToStorage(userKey, activeSnapshot);
-            set({ cloudVersion: cloudEnv.version });
-          } else {
-            // First time link: push local snapshot to cloud
-            const guestSnap = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
-            const merged = mergeGuestWithCloud(guestSnap, null, true);
-            activeSnapshot = merged;
-            saveSnapshotToStorage(userKey, activeSnapshot);
-            const syncRes = await syncCloudProgress(token, activeSnapshot, 0);
-            if (syncRes.success && syncRes.envelope) {
-              set({ cloudVersion: syncRes.envelope.version });
-            }
-          }
-        } catch (syncErr) {
-          console.warn('Initial cloud sync error:', syncErr);
-        }
-
-        set({
-          authSession: { user, token },
-          snapshot: activeSnapshot,
-          hskLevel: activeSnapshot.preferences.targetHskLevel || 1,
-          stats: deriveUserStats(activeSnapshot, activeSnapshot.preferences.targetHskLevel || 1),
-          syncStatus: 'synced',
-          lastSyncTime: new Date().toLocaleTimeString(),
-        });
-      }
-
-      // Listen for auth state changes
-      supabase.auth.onAuthStateChange(async (event, newSession) => {
-        if (event === 'SIGNED_IN' && newSession?.user?.id && newSession.access_token) {
-          const user: AuthUser = { id: newSession.user.id, email: newSession.user.email };
-          const token = newSession.access_token;
-          const userKey = getUserStorageKey(user.id);
-
-          const guestSnap = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
-          let userSnap = loadSnapshotFromStorage(userKey);
-
-          try {
-            const cloudEnv = await fetchCloudProgress(token);
-            const merged = mergeGuestWithCloud(guestSnap, cloudEnv ? cloudEnv.snapshot : userSnap, true);
-            userSnap = merged;
-            saveSnapshotToStorage(userKey, userSnap);
-
-            const pushRes = await syncCloudProgress(token, userSnap, cloudEnv ? cloudEnv.version : 0);
-            const newVersion = pushRes.envelope ? pushRes.envelope.version : 1;
-
-            set({
-              authSession: { user, token },
-              snapshot: userSnap,
-              hskLevel: userSnap.preferences.targetHskLevel || 1,
-              stats: deriveUserStats(userSnap, userSnap.preferences.targetHskLevel || 1),
-              cloudVersion: newVersion,
-              syncStatus: 'synced',
-              lastSyncTime: new Date().toLocaleTimeString(),
-            });
-          } catch {
-            set({
-              authSession: { user, token },
-              snapshot: userSnap,
-              stats: deriveUserStats(userSnap, userSnap.preferences.targetHskLevel || 1),
-            });
-          }
-        } else if (event === 'SIGNED_OUT') {
-          const guestSnap = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
-          set({
-            authSession: { user: null, token: null },
-            snapshot: guestSnap,
-            hskLevel: guestSnap.preferences.targetHskLevel || 1,
-            stats: deriveUserStats(guestSnap, guestSnap.preferences.targetHskLevel || 1),
-            syncStatus: 'idle',
-            cloudVersion: 0,
-          });
-        }
-      });
-    } catch (err) {
-      console.warn('initAuthSession error:', err);
-    }
-  },
-
-  requestEmailOtp: async (email: string) => {
-    const supabase = await getSupabaseClientAsync();
-    if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
-
-    const cleanEmail = email.trim().toLowerCase();
-    const { error } = await supabase.auth.signInWithOtp({
-      email: cleanEmail,
-      options: {
-        shouldCreateUser: true,
-      },
-    });
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-    return { success: true };
-  },
-
-  verifyEmailOtp: async (email: string, token: string) => {
-    const supabase = await getSupabaseClientAsync();
-    if (!supabase) return { success: false, error: 'Supabase authentication service unavailable' };
-
-    const cleanToken = token.trim().replace(/\D/g, '');
-    if (cleanToken.length !== 6) {
-      return { success: false, error: 'Verification code must be exactly 6 digits' };
-    }
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token: cleanToken,
-      type: 'email',
-    });
-
-    if (error || !data.session || !data.user) {
-      return { success: false, error: error?.message || 'Invalid or expired verification code' };
-    }
-
-    await get().initAuthSession();
-    return { success: true };
-  },
-
-  resendEmailOtp: async (email: string) => {
-    return get().requestEmailOtp(email);
-  },
-
-  signInWithOtp: async (email: string) => {
-    return get().requestEmailOtp(email);
-  },
-
-  signOut: async () => {
-    const supabase = await getSupabaseClientAsync();
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
-    const guestSnap = loadSnapshotFromStorage(GUEST_STORAGE_KEY);
-    set({
-      authSession: { user: null, token: null },
-      snapshot: guestSnap,
-      hskLevel: guestSnap.preferences.targetHskLevel || 1,
-      stats: deriveUserStats(guestSnap, guestSnap.preferences.targetHskLevel || 1),
-      syncStatus: 'idle',
-      cloudVersion: 0,
-      lastSyncTime: null,
-      lastSuccessfulSyncTime: null,
-      lastSyncAttemptTime: null,
-    });
-  },
-
-  deleteAccount: async () => {
-    const state = get();
-    const token = state.authSession.token;
-    const userId = state.authSession.user?.id;
-
-    if (!token || !userId) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    const res = await deleteCloudAccount(token);
-    if (!res.success) {
-      return { success: false, error: res.error };
-    }
-
-    try {
-      localStorage.removeItem(getUserStorageKey(userId));
-    } catch {
-      // Ignored
-    }
-
-    const guestSnap = createDefaultProgressSnapshotV4();
-    saveSnapshotToStorage(GUEST_STORAGE_KEY, guestSnap);
-
-    const supabase = await getSupabaseClientAsync();
-    if (supabase) {
-      await supabase.auth.signOut().catch(() => {});
-    }
-
-    set({
-      authSession: { user: null, token: null },
-      snapshot: guestSnap,
-      hskLevel: 1,
-      stats: deriveUserStats(guestSnap, 1),
-      syncStatus: 'idle',
-      cloudVersion: 0,
-      lastSyncTime: null,
-      lastSuccessfulSyncTime: null,
-      lastSyncAttemptTime: null,
-      toast: 'Account and associated data deleted.',
-    });
-
-    return { success: true };
-  },
-
-  performSync: async () => {
-    const state = get();
-    const nowIso = new Date().toISOString();
-    set({ lastSyncAttemptTime: nowIso });
-
-    if (!navigator.onLine) {
-      set({ syncStatus: 'offline' });
-      return;
-    }
-
-    const token = state.authSession.token;
-    if (!token || !state.authSession.user) {
-      set({ syncStatus: 'idle' });
-      return;
-    }
-
-    set({ syncStatus: 'syncing' });
-    const result = await syncCloudProgress(token, state.snapshot, state.cloudVersion);
-
-    if (result.success && result.envelope) {
-      const updatedSnap = result.mergedSnapshot || result.envelope.snapshot;
-      const userKey = getUserStorageKey(state.authSession.user.id);
-      saveSnapshotToStorage(userKey, updatedSnap);
-
-      set({
-        snapshot: updatedSnap,
-        stats: deriveUserStats(updatedSnap, state.hskLevel),
-        cloudVersion: result.envelope.version,
-        syncStatus: 'synced',
-        lastSyncTime: new Date().toLocaleTimeString(),
-        lastSuccessfulSyncTime: nowIso,
-        isDirty: false,
-      });
-    } else {
-      set({ syncStatus: 'error' });
-    }
+    commitStorageUpdate(set, updatedSnapshot, state.hskLevel);
   },
 
   exportProgressJSON: () => {
@@ -699,18 +381,17 @@ export const useStore = create<AppState>((set, get) => ({
       }
 
       const imported = val.data;
-      const state = get();
-      const activeKey = state.authSession.user ? getUserStorageKey(state.authSession.user.id) : GUEST_STORAGE_KEY;
-      saveSnapshotToStorage(activeKey, imported);
+      const targetLevel = imported.preferences.targetHskLevel || 1;
+      const saveRes = saveSnapshotToStorage(APP_STORAGE_KEY, imported);
 
       set({
         snapshot: imported,
-        hskLevel: imported.preferences.targetHskLevel || 1,
-        stats: deriveUserStats(imported, imported.preferences.targetHskLevel || 1),
-        isDirty: true,
+        hskLevel: targetLevel,
+        stats: deriveUserStats(imported, targetLevel),
+        storageStatus: saveRes.success ? 'healthy' : 'error',
+        storageError: saveRes.success ? null : (saveRes.error || 'Storage write failed'),
       });
 
-      get().performSync();
       return { success: true };
     } catch {
       return { success: false, error: 'Failed to parse JSON file' };
@@ -718,14 +399,29 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   resetLocalProgress: () => {
+    try {
+      localStorage.removeItem(APP_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_GUEST_STORAGE_KEY);
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('hanpath:user:') || key.startsWith('hanpath:guest:'))) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to clear localStorage keys during reset:', err);
+    }
+
     const init = createDefaultProgressSnapshotV4();
-    saveSnapshotToStorage(GUEST_STORAGE_KEY, init);
+    const saveRes = saveSnapshotToStorage(APP_STORAGE_KEY, init);
+
     set({
       snapshot: init,
       hskLevel: 1,
       stats: deriveUserStats(init, 1),
-      isDirty: false,
-      chatHistory: [],
+      chatHistory: INITIAL_CHAT_HISTORY,
+      storageStatus: saveRes.success ? 'healthy' : 'error',
+      storageError: saveRes.success ? null : (saveRes.error || 'Storage write failed'),
     });
   },
 }));

@@ -1,9 +1,9 @@
-import { Flame, Star, CloudCheck, CloudOff, RefreshCw } from 'lucide-react';
+import { Flame, Star, HardDrive, AlertCircle } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import logo from '../../assets/logo.png';
 
 export default function AppHeader() {
-  const { stats, hskLevel, setHSKLevel, authSession, syncStatus } = useStore();
+  const { stats, hskLevel, setHSKLevel, storageStatus, storageError } = useStore();
 
   return (
     <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-border px-4 py-3">
@@ -62,19 +62,17 @@ export default function AppHeader() {
             <span>{stats.totalXP}</span>
           </div>
 
-          {/* Cloud Sync Icon */}
+          {/* Local Storage Indicator */}
           <div
             className="hidden sm:flex items-center justify-center p-1.5 text-on-surface-variant"
-            title={authSession.user ? (syncStatus === 'syncing' ? 'Syncing...' : 'Cloud Synced') : 'Guest Mode (Local)'}
+            title={storageStatus === 'healthy' ? 'Local Storage Active' : (storageError || 'Storage Error')}
             role="status"
-            aria-label={authSession.user ? (syncStatus === 'syncing' ? 'Syncing progress' : 'Cloud progress synced') : 'Guest mode local storage'}
+            aria-label={storageStatus === 'healthy' ? 'Local storage active' : 'Storage error'}
           >
-            {syncStatus === 'synced' ? (
-              <CloudCheck className="w-5 h-5 text-green-accessible" />
-            ) : syncStatus === 'syncing' ? (
-              <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+            {storageStatus === 'healthy' ? (
+              <HardDrive className="w-4 h-4 text-green-accessible" />
             ) : (
-              <CloudOff className="w-5 h-5 text-outline" />
+              <AlertCircle className="w-4 h-4 text-red-accessible" />
             )}
           </div>
         </div>

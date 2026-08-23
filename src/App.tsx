@@ -19,7 +19,6 @@ const ChatPage = lazy(() => import('./pages/ChatPage'));
 const ReviewPage = lazy(() => import('./pages/ReviewPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const LicensesPage = lazy(() => import('./pages/LicensesPage'));
-const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
 
 import logo from './assets/logo.png';
 
@@ -45,15 +44,9 @@ function AppContent() {
     isFullScreen,
     stats,
     unlockAchievement,
-    initAuthSession,
   } = useStore();
 
   const location = useLocation();
-
-  /* Initialize Authentication session on mount */
-  useEffect(() => {
-    void initAuthSession();
-  }, [initAuthSession]);
 
   /* Fetch HSK vocab & sentences whenever target level changes */
   const loadCurriculum = useCallback(async () => {
@@ -124,7 +117,7 @@ function AppContent() {
   }
 
   const isFocusedExerciseOrStory = isFullScreen;
-  const isExcludedChromePage = location.pathname === '/licenses' || location.pathname === '/auth/callback';
+  const isExcludedChromePage = location.pathname === '/licenses';
   const showChrome = !isFocusedExerciseOrStory && !isExcludedChromePage;
 
   return (
@@ -157,7 +150,6 @@ function AppContent() {
               <Route path="/review" element={<ReviewPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/licenses" element={<LicensesPage />} />
-              <Route path="/auth/callback" element={<AuthCallbackPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

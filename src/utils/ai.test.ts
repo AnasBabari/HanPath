@@ -24,13 +24,12 @@ describe('Client callOpenRouter Utility', () => {
       [{ role: 'user', content: 'Explain word' }],
       {
         context: { mode: 'explain-word', hskLevel: 1, targetWord: '你' },
-        authToken: 'test-jwt-token',
       }
     );
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(result).toBe('你好！(nǐ hǎo)');
-    expect(capturedHeaders?.['Authorization']).toBe('Bearer test-jwt-token');
+    expect(capturedHeaders?.['Content-Type']).toBe('application/json');
 
     const parsed = JSON.parse(capturedBody!);
     expect(parsed.context.mode).toBe('explain-word');

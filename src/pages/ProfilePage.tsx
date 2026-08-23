@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   User,
@@ -15,9 +15,18 @@ import {
   Eye,
   Clock,
   Target,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { ACHIEVEMENTS } from '../data/achievements';
+import { validateProgressSnapshotV4 } from '../utils/progressSchema';
+import type { ProgressSnapshotV4 } from '../types';
+
+interface CandidateBackup {
+  jsonStr: string;
+  snapshot: ProgressSnapshotV4;
+}
 
 export default function ProfilePage() {
   const {
@@ -29,16 +38,80 @@ export default function ProfilePage() {
     resetLocalProgress,
     setRevealPinyin,
     setDailyGoalMinutes,
+    storageStatus,
+    storageError,
     setToast,
   } = useStore();
 
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetConfirmText, setResetConfirmText] = useState('');
+  const [candidateBackup, setCandidateBackup] = useState<CandidateBackup | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resetTriggerRef = useRef<HTMLButtonElement>(null);
+  const restoreTriggerRef = useRef<HTMLButtonElement>(null);
+  const resetInputRef = useRef<HTMLInputElement>(null);
+  const restoreConfirmBtnRef = useRef<HTMLButtonElement>(null);
+  const resetModalRef = useRef<HTMLDivElement>(null);
+  const restoreModalRef = useRef<HTMLDivElement>(null);
 
   const unlockedCount = ACHIEVEMENTS.filter(
     (a) => (stats.unlockedAchievements || []).includes(a.id) || a.check(stats)
   ).length;
+
+  // Accessible Focus Management & Key Handlers for Modals
+  const handleModalKeyDown = useCallback(
+    (e: KeyboardEvent, modalRef: React.RefObject<HTMLDivElement | null>, closeFn: () => void) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeFn();
+        return;
+      }
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (showResetModal) {
+      resetInputRef.current?.focus();
+      const onKeyDown = (e: KeyboardEvent) =>
+        handleModalKeyDown(e, resetModalRef, () => {
+          setShowResetModal(false);
+          resetTriggerRef.current?.focus();
+        });
+      window.addEventListener('keydown', onKeyDown);
+      return () => window.removeEventListener('keydown', onKeyDown);
+    }
+  }, [showResetModal, handleModalKeyDown]);
+
+  useEffect(() => {
+    if (candidateBackup) {
+      restoreConfirmBtnRef.current?.focus();
+      const onKeyDown = (e: KeyboardEvent) =>
+        handleModalKeyDown(e, restoreModalRef, () => {
+          setCandidateBackup(null);
+          restoreTriggerRef.current?.focus();
+        });
+      window.addEventListener('keydown', onKeyDown);
+      return () => window.removeEventListener('keydown', onKeyDown);
+    }
+  }, [candidateBackup, handleModalKeyDown]);
 
   const handleExport = () => {
     const json = exportProgressJSON();
@@ -57,15 +130,29 @@ export default function ProfilePage() {
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // File size guard (reject > 2 MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setToast('Backup file exceeds maximum allowed size (2 MB).');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (evt) => {
       const content = evt.target?.result as string;
       if (!content) return;
-      const res = importProgressJSON(content);
-      if (res.success) {
-        setToast('Progress restored successfully!');
-      } else {
-        setToast(res.error || 'Failed to restore backup.');
+      try {
+        const parsed = JSON.parse(content);
+        const val = validateProgressSnapshotV4(parsed);
+        if (val.success && val.data) {
+          // Open confirmation modal with candidate stats
+          setCandidateBackup({ jsonStr: content, snapshot: val.data });
+        } else {
+          setToast(val.error || 'Invalid backup file format.');
+        }
+      } catch {
+        setToast('Failed to parse JSON backup file.');
       }
     };
     reader.readAsText(file);
@@ -74,12 +161,25 @@ export default function ProfilePage() {
     }
   };
 
+  const handleConfirmRestore = () => {
+    if (!candidateBackup) return;
+    const res = importProgressJSON(candidateBackup.jsonStr);
+    setCandidateBackup(null);
+    if (res.success) {
+      setToast('Progress restored successfully!');
+    } else {
+      setToast(res.error || 'Failed to restore backup.');
+    }
+    restoreTriggerRef.current?.focus();
+  };
+
   const handleResetProgress = () => {
     if (resetConfirmText.trim().toLowerCase() !== 'reset') return;
     resetLocalProgress();
     setShowResetModal(false);
     setResetConfirmText('');
     setToast('Progress has been reset to starting state.');
+    resetTriggerRef.current?.focus();
   };
 
   return (
@@ -107,12 +207,23 @@ export default function ProfilePage() {
                 </p>
               </div>
 
-              {/* Local Storage Badge */}
+              {/* Local Storage Health Badge */}
               <div className="flex items-center justify-center sm:justify-start gap-2">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-accessible border border-green-200">
-                  <HardDrive className="w-4 h-4" />
-                  <span>Local Storage Active</span>
-                </div>
+                {storageStatus === 'healthy' ? (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-accessible border border-green-200">
+                    <HardDrive className="w-4 h-4" />
+                    <span>Local Storage Active</span>
+                  </div>
+                ) : (
+                  <div
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-accessible border border-red-200"
+                    title={storageError || undefined}
+                    role="alert"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Storage Error (Not Saved)</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -249,6 +360,7 @@ export default function ProfilePage() {
             </button>
 
             <button
+              ref={restoreTriggerRef}
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className="touch-target p-4 rounded-2xl border border-border hover:bg-surface-container transition-all flex items-center gap-3 text-left"
@@ -280,6 +392,7 @@ export default function ProfilePage() {
             </NavLink>
 
             <button
+              ref={resetTriggerRef}
               type="button"
               onClick={() => setShowResetModal(true)}
               className="text-xs font-bold text-red-accessible hover:underline flex items-center gap-1.5"
@@ -324,6 +437,75 @@ export default function ProfilePage() {
         </section>
       </main>
 
+      {/* Restore Progress Confirmation Modal */}
+      {candidateBackup && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="restore-dialog-title"
+        >
+          <div
+            ref={restoreModalRef}
+            className="bg-surface-card rounded-3xl p-6 max-w-md w-full border border-border shadow-2xl space-y-4"
+          >
+            <div className="flex items-center gap-3 text-primary">
+              <CheckCircle2 className="w-6 h-6" />
+              <h3 id="restore-dialog-title" className="text-xl font-bold font-display text-on-surface">
+                Replace Current Progress?
+              </h3>
+            </div>
+            <p className="text-xs text-on-surface-variant leading-relaxed">
+              This backup contains valid progress data. Restoring it will replace your active learning state on this device.
+            </p>
+
+            {/* Candidate Backup Metrics Card */}
+            <div className="bg-surface-container/70 rounded-2xl p-3.5 border border-border grid grid-cols-3 gap-2 text-center text-xs">
+              <div>
+                <div className="font-bold text-sm text-primary">
+                  {Object.keys(candidateBackup.snapshot.wordSRS || {}).length}
+                </div>
+                <div className="text-[10px] text-on-surface-variant">Words</div>
+              </div>
+              <div>
+                <div className="font-bold text-sm text-primary">
+                  {(candidateBackup.snapshot.hskLevelProgress[1]?.completedLessons?.length || 0) +
+                    (candidateBackup.snapshot.hskLevelProgress[2]?.completedLessons?.length || 0)}
+                </div>
+                <div className="text-[10px] text-on-surface-variant">Lessons</div>
+              </div>
+              <div>
+                <div className="font-bold text-sm text-primary">
+                  {candidateBackup.snapshot.stats?.totalXP || 0}
+                </div>
+                <div className="text-[10px] text-on-surface-variant">XP</div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setCandidateBackup(null);
+                  restoreTriggerRef.current?.focus();
+                }}
+                className="touch-target flex-1 py-2.5 rounded-xl border border-border font-bold text-xs text-on-surface-variant hover:bg-surface-container"
+              >
+                Cancel
+              </button>
+              <button
+                ref={restoreConfirmBtnRef}
+                type="button"
+                onClick={handleConfirmRestore}
+                className="touch-target flex-1 py-2.5 rounded-xl bg-primary text-on-primary font-bold text-xs shadow-md hover:bg-primary-dark"
+              >
+                Restore Backup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Progress Reset Confirmation Modal */}
       {showResetModal && (
         <div
@@ -332,7 +514,10 @@ export default function ProfilePage() {
           aria-modal="true"
           aria-labelledby="reset-dialog-title"
         >
-          <div className="bg-surface-card rounded-3xl p-6 max-w-md w-full border border-border shadow-2xl space-y-4">
+          <div
+            ref={resetModalRef}
+            className="bg-surface-card rounded-3xl p-6 max-w-md w-full border border-border shadow-2xl space-y-4"
+          >
             <div className="flex items-center gap-3 text-red-accessible">
               <RotateCcw className="w-6 h-6" />
               <h3 id="reset-dialog-title" className="text-xl font-bold font-display">
@@ -346,6 +531,7 @@ export default function ProfilePage() {
               Type <span className="font-mono text-red-accessible">RESET</span> below to confirm:
             </p>
             <input
+              ref={resetInputRef}
               type="text"
               value={resetConfirmText}
               onChange={(e) => setResetConfirmText(e.target.value)}
@@ -355,7 +541,10 @@ export default function ProfilePage() {
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setShowResetModal(false)}
+                onClick={() => {
+                  setShowResetModal(false);
+                  resetTriggerRef.current?.focus();
+                }}
                 className="touch-target flex-1 py-2.5 rounded-xl border border-border font-bold text-xs text-on-surface-variant"
               >
                 Cancel

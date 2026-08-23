@@ -18,9 +18,6 @@ export default defineConfig({
             if (id.includes('hanzi-writer')) {
               return 'vendor-hanzi';
             }
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase';
-            }
             if (id.includes('lucide-react')) {
               return 'vendor-icons';
             }

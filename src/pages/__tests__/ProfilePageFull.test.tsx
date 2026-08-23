@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ProfilePage from '../ProfilePage';
 import { useStore, deriveUserStats } from '../../store/useStore';
@@ -23,16 +23,8 @@ describe('ProfilePage Full Interactive Coverage', () => {
       toast: null,
       adminMode: false,
       chatHistory: [],
-      authSession: {
-        user: { id: 'test-user-id', email: 'user@example.com' },
-        token: 'valid-jwt-token',
-      },
-      syncStatus: 'synced',
-      cloudVersion: 2,
-      lastSyncTime: '12:00 PM',
-      lastSuccessfulSyncTime: '12:00 PM',
-      lastSyncAttemptTime: '12:00 PM',
-      isDirty: false,
+      storageStatus: 'healthy',
+      storageError: null,
       stats: deriveUserStats(snap, 1),
     });
   });
@@ -48,6 +40,21 @@ describe('ProfilePage Full Interactive Coverage', () => {
     expect(screen.getByText('Local Storage Active')).toBeInTheDocument();
     expect(screen.getByText('Day Streak')).toBeInTheDocument();
     expect(screen.getByText('Total XP')).toBeInTheDocument();
+  });
+
+  it('renders storage error badge when localStorage fails', () => {
+    useStore.setState({
+      storageStatus: 'error',
+      storageError: 'Quota exceeded',
+    });
+
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Storage Error (Not Saved)')).toBeInTheDocument();
   });
 
   it('triggers reset local progress confirmation text input and submission', async () => {
@@ -102,5 +109,54 @@ describe('ProfilePage Full Interactive Coverage', () => {
     fireEvent.click(hsk2Btn);
 
     expect(setHSKLevelMock).toHaveBeenCalledWith(2);
+  });
+
+  it('opens confirmation modal and restores backup on confirmation', async () => {
+    const importProgressJSONMock = vi.fn().mockReturnValue({ success: true });
+    useStore.setState({ importProgressJSON: importProgressJSONMock });
+
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    );
+
+    const candidateSnap = createDefaultProgressSnapshotV4();
+    candidateSnap.stats.totalXP = 500;
+    const file = new File([JSON.stringify(candidateSnap)], 'backup.json', { type: 'application/json' });
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    // Expect modal to appear with preview
+    expect(await screen.findByText('Replace Current Progress?')).toBeInTheDocument();
+    expect(screen.getByText('500')).toBeInTheDocument();
+
+    // Click Restore Backup
+    const restoreBtn = screen.getByRole('button', { name: 'Restore Backup' });
+    fireEvent.click(restoreBtn);
+
+    expect(importProgressJSONMock).toHaveBeenCalled();
+  });
+
+  it('rejects backup files exceeding 2 MB', async () => {
+    const setToastMock = vi.fn();
+    useStore.setState({ setToast: setToastMock });
+
+    render(
+      <MemoryRouter>
+        <ProfilePage />
+      </MemoryRouter>
+    );
+
+    const largeFile = new File(['x'.repeat(100)], 'huge.json', { type: 'application/json' });
+    Object.defineProperty(largeFile, 'size', { value: 3 * 1024 * 1024 });
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [largeFile] } });
+
+    await waitFor(() => {
+      expect(setToastMock).toHaveBeenCalledWith(expect.stringContaining('exceeds maximum allowed size'));
+    });
   });
 });
