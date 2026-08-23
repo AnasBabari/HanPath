@@ -44,4 +44,5 @@ implementation_plan.md
 temp*.json
 .tmp*
 coverage/
-
+playwright-report/
+test-results/

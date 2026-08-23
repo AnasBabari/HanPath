@@ -2,9 +2,9 @@ name: HànPath CI
 
 on:
   push:
-    branches: [main, master, 'codex/*']
+    branches: [main, 'codex/*']
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 permissions:
   contents: read
